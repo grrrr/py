@@ -158,13 +158,17 @@ py::py():
 
     FLEXT_ADDTIMER(stoptmr,tick);
 
+#ifdef FLEXT_THREADS
     // launch thread worker
     FLEXT_CALLMETHOD(threadworker);
+#endif
 }
 
 py::~py()
 {
     shouldexit = true;
+
+#ifdef FLEXT_THREADS
     qucond.Signal();
     
     if(thrcount) {
@@ -176,7 +180,7 @@ py::~py()
 		while(thrcount) Sleep(0.01f);
 		post("%s - Okay, all threads have terminated",thisName());
 	}
-
+#endif
     PyThreadState *state = PyLock();
    	Py_XDECREF(module_obj);
     PyUnlock(state);
@@ -456,10 +460,12 @@ bool py::gencall(PyObject *pmeth,PyObject *pargs)
         	Py_DECREF(pargs);
         	Py_DECREF(pmeth);
             break;
+#ifdef FLEXT_THREADS
         case 1:
             // put call into queue
             ret = qucall(pmeth,pargs);
             break;
+#endif
         case 2:
             // each call a new thread
             if(!shouldexit) {
@@ -491,6 +497,7 @@ void py::work_wrapper(void *data)
     --thrcount;
 }
 
+#ifdef FLEXT_THREADS
 bool py::qucall(PyObject *fun,PyObject *args)
 {
     if(qufifo.Push(fun,args)) {
@@ -526,6 +533,7 @@ void py::threadworker()
 
     PyUnlock(state);
 }
+#endif
 
 #if FLEXT_SYS == FLEXT_SYS_MAX
 short py::patcher_myvol(t_patcher *x)

@@ -133,14 +133,15 @@ protected:
 #endif
 
 private:
+
+	void work_wrapper(void *data); 
+
+#ifdef FLEXT_THREADS
     bool qucall(PyObject *fun,PyObject *args);
     void threadworker();
     Fifo qufifo;
     ThrCond qucond;
 
-	void work_wrapper(void *data); 
-
-#ifdef FLEXT_THREADS
 	FLEXT_THREAD_X(work_wrapper)
 #else
 	FLEXT_CALLBACK_X(work_wrapper)
@@ -194,7 +195,9 @@ protected:
 	FLEXT_CALLBACK(m_doc)
     FLEXT_CALLBACK_T(tick)
 
+#ifdef FLEXT_THREADS
     FLEXT_THREAD(threadworker)
+#endif
 };
 
 #endif
