@@ -154,9 +154,12 @@ protected:
     void threadworker();
     PyFifo qufifo;
     ThrCond qucond;
+    static PyThreadState *pythrsys;
 
     static PyThreadState *FindThreadState();
     static void FreeThreadState();
+#else
+    static PyThreadState *FindThreadState() { return NULL; }
 #endif
 
 public:
@@ -166,27 +169,35 @@ public:
 	inline void Lock() { mutex.Unlock(); }
 	inline void Unlock() { mutex.Unlock(); }
 
-    // this is respecially needed when one py/pyext object calls another one
+    // this is especially needed when one py/pyext object calls another one
     // we don't want the message to be queued, but otoh we have to avoid deadlock
     // (recursive calls can only happen in the system thread)
     static int lockcount;
 
-	inline PyThreadState *PyLock() 
+	inline PyThreadState *PyLock(PyThreadState *st = FindThreadState()) 
     { 
         if(!IsSystemThread() || !lockcount++) PyEval_AcquireLock();
-	    return PyThreadState_Swap(FindThreadState());
+	    return PyThreadState_Swap(st);
+    }
+
+	inline PyThreadState *PyLockSys() 
+    { 
+        if(!lockcount++) PyEval_AcquireLock();
+	    return PyThreadState_Swap(pythrsys);
     }
 
 	inline void PyUnlock(PyThreadState *st) 
     {
-        PyThreadState_Swap(st);
-        if(!IsSystemThread() || !--lockcount) PyEval_ReleaseLock();
+        PyThreadState *old = PyThreadState_Swap(st);
+        if(old != pythrsys || !--lockcount) PyEval_ReleaseLock();
     }
+
 #else
 	inline void Lock() {}
 	inline void Unlock() {}
 
-	inline PyThreadState *PyLock() { return NULL; }
+	inline PyThreadState *PyLock(PyThreadState *) { return NULL; }
+	inline PyThreadState *PyLockSys() { return NULL; }
 	inline void PyUnlock(PyThreadState *st) {}
 #endif
 

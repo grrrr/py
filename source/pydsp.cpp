@@ -122,10 +122,11 @@ bool pydsp::CbDsp()
 {
     if(CntInSig() || CntOutSig())
     {
+       	PyThreadState *state = PyLockSys();
+
         NewBuffers(true);
 
         if(dspfun) {
-        	PyThreadState *state = PyLock();
 //            Py_INCREF(emptytuple);
             PyObject *ret = PyObject_Call(dspfun,emptytuple,NULL);
 //            Py_DECREF(emptytuple);
@@ -138,8 +139,8 @@ bool pydsp::CbDsp()
                 PyErr_Clear();
 #endif   
             }
-            PyUnlock(state);
         }
+        PyUnlock(state);
         return true;
     }
     else
@@ -150,7 +151,7 @@ bool pydsp::CbDsp()
 void pydsp::CbSignal()
 {
     if(sigfun) {
-      	PyThreadState *state = PyLock();
+      	PyThreadState *state = PyLockSys();
 //        Py_INCREF(emptytuple);
         PyObject *ret = PyObject_Call(sigfun,emptytuple,NULL);
 //        Py_DECREF(emptytuple);

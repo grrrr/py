@@ -133,7 +133,7 @@ pyobj::pyobj(int argc,const t_atom *argv):
     FLEXT_CALLMETHOD(threadworker);
 #endif
 
-	PyThreadState *state = PyLock();
+	PyThreadState *state = PyLockSys();
 
 	if(argc > 2) 
 		SetArgs(argc-2,argv+2);
@@ -188,7 +188,7 @@ pyobj::pyobj(int argc,const t_atom *argv):
 
 pyobj::~pyobj() 
 {
-	PyThreadState *state = PyLock();
+	PyThreadState *state = PyLockSys();
 	Unregister("_py");
 	PyUnlock(state);
 }
@@ -208,7 +208,7 @@ bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 
 void pyobj::m_reload()
 {
-	PyThreadState *state = PyLock();
+	PyThreadState *state = PyLockSys();
 
 	Unregister("_py");
 
@@ -222,7 +222,7 @@ void pyobj::m_reload()
 
 void pyobj::m_reload_(int argc,const t_atom *argv)
 {
-	PyThreadState *state = PyLock();
+	PyThreadState *state = PyLockSys();
 	SetArgs(argc,argv);
 	PyUnlock(state);
 
@@ -231,7 +231,7 @@ void pyobj::m_reload_(int argc,const t_atom *argv)
 
 void pyobj::m_set(int argc,const t_atom *argv)
 {
-	PyThreadState *state = PyLock();
+	PyThreadState *state = PyLockSys();
 
 	int ix = 0;
 	if(argc >= 2) {

@@ -131,7 +131,7 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
 
     const t_atom *clname = NULL;
 
-    PyThreadState *state = PyLock();
+    PyThreadState *state = PyLockSys();
 
 	// init script module
 	if(argc > apre) {
@@ -188,7 +188,7 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
 
 bool pyext::Init()
 {
-	PyThreadState *state = PyLock();
+	PyThreadState *state = PyLockSys();
 
 	if(methname) {
 		MakeInstance();
@@ -215,7 +215,7 @@ void pyext::Exit()
 { 
     pybase::Exit(); // exit threads
 
-	PyThreadState *state = PyLock();
+	PyThreadState *state = PyLockSys();
     DoExit();
     Unregister("_pyext");
 	UnimportModule();
@@ -381,7 +381,7 @@ void pyext::Reload()
 
 void pyext::m_reload()
 {
-	PyThreadState *state = PyLock();
+	PyThreadState *state = PyLockSys();
 
 	Unregister("_pyext"); // self
 
@@ -403,7 +403,7 @@ void pyext::m_reload_(int argc,const t_atom *argv)
 
 void pyext::m_get(const t_symbol *s)
 {
-    PyThreadState *state = PyLock();
+    PyThreadState *state = PyLockSys();
 
 	PyObject *pvar  = PyObject_GetAttrString(pyobj,const_cast<char *>(GetString(s))); /* fetch bound method */
 	if(!pvar) {
@@ -431,7 +431,7 @@ void pyext::m_get(const t_symbol *s)
 
 void pyext::m_set(int argc,const t_atom *argv)
 {
-    PyThreadState *state = PyLock();
+    PyThreadState *state = PyLockSys();
 
     if(argc < 2 || !IsString(argv[0]))
         post("%s - Syntax: set varname arguments...",thisName());
