@@ -42,6 +42,30 @@ class gain(pyext._class):
         self._outvec(0)[:] = self._invec(0)*self.gain
 
 
+class gain2(pyext._class):
+    """More optimized version"""
+    
+    gain = 0
+
+    def _dsp(self):
+        # cache vectors
+        self.invec =self._invec(0)
+        self.outvec = self._outvec(0)
+        # initialize _signal method here for optimized version
+        if self.invec is self.outvec:
+            self._signal = self.signal1
+        else
+            self._signal = self.signal2
+
+    def signal1(self):
+        # Multiply signal vector in place
+        self.outvec *= self.gain
+        
+    def signal2(self):
+        # Multiply input vector by gain and copy to output
+        self.outvec[:] = self.invec*self.gain
+
+
 class pan(pyext._class):
     """Stereo panning"""
 

@@ -26,7 +26,7 @@ protected:
 
     virtual PyObject *GetSig(int ix,bool in);
 
-    void NewBuffers(bool update = false);
+    void NewBuffers();
     void FreeBuffers();
 
     PyObject *dspfun,*sigfun;
@@ -46,17 +46,10 @@ bool pydsp::DoInit()
     
     if(pyobj) 
 	{ 
-        NewBuffers();
-
         dspfun = PyObject_GetAttrString(pyobj,"_dsp"); // get ref
 	    if(dspfun && !PyMethod_Check(dspfun)) {
             Py_DECREF(dspfun);
 		    dspfun = NULL;
-	    }
-        sigfun = PyObject_GetAttrString(pyobj,"_signal"); // get ref
-	    if(sigfun && !PyMethod_Check(sigfun)) {
-            Py_DECREF(sigfun);
-		    sigfun = NULL;
 	    }
 	}
     return true;
@@ -72,29 +65,28 @@ void pydsp::DoExit()
 
 PyObject *NAFromBuffer(PyObject *buf,int c,int n);
 
-void pydsp::NewBuffers(bool update)
+void pydsp::NewBuffers()
 {
     int i,n = Blocksize();
     const int ins = CntInSig(),outs = CntOutSig();
     t_sample *const *insigs = InSig();
     t_sample *const *outsigs = OutSig();
 
+    // inlet/outlet count can't change so we don't have to deallocate
     if(!buffers) {
         int cnt = ins+outs;
-        if(cnt) {
-            buffers = new PyObject *[cnt];
-            memset(buffers,0,cnt*sizeof(*buffers));
-        }
+        buffers = new PyObject *[cnt];
+        memset(buffers,0,cnt*sizeof(*buffers));
     }
 
     for(i = 0; i < ins; ++i) {
-        if(update) Py_XDECREF(buffers[i]);
+        Py_XDECREF(buffers[i]);
         PyObject *b = PyBuffer_FromReadWriteMemory(insigs[i],n*sizeof(t_sample));
         buffers[i] = NAFromBuffer(b,1,n);
         Py_DECREF(b);
     }
     for(i = 0; i < outs; ++i) {
-        if(update) Py_XDECREF(buffers[ins+i]);
+        Py_XDECREF(buffers[ins+i]);
         if(i < ins && outsigs[i] == insigs[i]) {
             // same vectors - share the objects!
             buffers[ins+i] = buffers[i];
@@ -120,7 +112,7 @@ void pydsp::FreeBuffers()
 
 bool pydsp::CbDsp()
 {
-    if(CntInSig() || CntOutSig())
+    if(pyobj && (CntInSig() || CntOutSig()))
     {
        	PyThreadState *state = PyLockSys();
 
@@ -138,8 +130,19 @@ bool pydsp::CbDsp()
 #endif   
             }
         }
+
+        // do that here instead of where dspfun is initialized, so that
+        // _signal can be assigned in _dsp
+        // optimizations may be done there to assign the right _signal version
+        Py_XDECREF(sigfun);
+        sigfun = PyObject_GetAttrString(pyobj,"_signal"); // get ref
+	    if(sigfun && !PyMethod_Check(sigfun)) {
+            Py_DECREF(sigfun);
+		    sigfun = NULL;
+	    }
+
         PyUnlock(state);
-        return true;
+        return sigfun != NULL;
     }
     else
         // switch on dsp only if there are signal inlets or outlets
@@ -148,23 +151,19 @@ bool pydsp::CbDsp()
 
 void pydsp::CbSignal()
 {
-    if(sigfun) {
-      	PyThreadState *state = PyLockSys();
-        PyObject *ret = PyObject_CallObject(sigfun,NULL);
+    PyThreadState *state = PyLockSys();
+    PyObject *ret = PyObject_CallObject(sigfun,NULL);
 
-        if(ret) 
-            Py_DECREF(ret);
-        else {
+    if(ret) 
+        Py_DECREF(ret);
+    else {
 #ifdef FLEXT_DEBUG
-            PyErr_Print();
+        PyErr_Print();
 #else
-            PyErr_Clear();
+        PyErr_Clear();
 #endif   
-        }
-        PyUnlock(state);
     }
-    else
-        flext_dsp::CbSignal();
+    PyUnlock(state);
 }
 
 PyObject *pydsp::GetSig(int ix,bool in) 
