@@ -17,7 +17,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.2.0 
 #endif
 
-#define PY_VERSION "0.0.0"
+#define PY__VERSION "0.0.0"
 
 class py:
 	public flext_base
@@ -33,23 +33,23 @@ protected:
 
 	V work(const t_symbol *s,I argc,t_atom *argv); 
 	
-	virtual V m_bang() { work(sym_bang,0,NULL); }
+//	virtual V m_bang() { work(sym_bang,0,NULL); }
 	virtual V m_list(I argc,t_atom *argv) { work(sym_list,argc,argv); }
 	virtual V m_float(I argc,t_atom *argv) { work(sym_float,argc,argv); }
 	virtual V m_int(I argc,t_atom *argv) { work(sym_int,argc,argv); }
-	virtual V m_symbol(I argc,t_atom *argv) { work(sym_symbol,argc,argv); }
-	virtual V m_any(const t_symbol *s,I argc,t_atom *argv);
+//	virtual V m_symbol(I argc,t_atom *argv) { work(sym_symbol,argc,argv); }
+	virtual V m_any(const t_symbol *s,I argc,t_atom *argv) { work(s,argc,argv); }
 
     PyObject *pName,*pModule,*pDict,*pFunc;	
 
 	static I pyref;
 
 private:
-	FLEXT_CALLBACK(m_bang)
+//	FLEXT_CALLBACK(m_bang)
 	FLEXT_CALLBACK_G(m_float)
 	FLEXT_CALLBACK_G(m_list)
 	FLEXT_CALLBACK_G(m_int)
-	FLEXT_CALLBACK_G(m_symbol)
+//	FLEXT_CALLBACK_G(m_symbol)
 	FLEXT_CALLBACK_A(m_any)
 };
 
@@ -57,7 +57,7 @@ I py::pyref;
 
 V py::cb_setup(t_class *) 
 {
-	post("py %s - python script object, (C)2002 Thomas Grill",PY_VERSION);
+	post("py %s - python script object, (C)2002 Thomas Grill",PY__VERSION);
 	post("");
 
 	py::pyref = 0;
@@ -74,10 +74,10 @@ py::py(I argc,t_atom *argv):
 	add_out_anything();  
 	setup_inout();  // set up inlets and outlets
 
-	FLEXT_ADDBANG(0,m_bang);
+//	FLEXT_ADDBANG(0,m_bang);
 	FLEXT_ADDMETHOD_(0,"float",m_float);
 	FLEXT_ADDMETHOD_(0,"int",m_int);
-	FLEXT_ADDMETHOD_(0,"symbol",m_symbol);
+//	FLEXT_ADDMETHOD_(0,"symbol",m_symbol);
 	FLEXT_ADDMETHOD(0,m_list);
 	FLEXT_ADDMETHOD(0,m_any);
 
@@ -90,10 +90,11 @@ py::py(I argc,t_atom *argv):
 	else {
 		const C *scrname = get_string(argv[0]);
 
+/*
 		// script arguments
-		I margc = argc > 2?argc-2:0;
+		I i, margc = argc > 2?argc-2:0;
 		C **margv = new C *[margc];
-		for(I i = 0; i < margc; ++i) {
+		for(i = 0; i < margc; ++i) {
 			margv[i] = new C[256];
 			geta_string(argv[i+2],margv[i],255);
 		}
@@ -102,6 +103,7 @@ py::py(I argc,t_atom *argv):
 
 		for(i = 0; i < margc; ++i) delete[] margv[i];
 		delete[] margv;
+*/
 
 		C dir[1024];
 #ifdef PD
@@ -153,6 +155,7 @@ V py::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 	post("%s - no method for type %s",thisName(),get_string(s));
 }
 
+/*
 V py::m_any(const t_symbol *s,I argc,t_atom *argv)
 {
 	if(argc == 0) {
@@ -163,7 +166,7 @@ V py::m_any(const t_symbol *s,I argc,t_atom *argv)
 	else
 		m_method_(0,s,argc,argv);
 }
-
+*/
 
 V py::work(const t_symbol *s,I argc,t_atom *argv)
 {
@@ -172,9 +175,21 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 //	post("work called: inlet=%i, symbol=%s, argc=%i",inlet,s->s_name,argc);
 
 	if(pFunc && PyCallable_Check(pFunc)) {
-		pArgs = PyTuple_New(argc);
+		BL any = s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer;
+
+		pArgs = PyTuple_New(any?argc+1:argc);
 
 		I ix = 0;
+
+		if(any) {
+			pValue = PyString_FromString(get_string(s));
+
+			if(!pValue) 
+				post("%s: cannot convert method header",thisName());
+
+			/* pValue reference stolen here: */
+			PyTuple_SetItem(pArgs, ix++, pValue); 
+		}
 
 		for(I i = 0; i < argc; ++i) {
 			pValue = NULL;
@@ -182,9 +197,10 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 			if(is_float(argv[i])) pValue = PyFloat_FromDouble((D)get_float(argv[i]));
 			else if(is_int(argv[i])) pValue = PyInt_FromLong(get_int(argv[i]));
 			else if(is_symbol(argv[i])) pValue = PyString_FromString(get_string(argv[i]));
+			else if(is_pointer(argv[i])) pValue = NULL; // not handled
 
 			if(!pValue) {
-				post("%s: cannot convert argument",thisName());
+				post("%s: cannot convert argument %i",thisName(),any?i+1:i);
 				continue;
 			}
 
@@ -212,7 +228,7 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 				PyObject *arg = tpl?PyTuple_GetItem(pValue,ix):pValue;
 
 				if(PyInt_CheckExact(arg)) set_flint(ret[ix],PyInt_AsLong(arg));
-				else if(PyFloat_Check(arg)) set_float(ret[ix],PyFloat_AsDouble(arg));
+				else if(PyFloat_Check(arg)) set_float(ret[ix],(F)PyFloat_AsDouble(arg));
 				else if(PyString_Check(arg)) set_string(ret[ix],PyString_AsString(arg));
 				else {
 					post("%s: Could not convert return argument",thisName());

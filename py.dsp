@@ -91,7 +91,27 @@ LINK32=link.exe
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\pd\scr1.py
+SOURCE=.\scripts\scr1.py
+# End Source File
+# Begin Source File
+
+SOURCE=.\scripts\scr2.py
+# End Source File
+# End Group
+# Begin Group "doc"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\gpl.txt
+# End Source File
+# Begin Source File
+
+SOURCE=.\license.txt
+# End Source File
+# Begin Source File
+
+SOURCE=.\readme.txt
 # End Source File
 # End Group
 # Begin Source File
