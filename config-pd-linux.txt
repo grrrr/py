@@ -9,7 +9,7 @@ PDPATH=/usr/local/include
 FLEXTPATH=/usr/local/lib/pd/flext
 
 # what is the python version?
-PYTHONVER=2.1
+PYTHONVER=2.2
 # where are the python header files?
 PYTHONINCLUDE=/usr/include/python${PYTHONVER}
 # where is the python library file?

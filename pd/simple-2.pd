@@ -19,7 +19,7 @@ file.;
 #X msg 242 173 hello;
 #X msg 315 172 msg;
 #X msg 374 147 hello 3;
-#X text 453 123 special case: 'hello' handler doesn't like args \,
+#X text 418 172 special case: 'hello' handler doesn't like args \,
 so _anything_ is called!;
 #X connect 0 0 8 1;
 #X connect 2 0 8 0;

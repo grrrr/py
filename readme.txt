@@ -19,6 +19,31 @@ Package files:
 
 ----------------------------------------------------------------------------
 
+Goals/features of the package:
+
+Access the flexibility of the python language in PD/MaxMSP
+
+
+PD - Load it as i library with e.g. "pd -lib py -path scripts"
+Max/MSP - Wait for Windows or MacOSX version. MacOS9 doesn't want it.
+
+
+Check out the sample patches and scripts
+
+
+Description:
+
+With the py object you can load python modules and execute the functions therein.
+With the pyext you can use python classes to represent full-featured pd/Max message objects.
+Multithreading (detached methods) is supported for both objects.
+You can send messages to named objects or receive (with pyext) with Python methods.
+
+----------------------------------------------------------------------------
+
+The py/pyext package should run with Python version >= 2.1.
+It has been throughly tested with version 2.2
+
+
 The package should at least compile (and is tested) with the following compilers:
 
 pd - Windows:
@@ -35,23 +60,6 @@ Python doesn't provide a shared lib by default - static linking produces huge ex
 Ok, debian is an exception...
 
 o GCC: edit "config-pd-linux.txt" & run "sh build-pd-linux.sh" 
-
-----------------------------------------------------------------------------
-
-Goals/features of the package:
-
-Access the flexibility of the python language in PD/MaxMSP
-
-Usage:
-PD - Load it as i library with e.g. "pd -lib py", check out the sample patches and scripts
-Max/MSP - Wait for Windows or MacOSX version. MacOS9 doesn't want it.
-
-Description:
-
-With the py object you can load python modules and execute the functions therein.
-With the pyext you can use python classes to represent full-featured pd/Max message objects.
-Multithreading (detached methods) is supported for both objects.
-You can send messages to named objects or receive (with pyext) with Python methods.
 
 ----------------------------------------------------------------------------
 
@@ -73,9 +81,7 @@ Version history:
 0.0.1:
 - using flext 0.2.1
 
-
 ---------------------------------------------------------------------------
-
 
 TODO list:
 
