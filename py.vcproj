@@ -4,10 +4,7 @@
 	Version="7.10"
 	Name="py"
 	ProjectGUID="{98512688-BE2E-4C17-A7D4-92BC21DC6FFE}"
-	SccProjectName="py"
-	SccAuxPath=""
-	SccLocalPath="."
-	SccProvider="MSSCCI:Jalindi Igloo">
+	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
 			Name="Win32"/>
