@@ -12,15 +12,15 @@ NAME=py
 # where to build
 TARGDIR=./pd-linux
 
-# where to install
-INSTDIR=/usr/lib/pd/extra  ### EDIT! ###
+# where to install	### EDIT! ###
+INSTDIR=/usr/lib/pd/extra
 
-# flext stuff
-FLEXTPATH=/usr/lib/pd/flext  		### EDIT! ###
-FLEXTLIB=$(FLEXTPATH)/pd-linux/flext.a
+# flext stuff	### EDIT! ###
+FLEXTPATH=/usr/lib/pd/flext
+FLEXTLIB=$(FLEXTPATH)/flext.a
 
-# compiler+linker stuff
-INCLUDES=/usr/lib/pd/include   ### EDIT! ###
+# compiler+linker stuff	### EDIT! ###
+INCLUDES=/usr/lib/pd/include
 FLAGS=-DPD
 CFLAGS=-O6 -mpentium -g
 LIBS=m
@@ -31,7 +31,7 @@ LIBS=m
 
 # all the source files from the package
 SRCS=main.cpp 
-HDRS=main.h
+HDRS=
 
 TARGET=$(TARGDIR)/$(NAME).pd_linux
 
@@ -54,14 +54,17 @@ $(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS)) $(FLEXTLIB)
 $(INSTDIR):
 	mkdir $(INSTDIR)
 
-install: $(TARGET) $(INSTDIR) 
+install:: $(INSTDIR)
+
+install:: $(TARGET)
 	cp $^ $(INSTDIR)
-	chown root.root $(INSTDIR)/$^ 
+	chown root.root  $(patsubst %,$(INSTDIR)/%,$(notdir $^))
 
 .PHONY: clean
 clean:
 	rm -f $(TARGDIR)/*.o $(TARGET)
 	
+
 
 
 
