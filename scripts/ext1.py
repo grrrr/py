@@ -1,8 +1,8 @@
 import time,random
-from pyext import *
+import pyext
 
 # derive class from pyext.pyext
-class testcl1(pyext): 
+class testcl1(pyext.base): 
 	  
 # how many inlets and outlets?
 	_inlets = 2
@@ -31,8 +31,9 @@ class testcl1(pyext):
 		self._outlet(ix,"hula",arg)
 
 
-class testcl2(pyext):
-	_inlets=2
+class testcl2(pyext.base):
+	_inlets=3
+	_outlets=2
 
 	def _anything_1(self,arg):
 		for i in range(1,40):
@@ -41,4 +42,8 @@ class testcl2(pyext):
 			time.sleep(0.2)
 
 	def _anything_2(self,arg):
-		self._outlet(1,1234)
+		self._outlet(1,pyext._samplerate())
+		self._outlet(2,pyext._blocksize())
+
+	def _anything_3(self,arg):
+		pyext._send("send1",("hey",1,2))

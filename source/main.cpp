@@ -34,6 +34,7 @@ PyMethodDef py::func_tbl[] =
 	{ "_blocksize", py::py_blocksize, NULL,"get block size" },
 	{ "_inchannels", py::py_inchannels, NULL,"get number of audio in channels" },
 	{ "_outchannels", py::py_outchannels, NULL,"get number of audio out channels" },
+	{ "_send", py::py_send, METH_VARARGS,"get number of audio out channels" },
 	{NULL, NULL, 0, NULL}
 };
 
@@ -322,7 +323,7 @@ V py::tick(py *th)
 	else {
 		// still active threads 
 		if(!--th->stoptick) {
-				post("%s - Threads couldn't be stopped entirely - %i remaining",th->thisName(),th->thrcount);
+			post("%s - Threads couldn't be stopped entirely - %i remaining",th->thisName(),th->thrcount);
 			th->shouldexit = false;
 		}
 		else
@@ -386,5 +387,42 @@ PyObject *py::py_outchannels(PyObject *self,PyObject *args)
 	return PyLong_FromLong(ch);
 }
 
+PyObject *py::py_send(PyObject *self,PyObject *args)
+{
+    PyObject *name,*val;
+    if(!PyArg_ParseTuple(args, "OO:py_send", &name,&val)) {
+        // handle error
+		error("py/pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
+    }
+
+	if(!PyString_Check(name)) 
+		post("py/pyext - Receiver name must be a string!");
+	else {
+		const t_symbol *recv = MakeSymbol(PyString_AsString(name));
+		
+		I argc;
+		t_atom *lst = GetPyArgs(argc,val);
+		if(argc && lst) {
+			t_class **cl = (t_class **)GetThing(recv);
+			if(cl) {
+#ifdef PD
+				pd_forwardmess(cl,argc,lst);
+#else
+				#pragma message ("Send is not implemented")
+#endif
+			}
+#ifdef _DEBUG
+			else 
+				post("py/pyext - Receiver doesn't exist");
+#endif
+		}
+		else 
+			post("py/pyext - No data to send");
+		if(lst) delete[] lst;
+	}
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 
 

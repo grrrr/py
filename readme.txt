@@ -1,4 +1,4 @@
-py/pyext - python script objects for PD and MaxMSP
+pyext - python script objects for PD and MaxMSP
 
 Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -54,12 +54,12 @@ Description:
 Version history:
 
 0.1.0:
+- added class functionality for full-featured objects and renamed the merge to pyext
+- enabled threads and made everything thread-safe ... phew!
 - using flext 0.3.2
 - another bugfix for undefined function
-- added pyext for full-featured objects
-- py/pyext now get full python path
-- make external name python argv[0]
-- enabled threads and made everything thread-safe ... phew!
+- pyext now gets full python path
+- python's argv[0] is now "pyext"
 
 0.0.2:
 - fixed bug when calling script with no function defined (thanks to Ben Saylor)

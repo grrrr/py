@@ -17,10 +17,8 @@ def strlen(arg):
 
 
 def strcat(*args):   
-	print "Type",type(args)
 	s = ""
 	for si in args:
-		print "Typei",type(si)
 		s += si
 	return s
 

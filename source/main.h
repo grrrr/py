@@ -72,6 +72,7 @@ protected:
 	static PyObject *module_obj,*module_dict;
 	static PyMethodDef func_tbl[];
 
+	static PyObject *py_send(PyObject *self,PyObject *args);
 	static PyObject *py_samplerate(PyObject *self,PyObject *args);
 	static PyObject *py_blocksize(PyObject *self,PyObject *args);
 	static PyObject *py_inchannels(PyObject *self,PyObject *args);
