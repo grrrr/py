@@ -83,7 +83,7 @@ Version history:
 - ADD: Python symbol type
 - ADD: _del method in pyext-derived class can be used to clean up things on exit
 - FIX: solved py->py messaging problem with lock count instead of message queuing
-- ADD: numarray support for buffer handling
+- ADD: buffer handling with optional numarray support (if present)
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)
@@ -145,6 +145,9 @@ Version history:
 ---------------------------------------------------------------------------
 
 TODO list:
+
+bugs:
+- crashes with long Python printouts
 
 general:
 - Documentation and better example patches
