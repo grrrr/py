@@ -127,7 +127,9 @@ pyobj::pyobj(I argc,t_atom *argv):
 
 pyobj::~pyobj() 
 {
+	PY_LOCK
 	Unregister("_py");
+	PY_UNLOCK
 }
 
 

@@ -38,7 +38,8 @@ protected:
 
 	BL work(I n,const t_symbol *s,I argc,t_atom *argv); 
 
-	V m_reload(I argc,t_atom *argv);
+	V m_reload();
+	V m_reload_(I argc,t_atom *argv);
 	virtual V m_help();
 
 	const t_symbol *methname;
@@ -53,8 +54,10 @@ private:
 	BL SetClssMeth(); //I argc,t_atom *argv);
 
 	AtomList args;
+
 	virtual V Reload();
 
+	static I pyextref;
 	static PyObject *class_obj,*class_dict;
 	static PyMethodDef attr_tbl[],meth_tbl[];
 
@@ -108,7 +111,8 @@ private:
 	PyThreadState *pythr;
 
 private:
-	FLEXT_CALLBACK_V(m_reload)
+	FLEXT_CALLBACK(m_reload)
+	FLEXT_CALLBACK_V(m_reload_)
 };
 
 

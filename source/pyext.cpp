@@ -22,6 +22,7 @@ pyext *pyext::GetThis(PyObject *self)
 }
 
 
+I pyext::pyextref = 0;
 PyObject *pyext::class_obj = NULL;
 PyObject *pyext::class_dict = NULL;
 
@@ -32,7 +33,7 @@ pyext::pyext(I argc,t_atom *argv):
 { 
 	PY_LOCK
 
-	if(pyref == 1) {
+	if(!pyextref++) {
 		// register/initialize pyext base class along with module
 		class_dict = PyDict_New();
 		PyObject *className = PyString_FromString(PYEXT_CLASS);
@@ -88,10 +89,11 @@ pyext::pyext(I argc,t_atom *argv):
 		else {
 			methname = GetSymbol(argv[1]);
 		}
+
+		args(argc-2,argv+2);
 	}
 
 	if(methname) {
-		args(argc-2,argv+2);
 		SetClssMeth();
 
 		// now get number of inlets and outlets
@@ -135,7 +137,8 @@ pyext::pyext(I argc,t_atom *argv):
 	AddOutAnything(outlets);  
 	SetupInOut();  // set up inlets and outlets
 
-	FLEXT_ADDMETHOD_(0,"reload",m_reload);
+	FLEXT_ADDMETHOD_(0,"reload.",m_reload);
+	FLEXT_ADDMETHOD_(0,"reload",m_reload_);
 
 #ifdef FLEXT_THREADS
 	FLEXT_ADDMETHOD_(0,"detach",m_detach);
@@ -157,7 +160,7 @@ pyext::~pyext()
 /*
 	// Don't unregister
 
-	if(pyref == 1) {
+	if(!--pyextref) {
 		Py_XDECREF(class_obj);
 		class_obj = NULL;
 		Py_XDECREF(class_dict);
@@ -169,9 +172,9 @@ pyext::~pyext()
 
 BL pyext::SetClssMeth() //I argc,t_atom *argv)
 {
+	// pyobj should have been decref'd / cleared before!!
+	
 	if(module) {
-//		Py_XDECREF(pyobj); //pyobj = NULL;
-
 		PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(methname)));  
 		if(!pref) 
 			PyErr_Print();
@@ -201,22 +204,23 @@ BL pyext::SetClssMeth() //I argc,t_atom *argv)
 
 V pyext::Reload()
 {
+	ClearBinding();
 	Py_XDECREF(pyobj);
+	// by here, the Python class destructor should have been called!
+
+	SetArgs(0,NULL);
 	ReloadModule();
+	
 	SetClssMeth();
 }
 
 
-
-V pyext::m_reload(I argc,t_atom *argv)
+V pyext::m_reload()
 {
 	PY_LOCK
 
 	Unregister("_pyext"); // self
-	SetArgs(0,NULL);
 
-	args(argc,argv);
-	ReloadModule();
 	Reload();
 
 	Reregister("_pyext"); // the others
@@ -224,6 +228,13 @@ V pyext::m_reload(I argc,t_atom *argv)
 
 	PY_UNLOCK
 }
+
+V pyext::m_reload_(I argc,t_atom *argv)
+{
+	args(argc,argv);
+	m_reload();
+}
+
 
 
 BL pyext::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
@@ -290,7 +301,6 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *arg
 
 V pyext::work_wrapper(V *data)
 {
-//	post("WORKIN %x",GetCurrentThreadId());
 	++thrcount;
 #ifdef _DEBUG
 	if(!data) 
@@ -303,7 +313,6 @@ V pyext::work_wrapper(V *data)
 //		delete w;
 	}
 	--thrcount;
-//	post("WORKOUT %x",GetCurrentThreadId());
 }
 
 BL pyext::callwork(I n,const t_symbol *s,I argc,t_atom *argv)

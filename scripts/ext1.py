@@ -8,6 +8,12 @@ class testcl1(pyext._class):
 	_inlets = 2
 	_outlets = 2
 	
+	def __init__(self):
+		print "__INIT__1"
+
+	def __del__(self):
+		print "__DEL__1"
+
 # method for bang into inlet 1
 	def bang_1(self):
 		print "Hello"
@@ -30,9 +36,6 @@ class testcl1(pyext._class):
 	def hula_(self,ix,arg):
 		self._outlet(ix,"hula",arg)
 
-def recv2(arg):
-	print "RECV2",arg
-
 
 class testcl2(pyext._class):
 	_inlets=3
@@ -41,16 +44,52 @@ class testcl2(pyext._class):
 	recvname=""
 
 	def recv1(self,arg):
-		print "RECV1A",arg
+		print self.recvname,arg
 
 	def __init__(self,name):
-		print "__INIT__"
+		print "__INIT__2"
 		self.recvname = name
-		self._bind("recv1",self.recv1)
-		self._bind("recv2",recv2)
+		self._bind(name,self.recv1)
+#		self._bind(name,recv2)
 
-#	def __del__(self):
-#		print "__DEL__"
+	def __del__(self):
+		print "__DEL__2"
+#		self._unbind(self.recvname,testcl2.recv1)
+
+	def _anything_1(self,arg):
+		self._priority(-1)
+		for i in range(1,10):
+			if self._shouldexit: break
+			print i
+			time.sleep(0.1)
+
+	def _anything_2(self,arg):
+		self._priority(1)
+		self._send("send1",("hey",1,2))
+
+
+
+def recv_gl(arg):
+	print "GLOBAL",arg
+
+class testcl2(pyext._class):
+	_inlets=2
+	_outlets=0
+
+	recvname=""
+	sendname=""
+
+	def recv(self,arg):
+		print "CLASS",self.recvname,arg
+
+	def __init__(self,name):
+		print "__INIT__2"
+		self.recvname = name
+		self._bind(name,self.recv1)
+#		self._bind(name,recv2)
+
+	def __del__(self):
+		print "__DEL__2"
 #		self._unbind(self.recvname,testcl2.recv1)
 
 	def _anything_1(self,arg):

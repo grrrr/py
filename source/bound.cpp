@@ -10,6 +10,9 @@ void pyext::py_proxy::px_method(py_proxy *obj,const t_symbol *s,int argc,t_atom 
 
 	PyObject *args = MakePyArgs(s,argc,argv,-1,obj->self != NULL);
 	PyObject *ret = PyObject_CallObject(obj->func,args);
+	if(!ret) {
+		PyErr_Print();
+	}
 	Py_XDECREF(ret);
 
 	PY_UNLOCK
@@ -81,7 +84,7 @@ PyObject *pyext::py_unbind(PyObject *,PyObject *args)
 					pp->nxt = pn;
 				else
 					px_head = pn;
-				if(!pn) px_tail = NULL;
+				if(!pn) px_tail = pp;
 				break;
 			}
 			else pp = px;
@@ -114,7 +117,7 @@ V pyext::ClearBinding()
 				pp->nxt = pn;
 			else
 				px_head = pn;
-			if(!pn) px_tail = NULL;
+			if(!pn) px_tail = pp;
 
 			Py_DECREF(px->self);
 			if(PyMethod_Check(px->func)) Py_DECREF(px->func);
