@@ -85,7 +85,7 @@ pyext::pyext(I argc,const t_atom *argv):
 	// init script module
 	if(argc >= 1) {
 		C dir[1024];
-#ifdef PD
+#if FLEXT_SYS == FLEXT_SYS_PD
 		// add dir of current patch to path
 		strcpy(dir,GetString(canvas_getdir(thisCanvas())));
 		AddToPath(dir);
@@ -93,7 +93,7 @@ pyext::pyext(I argc,const t_atom *argv):
 		strcpy(dir,GetString(canvas_getcurrentdir()));
 		AddToPath(dir);
 #else
-		#pragma message("Adding current dir to path is not implemented")
+#pragma message("Adding current dir to path is not implemented")
 #endif
 
 		GetModulePath(GetString(argv[0]),dir,sizeof(dir));
@@ -314,7 +314,7 @@ V pyext::m_help()
 {
 	post("");
 	post("pyext %s - python script object, (C)2002 Thomas Grill",PY__VERSION);
-#ifdef _DEBUG
+#ifdef FLEXT_DEBUG
 	post("compiled on " __DATE__ " " __TIME__);
 #endif
 
@@ -351,7 +351,7 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_ato
 		else {
 			ret = PyEval_CallObject(pmeth, pargs); 
 			if (ret == NULL) // function not found resp. arguments not matching
-#if 1 //def _DEBUG
+#if 1 //def FLEXT_DEBUG
 				PyErr_Print();
 #else
 				PyErr_Clear();  
@@ -371,7 +371,7 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_ato
 V pyext::work_wrapper(V *data)
 {
 	++thrcount;
-#ifdef _DEBUG
+#ifdef FLEXT_DEBUG
 	if(!data) 
 		post("%s - no data!",thisName());
 	else

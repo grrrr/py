@@ -181,7 +181,7 @@ V py::ReloadModule()
 
 V py::GetModulePath(const C *mod,C *dir,I len)
 {
-#ifdef PD
+#if FLEXT_SYS == FLEXT_SYS_PD
 	// uarghh... pd doesn't show it's path for extra modules
 
 	C *name;
@@ -191,7 +191,9 @@ V py::GetModulePath(const C *mod,C *dir,I len)
 
 	// if dir is current working directory... name points to dir
 	if(dir == name) strcpy(dir,".");
-#elif defined(MAXMSP)
+#elif FLEXT_SYS == FLEXT_SYS_MAX
+	// how do i get the path in Max/MSP?
+#else
 	*dir = 0;
 #endif
 }

@@ -230,7 +230,6 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 		if(self && PyInstance_Check(self)) {
 			pyext *ext = GetThis(self);
 
-#ifdef PD
 			I sz = PySequence_Size(args);
 			PyObject *val;
 			BL tp = sz == 2 && PySequence_Check(PyTuple_GetItem(args,1));
@@ -245,13 +244,13 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 				t_glist *gl = ext->thisCanvas(); //canvas_getcurrent();
 			    t_class **cl = (t_pd *)gl;
 				if(cl) {
-#ifdef PD
+#if FLEXT_SYS == FLEXT_SYS_PD
 					pd_forwardmess(cl,lst->Count(),lst->Atoms());
 #else
-					#pragma message ("Send is not implemented")
+#pragma message ("Send is not implemented")
 #endif
 				}
-#ifdef _DEBUG
+#ifdef FLEXT_DEBUG
 				else
 					post("pyext - no parent canvas?!");
 #endif
@@ -262,9 +261,6 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 			if(lst) delete lst;
 
 			if(!tp) Py_DECREF(val);
-#else
-#pragma message ("Not implemented for MaxMSP")
-#endif
 		}
 	}
 

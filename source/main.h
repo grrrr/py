@@ -13,7 +13,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include <flext.h>
 #include <Python.h>
-#ifndef NT
+
+#if FLEXT_OS == FLEXT_LINUX || FLEXT_OS == FLEXT_IRIX
 #include <unistd.h>
 #endif
 

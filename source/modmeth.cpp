@@ -101,20 +101,26 @@ PyObject *py::py_blocksize(PyObject *self,PyObject *args)
 
 PyObject *py::py_inchannels(PyObject *self,PyObject *args)
 {
-#ifdef PD
+#if FLEXT_SYS == FLEXT_SYS_PD
 	I ch = sys_get_inchannels();
-#else // MAXMSP
+#elif FLEXT_SYS == FLEXT_SYS_MAX
 	I ch = sys_getch(); // not functioning
+#else
+#pragma message("Not implemented!")
+	ch = 0;
 #endif
 	return PyLong_FromLong(ch);
 }
 
 PyObject *py::py_outchannels(PyObject *self,PyObject *args)
 {
-#ifdef PD
+#if FLEXT_SYS == FLEXT_SYS_PD
 	I ch = sys_get_outchannels();
-#else // MAXMSP
+#elif FLEXT_SYS == FLEXT_SYS_MAX
 	I ch = sys_getch(); // not functioning
+#else
+#pragma message("Not implemented!")
+	ch = 0;
 #endif
 	return PyLong_FromLong(ch);
 }
@@ -139,13 +145,13 @@ PyObject *py::py_send(PyObject *,PyObject *args)
 //				t_class **cl = (t_class **)GetBound(recv);
 				t_class **cl = (t_class **)recv->s_thing;
 				if(cl) {
-#ifdef PD
+#if FLEXT_SYS == FLEXT_SYS_PD
 					pd_forwardmess(cl,lst->Count(),lst->Atoms());
 #else
-					#pragma message ("Send is not implemented")
+#pragma message ("Send is not implemented")
 #endif
 				}
-#ifdef _DEBUG
+#ifdef FLEXT_DEBUG
 				else 
 					post("py/pyext - Receiver doesn't exist");
 #endif

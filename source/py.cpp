@@ -218,7 +218,7 @@ V pyobj::m_help()
 {
 	post("");
 	post("py %s - python script object, (C)2002 Thomas Grill",PY__VERSION);
-#ifdef _DEBUG
+#ifdef FLEXT_DEBUG
 	post("compiled on " __DATE__ " " __TIME__);
 #endif
 
