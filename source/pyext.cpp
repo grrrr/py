@@ -244,7 +244,9 @@ void pyext::DoExit()
     	Py_DECREF(pyobj);  // opposite of SetClssMeth
     }
 
-    if(gcrun) collect();
+    if(gcrun && !collect()) {
+        post("%s - Unloading: Object is still referenced",thisName());
+    }
 }
 
 void pyext::InitInOut(int &inl,int &outl)

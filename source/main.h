@@ -132,7 +132,7 @@ protected:
     static short patcher_myvol(t_patcher *x);
 #endif
 
-    static void collect();
+    static bool collect();
 
 private:
 

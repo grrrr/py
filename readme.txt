@@ -150,8 +150,9 @@ general:
 
 features:
 - enable multiple interpreters? ( -> not possible within one thread)
+- options to fully detach a script (included initialization and finalization)
 - stop individual threads
 - support named (keyword) arguments (like attributes for messages)
 
 tests:
-- check for python threading support
+- compile-time check for python threading support

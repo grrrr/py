@@ -556,7 +556,7 @@ short py::patcher_myvol(t_patcher *x)
 }
 #endif
 
-void py::collect()
+bool py::collect()
 {
     if(gcollect) {
         PyObject *args = PyTuple_New(0);
@@ -568,8 +568,10 @@ void py::collect()
             if(refs) post("py/pyext - Garbage collector reports %i unreachable objects",refs);
 #endif
             Py_DECREF(ret);
+            return false;
         }
     }
+    return true;
 }
 
 Fifo::~Fifo()
