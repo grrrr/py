@@ -1,4 +1,4 @@
-import pyext
+import pyext,thread
 
 # derive class from pyext.base
 
@@ -31,7 +31,6 @@ class testcl1(pyext.base):
 # method for tag "hula" into any inlet
 	def _hula_(self,ix,arg):
 		self._outlet(ix,"hula",arg)
-
 
 
 class testcl2(pyext.base):
