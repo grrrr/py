@@ -1,7 +1,9 @@
 NAME=py
 
 BUILDTYPE=multi
+
 BUILDDIR=build
+
 
 SRCDIR=source
 
