@@ -1,0 +1,72 @@
+# py/pyext - python script objects for PD and Max/MSP
+# Copyright (C) 2002 Thomas Grill (xovo@gmx.net)
+#
+# Makefile for gcc @ darwin (OSX)
+#
+# usage:
+# to build run "make -f makefile.pd-darwin"
+# to install (as root), do "make -f makefile.pd-darwin install"
+#
+
+CONFIG=config-pd-darwin.txt
+
+include ${CONFIG}
+
+FLEXTLIB=${FLEXTPATH}/flext_t.a
+
+# compiler+linker stuff	
+INCLUDES=${PDPATH} ${FLEXTPATH} ${PYTHONINCLUDE}
+LIBPATH= ${PYTHONLIB}
+FLAGS=-DPD -Dunix -DMACOSX -DFLEXT_THREADS
+CFLAGS=-O6 -Wno-unused -Wno-parentheses -Wno-switch -Wstrict-prototypes # -maltivec
+#CFLAGS=-g
+LIBS=m python${PYTHONVER}
+LDFLAGS=-bundle -bundle_loader ${PD}
+
+# ---------------------------------------------
+# the rest can stay untouched
+# ----------------------------------------------
+NAME=py
+
+# all the source files from the package
+SRCS=main.cpp py.cpp pyext.cpp bound.cpp clmeth.cpp modmeth.cpp pyargs.cpp register.cpp
+HDRS=main.h pyext.h
+
+
+DIR=source
+
+TARGET=$(TARGDIR)/$(NAME).pd_darwin
+MAKEFILE=makefile.pd-darwin
+
+# default target
+all: $(TARGDIR) $(TARGET)
+
+$(patsubst %,$(DIR)/%,$(SRCS)): $(patsubst %,$(DIR)/%,$(HDRS)) $(FLEXTLIB) $(MAKEFILE) $(CONFIG)
+	touch $@
+
+$(TARGDIR):
+	mkdir $(TARGDIR)
+
+$(TARGDIR)/%.o : $(DIR)/%.cpp
+	$(CXX) -c $(CFLAGS) $(FLAGS) $(patsubst %,-I%,$(INCLUDES)) $< -o $@
+
+$(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS)) $(FLEXTLIB) 
+	$(CXX) $(LDFLAGS) $^ $(patsubst %,-L%,$(LIBPATH)) $(patsubst %,-l%,$(LIBS)) -o $@ 
+	chmod 755 $@
+
+$(INSTPATH):
+	mkdir $(INSTPATH)
+
+install:: $(INSTPATH)
+
+install:: $(TARGET)
+	cp $^ $(INSTPATH)
+#	chown root.root  $(patsubst %,$(INSTPATH)/%,$(notdir $^))
+#	chmod 755 $(patsubst %,$(INSTPATH)/%,$(notdir $^))
+
+.PHONY: clean
+
+clean:
+	rm -f $(TARGDIR)/*.o $(TARGET)
+	
+

@@ -1,0 +1,31 @@
+# py/pyext - python script objects for PD and Max/MSP
+# Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
+#
+# your c++ compiler (normally g++)
+CXX=g++
+
+# where are the PD header files?
+# leave it blank if it is a system directory (like /usr/local/include), 
+# 	since gcc 3.2 complains about it
+PDPATH=/usr/local/pd/src
+
+# where is the PD executable?
+PD=/usr/local/pd/bin/pd
+
+# where do the flext libraries reside?
+FLEXTPATH=/usr/local/pd/flext
+
+# what is the python version?
+PYTHONVER=2.2
+# where are the python header files?
+PYTHONINCLUDE=/usr/include/python${PYTHONVER}
+# where is the python library file?
+PYTHONLIB=/Volumes/Daten/Prog/packs/Python-2.2.2
+
+# where should flext libraries be built?
+TARGDIR=./pd-darwin
+# where should the external be installed?
+# (leave blank to omit installation)
+INSTPATH=/usr/local/pd/extra
+
+
