@@ -1,9 +1,6 @@
 NAME=py
 
-BUILDCLASS=ext
-BUILDMODE=release
 BUILDTYPE=multi
-
 BUILDDIR=build
 
 SRCDIR=source
