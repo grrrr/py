@@ -164,7 +164,6 @@ pyext::pyext(I argc,t_atom *argv):
 	
 	AddInAnything(1+inlets);  
 	AddOutAnything(outlets);  
-	SetupInOut();  // set up inlets and outlets
 
 	FLEXT_ADDMETHOD_(0,"reload.",m_reload);
 	FLEXT_ADDMETHOD_(0,"reload",m_reload_);

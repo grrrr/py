@@ -79,7 +79,6 @@ pyobj::pyobj(I argc,t_atom *argv):
 
 	AddInAnything(2);  
 	AddOutAnything();  
-	SetupInOut();  // set up inlets and outlets
 
 	FLEXT_ADDBANG(0,m_bang);
 	FLEXT_ADDMETHOD_(0,"reload",m_reload_);
