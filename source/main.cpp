@@ -13,7 +13,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 static PyMethodDef StdOut_Methods[] =
 {
-	{ "write", py::StdOut_Write, 1 },
+	{ "write", pybase::StdOut_Write, 1 },
 	{ NULL,    NULL,           }  
 };
 
@@ -27,9 +27,9 @@ static PyInterpreterState *pymain = NULL;
 static PyThreadState *pythrmain = NULL;
 static PyThrMap pythrmap;
 
-int py::lockcount = 0;
+int pybase::lockcount = 0;
 
-PyThreadState *py::FindThreadState()
+PyThreadState *pybase::FindThreadState()
 {
     flext::thrid_t id = flext::GetThreadId();
 	PyThrMap::iterator it = pythrmap.find(id);
@@ -43,7 +43,7 @@ PyThreadState *py::FindThreadState()
         return it->second;
 }
 
-void py::FreeThreadState()
+void pybase::FreeThreadState()
 {
     flext::thrid_t id = flext::GetThreadId();
 	PyThrMap::iterator it = pythrmap.find(id);
@@ -62,7 +62,7 @@ void py::FreeThreadState()
 void initsymbol();
 void initsamplebuffer();
 
-void py::lib_setup()
+void pybase::lib_setup()
 {
 	post("");
 	post("------------------------------------------------");
@@ -151,24 +151,14 @@ void py::lib_setup()
     post("");
 }
 
-FLEXT_LIB_SETUP(py,py::lib_setup)
+FLEXT_LIB_SETUP(py,pybase::lib_setup)
 
 
-PyObject *py::module_obj = NULL;
-PyObject *py::module_dict = NULL;
+PyObject *pybase::module_obj = NULL;
+PyObject *pybase::module_dict = NULL;
 
 
-void py::Setup(t_classid c)
-{
-	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
-	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
-#ifdef FLEXT_THREADS
-	FLEXT_CADDATTR_VAR1(c,"detach",detach);
-	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
-#endif
-}
-
-py::py()
+pybase::pybase()
     : module(NULL),detach(0)
 #ifdef FLEXT_THREADS
     , shouldexit(false),thrcount(0),stoptick(0)
@@ -177,23 +167,16 @@ py::py()
     PyThreadState *state = PyLock();
 	Py_INCREF(module_obj);
     PyUnlock(state);
-
-#ifdef FLEXT_THREADS
-    FLEXT_ADDTIMER(stoptmr,tick);
-
-    // launch thread worker
-    FLEXT_CALLMETHOD(threadworker);
-#endif
 }
 
-py::~py()
+pybase::~pybase()
 {
     PyThreadState *state = PyLock();
    	Py_XDECREF(module_obj);
     PyUnlock(state);
 }
 
-void py::Exit()
+void pybase::Exit()
 {
 #ifdef FLEXT_THREADS
     shouldexit = true;
@@ -204,16 +187,15 @@ void py::Exit()
             Sleep(PY_STOP_TICK*0.001f);
         if(thrcount) {
 		    // Wait forever
-		    post("%s - Waiting for thread termination!",thisName());
+		    post("py/pyext - Waiting for thread termination!");
 		    while(thrcount) Sleep(PY_STOP_TICK*0.001f);
-		    post("%s - Okay, all threads have terminated",thisName());
+		    post("py/pyext - Okay, all threads have terminated");
         }
 	}
 #endif
-    flext_base::Exit();
 }
 
-void py::GetDir(PyObject *obj,AtomList &lst)
+void pybase::GetDir(PyObject *obj,AtomList &lst)
 {
     if(obj) {
         PyThreadState *state = PyLock();
@@ -227,7 +209,7 @@ void py::GetDir(PyObject *obj,AtomList &lst)
                 lst = *l; delete l; 
             }
             else
-                post("%s - %s: List could not be created",thisName(),GetString(thisTag()));
+                post("py/pyext - Argument list could not be created");
             Py_DECREF(pvar);
         }
 
@@ -235,15 +217,15 @@ void py::GetDir(PyObject *obj,AtomList &lst)
     }
 }
 
-void py::m__dir(PyObject *obj)
+void pybase::m__dir(PyObject *obj)
 {
     AtomList lst;
     GetDir(obj,lst);
     // dump dir to attribute outlet
-    ToOutAnything(GetOutAttr(),thisTag(),lst.Count(),lst.Atoms());
+    DumpOut(NULL,lst.Count(),lst.Atoms());
 }
 
-void py::m__doc(PyObject *obj)
+void pybase::m__doc(PyObject *obj)
 {
     if(obj) {
         PyThreadState *state = PyLock();
@@ -279,19 +261,19 @@ void py::m__doc(PyObject *obj)
 	}
 }
 
-void py::m_click()
+void pybase::OpenEditor()
 {
     // this should once open the editor....
 }
 
-void py::SetArgs(int argc,const t_atom *argv)
+void pybase::SetArgs(int argc,const t_atom *argv)
 {
 	// script arguments
 	char **sargv = new char *[argc+1];
 	for(int i = 0; i <= argc; ++i) {
 		sargv[i] = new char[256];
 		if(!i) 
-			strcpy(sargv[i],thisName());
+			strcpy(sargv[i],"py/pyext");
 		else
 			GetAString(argv[i-1],sargv[i],255);
 	}
@@ -303,7 +285,7 @@ void py::SetArgs(int argc,const t_atom *argv)
 	delete[] sargv;
 }
 
-void py::ImportModule(const char *name)
+void pybase::ImportModule(const char *name)
 {
 	if(!name) return;
 
@@ -316,7 +298,7 @@ void py::ImportModule(const char *name)
 		dict = PyModule_GetDict(module);
 }
 
-void py::UnimportModule()
+void pybase::UnimportModule()
 {
 	if(!module) return;
 
@@ -332,7 +314,7 @@ void py::UnimportModule()
 	dict = NULL;
 }
 
-void py::ReloadModule()
+void pybase::ReloadModule()
 {
 	if(module) {
 		PyObject *newmod = PyImport_ReloadModule(module);
@@ -348,10 +330,10 @@ void py::ReloadModule()
 		}
 	}
 	else 
-		post("%s - No module to reload",thisName());
+		post("py/pyext - No module to reload");
 }
 
-void py::GetModulePath(const char *mod,char *dir,int len)
+void pybase::GetModulePath(const char *mod,char *dir,int len)
 {
 #if FLEXT_SYS == FLEXT_SYS_PD
 	// uarghh... pd doesn't show its path for extra modules
@@ -394,7 +376,7 @@ void py::GetModulePath(const char *mod,char *dir,int len)
 #endif
 }
 
-void py::AddToPath(const char *dir)
+void pybase::AddToPath(const char *dir)
 {
 	if(dir && *dir) {
 		PyObject *pobj = PySys_GetObject("path");
@@ -410,12 +392,12 @@ void py::AddToPath(const char *dir)
 
 static const t_symbol *sym_response = flext::MakeSymbol("response");
 
-void py::Respond(bool b) 
+void pybase::Respond(bool b) 
 { 
     if(respond) { 
         t_atom a; 
         SetBool(a,b); 
-        ToOutAnything(GetOutAttr(),sym_response,1,&a); 
+        DumpOut(sym_response,1,&a); 
     } 
 }
 
@@ -424,7 +406,7 @@ void py::Respond(bool b)
 static PyObject *output = NULL;
 
 // post to the console
-PyObject* py::StdOut_Write(PyObject* self, PyObject* args)
+PyObject* pybase::StdOut_Write(PyObject* self, PyObject* args)
 {
     // should always be a tuple
     FLEXT_ASSERT(PyTuple_Check(args));
@@ -475,7 +457,7 @@ public:
     PyObject *fun,*args;
 };
 
-bool py::gencall(PyObject *pmeth,PyObject *pargs)
+bool pybase::gencall(PyObject *pmeth,PyObject *pargs)
 {
 	bool ret = false;
 
@@ -494,18 +476,18 @@ bool py::gencall(PyObject *pmeth,PyObject *pargs)
         case 2:
             // each call a new thread
             if(!shouldexit) {
-			    ret = FLEXT_CALLMETHOD_X(work_wrapper,new work_data(pmeth,pargs));
-			    if(!ret) post("%s - Failed to launch thread!",thisName());
+			    ret = thrcall(new work_data(pmeth,pargs));
+			    if(!ret) post("py/pyext - Failed to launch thread!");
 		    }
             break;
 #endif
         default:
-            post("%s - Unknown detach mode",thisName());
+            post("py/pyext - Unknown detach mode");
     }
     return ret;
 }
 
-void py::work_wrapper(void *data)
+void pybase::work_wrapper(void *data)
 {
     FLEXT_ASSERT(data);
 
@@ -528,7 +510,7 @@ void py::work_wrapper(void *data)
 }
 
 #ifdef FLEXT_THREADS
-bool py::qucall(PyObject *fun,PyObject *args)
+bool pybase::qucall(PyObject *fun,PyObject *args)
 {
     FifoEl *el = qufifo.New();
     el->Set(fun,args);
@@ -537,7 +519,7 @@ bool py::qucall(PyObject *fun,PyObject *args)
     return true;
 }
 
-void py::threadworker()
+void pybase::threadworker()
 {
     FifoEl *el;
     PyThreadState *state;
@@ -573,7 +555,7 @@ void py::threadworker()
 #endif
 
 #if FLEXT_SYS == FLEXT_SYS_MAX
-short py::patcher_myvol(t_patcher *x)
+short pybase::patcher_myvol(t_patcher *x)
 {
     t_box *w;
     if (x->p_vol)
@@ -585,7 +567,7 @@ short py::patcher_myvol(t_patcher *x)
 }
 #endif
 
-bool py::collect()
+bool pybase::collect()
 {
     if(gcollect) {
         PyObject *args = PyTuple_New(0);

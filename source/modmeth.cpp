@@ -12,24 +12,24 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 
 // function table for module
-PyMethodDef py::func_tbl[] = 
+PyMethodDef pybase::func_tbl[] = 
 {
-	{ "_send", py::py_send, METH_VARARGS,"Send message to a named object" },
+	{ "_send", pybase::py_send, METH_VARARGS,"Send message to a named object" },
 #ifdef FLEXT_THREADS
-	{ "_priority", py::py_priority, METH_VARARGS,"Set priority of current thread" },
+	{ "_priority", pybase::py_priority, METH_VARARGS,"Set priority of current thread" },
 #endif
 
-	{ "_samplerate", py::py_samplerate, METH_NOARGS,"Get system sample rate" },
-	{ "_blocksize", py::py_blocksize, METH_NOARGS,"Get system block size" },
+	{ "_samplerate", pybase::py_samplerate, METH_NOARGS,"Get system sample rate" },
+	{ "_blocksize", pybase::py_blocksize, METH_NOARGS,"Get system block size" },
 
 #if FLEXT_SYS == FLEXT_SYS_PD
-	{ "_getvalue", py::py_getvalue, METH_VARARGS,"Get value of a 'value' object" },
-	{ "_setvalue", py::py_setvalue, METH_VARARGS,"Set value of a 'value' object" },
+	{ "_getvalue", pybase::py_getvalue, METH_VARARGS,"Get value of a 'value' object" },
+	{ "_setvalue", pybase::py_setvalue, METH_VARARGS,"Set value of a 'value' object" },
 #endif
 	{NULL, NULL, 0, NULL} // sentinel
 };
 
-const char *py::py_doc =
+const char *pybase::py_doc =
 	"py/pyext - python external object for PD and Max/MSP, (C)2002-2005 Thomas Grill\n"
 	"\n"
 	"This is the pyext module. Available function:\n"
@@ -45,7 +45,7 @@ const char *py::py_doc =
 
 
 #ifdef FLEXT_THREADS
-void py::tick(void *)
+void pybase::tick(void *)
 {
 	Lock();
 
@@ -57,7 +57,7 @@ void py::tick(void *)
 	else {
 		// still active threads 
 		if(!--stoptick) {
-			post("%s - Threads couldn't be stopped entirely - %i remaining",thisName(),thrcount);
+			post("py/pyext - Threads couldn't be stopped entirely - %i remaining",thrcount);
 			shouldexit = false;
 		}
 		else
@@ -69,7 +69,7 @@ void py::tick(void *)
 }
 #endif
 
-void py::m_stop(int argc,const t_atom *argv)
+void pybase::m_stop(int argc,const t_atom *argv)
 {
 #ifdef FLEXT_THREADS
 	if(thrcount) {
@@ -93,17 +93,17 @@ void py::m_stop(int argc,const t_atom *argv)
 #endif		
 }
 
-PyObject *py::py_samplerate(PyObject *self,PyObject *args)
+PyObject *pybase::py_samplerate(PyObject *self,PyObject *args)
 {
 	return PyFloat_FromDouble(sys_getsr());
 }
 
-PyObject *py::py_blocksize(PyObject *self,PyObject *args)
+PyObject *pybase::py_blocksize(PyObject *self,PyObject *args)
 {
 	return PyLong_FromLong(sys_getblksize());
 }
 
-PyObject *py::py_send(PyObject *,PyObject *args)
+PyObject *pybase::py_send(PyObject *,PyObject *args)
 {
     // should always be a tuple
     FLEXT_ASSERT(PyTuple_Check(args));
@@ -153,7 +153,7 @@ PyObject *py::py_send(PyObject *,PyObject *args)
 }
 
 #ifdef FLEXT_THREADS
-PyObject *py::py_priority(PyObject *self,PyObject *args)
+PyObject *pybase::py_priority(PyObject *self,PyObject *args)
 {
 	int val;
     if(!PyArg_ParseTuple(args, "i:py_priority", &val)) {
@@ -168,7 +168,7 @@ PyObject *py::py_priority(PyObject *self,PyObject *args)
 #endif
 
 #if FLEXT_SYS == FLEXT_SYS_PD
-PyObject *py::py_getvalue(PyObject *self,PyObject *args)
+PyObject *pybase::py_getvalue(PyObject *self,PyObject *args)
 {
     FLEXT_ASSERT(PyTuple_Check(args));
 
@@ -195,7 +195,7 @@ PyObject *py::py_getvalue(PyObject *self,PyObject *args)
     return ret;
 }
 
-PyObject *py::py_setvalue(PyObject *self,PyObject *args)
+PyObject *pybase::py_setvalue(PyObject *self,PyObject *args)
 {
     FLEXT_ASSERT(PyTuple_Check(args));
 

@@ -657,7 +657,7 @@ void initsamplebuffer()
     import_libnumarray();
     if(PyErr_Occurred())
         // catch import error
-        PyErr_Print();
+        PyErr_Clear();
     else {
         // numarray support ok
         nasupport = true;

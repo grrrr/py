@@ -62,7 +62,7 @@ struct bounddata
 bool pyext::boundmeth(flext_base *th,t_symbol *sym,int argc,t_atom *argv,void *data)
 {
     bounddata *obj = (bounddata *)data;
-    py *pyth = static_cast<py *>(th);
+    pyext *pyth = static_cast<pyext *>(th);
 
 	PyThreadState *state = pyth->PyLock();
 
@@ -92,7 +92,7 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 		post("py/pyext - Wrong argument types!");
     }
 	else {
-        py *th = GetThis(self);
+        pyext *th = GetThis(self);
         FLEXT_ASSERT(th);
 
 		const t_symbol *recv = pyObject_AsSymbol(name);
@@ -134,7 +134,7 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 		post("py/pyext - Wrong argument types!");
     }
 	else {
-        py *th = GetThis(self);
+        pyext *th = GetThis(self);
         FLEXT_ASSERT(th);
 
 		const t_symbol *recv = pyObject_AsSymbol(name);

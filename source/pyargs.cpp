@@ -29,7 +29,7 @@ static PyObject *MakePyAtom(const t_atom &at)
     return NULL;
 }
 
-PyObject *py::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet,bool withself)
+PyObject *pybase::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet,bool withself)
 {
 	PyObject *pArgs;
 
@@ -84,7 +84,7 @@ PyObject *py::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet
 	return pArgs;
 }
 
-flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
+flext::AtomList *pybase::GetPyArgs(PyObject *pValue,PyObject **self)
 {
 	if(pValue == NULL) return NULL; 
 	AtomList *ret = NULL;

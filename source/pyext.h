@@ -13,14 +13,15 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
-class pyext:
-	public py
+class pyext
+    : public pybase
+    , public flext_dsp
 {
-	FLEXT_HEADER_S(pyext,py,Setup)
+	FLEXT_HEADER_S(pyext,flext_dsp,Setup)
 
 public:
 	pyext(int argc,const t_atom *argv);
-	~pyext();
+	virtual ~pyext();
 
 	static PyObject *pyext__doc__(PyObject *,PyObject *args);
 	static PyObject *pyext__init__(PyObject *,PyObject *args);
@@ -42,9 +43,17 @@ public:
 	int Outlets() const { return outlets; }
 
 protected:
-	virtual bool m_method_(int n,const t_symbol *s,int argc,const t_atom *argv);
+
+    virtual void Exit();
+
+    virtual bool CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv);
+    virtual void CbClick();
+
+    virtual void DumpOut(const t_symbol *sym,int argc,const t_atom *argv);
 
 	bool work(int n,const t_symbol *s,int argc,const t_atom *argv); 
+
+    void m_help();
 
 	void m_reload();
 	void m_reload_(int argc,const t_atom *argv);
@@ -52,7 +61,6 @@ protected:
     void m_dir_() { m__dir(pyobj); }
     void mg_dir_(AtomList &lst) { GetDir(pyobj,lst); }
     void m_doc_() { m__doc(((PyInstanceObject *)pyobj)->in_class->cl_dict); }
-	virtual void m_help();
 
 	void m_get(const t_symbol *s);
 	void m_set(int argc,const t_atom *argv);
@@ -89,6 +97,7 @@ private:
 
 	bool call(const char *meth,int inlet,const t_symbol *s,int argc,const t_atom *argv);
 
+    virtual bool thrcall(void *data);
     virtual bool callpy(PyObject *fun,PyObject *args);
     static bool stcallpy(PyObject *fun,PyObject *args);
 
@@ -96,7 +105,9 @@ private:
 
 private:
     static bool boundmeth(flext_base *,t_symbol *sym,int argc,t_atom *argv,void *data);
-    
+
+    FLEXT_CALLBACK(m_help)
+
     FLEXT_CALLBACK(m_reload)
 	FLEXT_CALLBACK_V(m_reload_)
 	FLEXT_CALLBACK(m_dir_)
@@ -108,6 +119,22 @@ private:
 
 	FLEXT_CALLBACK_S(m_get)
 	FLEXT_CALLBACK_V(m_set)
+
+	// callbacks
+	FLEXT_ATTRVAR_I(detach)
+	FLEXT_ATTRVAR_B(respond)
+	FLEXT_CALLBACK_V(m_stop)
+	FLEXT_CALLBACK(m_dir)
+	FLEXT_CALLGET_V(mg_dir)
+	FLEXT_CALLBACK(m_doc)
+
+#ifdef FLEXT_THREADS
+    FLEXT_CALLBACK_T(tick)
+    FLEXT_THREAD(threadworker)
+	FLEXT_THREAD_X(work_wrapper)
+#else
+	FLEXT_CALLBACK_X(work_wrapper)
+#endif
 };
 
 #endif

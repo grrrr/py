@@ -11,7 +11,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "main.h"
 
 
-void py::Register(const char *regnm)
+void pybase::Register(const char *regnm)
 {
 	if(module) {
 		// add this to module registry
@@ -20,7 +20,7 @@ void py::Register(const char *regnm)
 		PyObject *add = Py_BuildValue("[i]",(long)this);
 		if(!reg || !PyList_Check(reg)) {
 			if(PyDict_SetItemString(dict,(char *)regnm,add)) {
-				post("%s - Could not set registry",thisName());
+				post("py/pyext - Could not set registry");
 			}
 		}
 		else {
@@ -29,7 +29,7 @@ void py::Register(const char *regnm)
 	}
 }
 
-void py::Unregister(const char *regnm)
+void pybase::Unregister(const char *regnm)
 {
 	if(module) {
 		// remove this from module registry
@@ -37,11 +37,11 @@ void py::Unregister(const char *regnm)
 		PyObject *reg = PyDict_GetItemString(dict,(char *)regnm); // borrowed!!!
 		PyObject *add = Py_BuildValue("i",(int)this);
 		if(!reg || !PySequence_Check(reg)) 
-			post("%s - Internal error: Registry not found!?",thisName());
+			post("py/pyext - Internal error: Registry not found!?");
 		else {
 			int ix = PySequence_Index(reg,add);
 			if(ix < 0) {
-                post("%s - Internal error: object not found in registry?!",thisName());
+                post("py/pyext - Internal error: object not found in registry?!");
 			}
 			else {	
 				PySequence_DelItem(reg,ix);
@@ -51,7 +51,7 @@ void py::Unregister(const char *regnm)
 	}
 }
 
-void py::Reregister(const char *regnm)
+void pybase::Reregister(const char *regnm)
 {
 	if(module) {
 		// remove this from module registry
@@ -59,16 +59,16 @@ void py::Reregister(const char *regnm)
 		PyObject *reg = PyDict_GetItemString(dict,(char *)regnm); // borrowed!!!
 
 		if(!reg || !PySequence_Check(reg)) 
-			post("%s - Internal error: Registry not found!?",thisName());
+			post("py/pyext - Internal error: Registry not found!?");
 		else {
 			int cnt = PySequence_Size(reg);
 			for(int i = 0; i < cnt; ++i) {
 				PyObject *it = PySequence_GetItem(reg,i); // new reference
 				if(!it || !PyInt_Check(it)) {
-                    post("%s - Internal error: Corrupt registry?!",thisName());
+                    post("py/pyext - Internal error: Corrupt registry?!");
 				}
 				else {
-					py *th = (py *)PyInt_AsLong(it);
+					pybase *th = (pybase *)PyInt_AsLong(it);
 					th->module = module;
 					th->dict = dict;
 					th->Reload();

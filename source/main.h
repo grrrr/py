@@ -41,22 +41,24 @@ public:
 
 typedef PooledFifo<FifoEl> PyFifo;
 
-class py:
-	public flext_base
+
+class pybase
+    : public flext
 {
-	FLEXT_HEADER_S(py,flext_base,Setup)
-
 public:
-	py();
-	~py();
-	static void lib_setup();
+	pybase();
+	virtual ~pybase();
 
-    virtual void Exit();
+    void Exit();
 
 	static PyObject *MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet = -1,bool withself = false);
 	static AtomList *GetPyArgs(PyObject *pValue,PyObject **self = NULL);
 
+    static void lib_setup();
+
 protected:
+
+    virtual void DumpOut(const t_symbol *sym,int argc,const t_atom *argv) = 0;
 
     void m__dir(PyObject *obj);
 	void m__doc(PyObject *obj);
@@ -131,6 +133,7 @@ protected:
     int detach;
 
     bool gencall(PyObject *fun,PyObject *args);
+    virtual bool thrcall(void *data) = 0;
     virtual bool callpy(PyObject *fun,PyObject *args) = 0;
 
 #if FLEXT_SYS == FLEXT_SYS_MAX
@@ -139,7 +142,7 @@ protected:
 
     static bool collect();
 
-private:
+protected:
 
 	void work_wrapper(void *data); 
 
@@ -151,10 +154,6 @@ private:
 
     static PyThreadState *FindThreadState();
     static void FreeThreadState();
-
-	FLEXT_THREAD_X(work_wrapper)
-#else
-	FLEXT_CALLBACK_X(work_wrapper)
 #endif
 
 public:
@@ -192,22 +191,7 @@ public:
 
 protected:
 
-    virtual void m_click();
-
-	static void Setup(t_classid c);
-
-	// callbacks
-	FLEXT_ATTRVAR_I(detach)
-	FLEXT_ATTRVAR_B(respond)
-	FLEXT_CALLBACK_V(m_stop)
-	FLEXT_CALLBACK(m_dir)
-	FLEXT_CALLGET_V(mg_dir)
-	FLEXT_CALLBACK(m_doc)
-
-#ifdef FLEXT_THREADS
-    FLEXT_CALLBACK_T(tick)
-    FLEXT_THREAD(threadworker)
-#endif
+    void OpenEditor();
 };
 
 #endif

@@ -20,6 +20,15 @@ void pyext::Setup(t_classid c)
 {
     sym_get = flext::MakeSymbol("get");
     
+	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
+	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
+#ifdef FLEXT_THREADS
+	FLEXT_CADDATTR_VAR1(c,"detach",detach);
+	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
+#endif
+
+	FLEXT_CADDMETHOD_(c,0,"help",m_help);
+
 	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
     FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
 	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
@@ -100,8 +109,13 @@ pyext::pyext(int argc,const t_atom *argv):
 	inlets(-1),outlets(-1),
 	methname(NULL)
 { 
-    int apre = 0;
+#ifdef FLEXT_THREADS
+    FLEXT_ADDTIMER(stoptmr,tick);
+    // launch thread worker
+    FLEXT_CALLMETHOD(threadworker);
+#endif
 
+    int apre = 0;
     if(argc >= apre+2 && CanbeInt(argv[apre]) && CanbeInt(argv[apre+1])) {
         inlets = GetAInt(argv[apre]);
         outlets = GetAInt(argv[apre+1]);
@@ -195,6 +209,8 @@ pyext::~pyext()
 
 	PyUnlock(state);
 }
+
+void pyext::Exit() { pybase::Exit(); flext_base::Exit(); }
 
 bool pyext::DoInit()
 {
@@ -436,7 +452,7 @@ void pyext::m_set(int argc,const t_atom *argv)
 }
 
 
-bool pyext::m_method_(int n,const t_symbol *s,int argc,const t_atom *argv)
+bool pyext::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
     bool ret = false;
 	if(pyobj && n >= 1)
@@ -584,4 +600,16 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 
     Respond(ret);
 	return ret;
+}
+
+void pyext::CbClick() { pybase::OpenEditor(); }
+
+void pyext::DumpOut(const t_symbol *sym,int argc,const t_atom *argv)
+{
+    ToOutAnything(GetOutAttr(),sym?sym:thisTag(),argc,argv);
+}
+
+bool pyext::thrcall(void *data)
+{ 
+    return FLEXT_CALLMETHOD_X(work_wrapper,data);
 }

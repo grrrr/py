@@ -11,27 +11,29 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "main.h"
 
 
-class pyobj:
-	public py
+class pyobj
+    : public pybase
+    , public flext_base
 {
-	FLEXT_HEADER_S(pyobj,py,Setup)
+	FLEXT_HEADER_S(pyobj,flext_base,Setup)
 
 public:
 	pyobj(int argc,const t_atom *argv);
 	~pyobj();
 
 protected:
-	bool m_method_(int n,const t_symbol *s,int argc,const t_atom *argv);
+    virtual void Exit();
 
-	bool work(const t_symbol *s,int argc,const t_atom *argv); 
+	virtual bool CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv);
+    virtual void CbClick();
+
+    void m_help();    
 
 	void m_reload();
 	void m_reload_(int argc,const t_atom *argv);
 	void m_set(int argc,const t_atom *argv);
     void m_dir_() { m__dir(function); }
     void m_doc_() { m__doc(function); }
-
-	virtual void m_help();
 
 	// methods for python arguments
 	void callwork(const t_symbol *s,int argc,const t_atom *argv);
@@ -51,12 +53,16 @@ protected:
 	void SetFunction(const char *func);
 	void ResetFunction();
 
+    virtual bool thrcall(void *data);
+    virtual void DumpOut(const t_symbol *sym,int argc,const t_atom *argv);
+
 private:
 
     virtual bool callpy(PyObject *fun,PyObject *args);
 
 	static void Setup(t_classid c);
 
+	FLEXT_CALLBACK(m_help)
 	FLEXT_CALLBACK(m_bang)
 	FLEXT_CALLBACK(m_reload)
 	FLEXT_CALLBACK_V(m_reload_)
@@ -69,10 +75,20 @@ private:
 	FLEXT_CALLBACK_V(m_py_int)
 	FLEXT_CALLBACK_A(m_py_any)
 
+	// callbacks
+	FLEXT_ATTRVAR_I(detach)
+	FLEXT_ATTRVAR_B(respond)
+	FLEXT_CALLBACK_V(m_stop)
+	FLEXT_CALLBACK(m_dir)
+	FLEXT_CALLGET_V(mg_dir)
+	FLEXT_CALLBACK(m_doc)
+
 #ifdef FLEXT_THREADS
-	FLEXT_THREAD_A(work)
+    FLEXT_CALLBACK_T(tick)
+    FLEXT_THREAD(threadworker)
+	FLEXT_THREAD_X(work_wrapper)
 #else
-	FLEXT_CALLBACK_A(work)
+	FLEXT_CALLBACK_X(work_wrapper)
 #endif
 };
 
@@ -81,6 +97,14 @@ FLEXT_LIB_V("py",pyobj)
 
 void pyobj::Setup(t_classid c)
 {
+	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
+	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
+#ifdef FLEXT_THREADS
+	FLEXT_CADDATTR_VAR1(c,"detach",detach);
+	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
+#endif
+
+	FLEXT_CADDMETHOD_(c,0,"help",m_help);
 	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
     FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
 	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
@@ -100,10 +124,16 @@ void pyobj::Setup(t_classid c)
 pyobj::pyobj(int argc,const t_atom *argv):
 	function(NULL),funname(NULL),withfunction(false)
 { 
-	PyThreadState *state = PyLock();
-
 	AddInAnything(2);  
 	AddOutAnything();  
+
+#ifdef FLEXT_THREADS
+    FLEXT_ADDTIMER(stoptmr,tick);
+    // launch thread worker
+    FLEXT_CALLMETHOD(threadworker);
+#endif
+
+	PyThreadState *state = PyLock();
 
 	if(argc > 2) 
 		SetArgs(argc-2,argv+2);
@@ -163,10 +193,13 @@ pyobj::~pyobj()
 	PyUnlock(state);
 }
 
+void pyobj::Exit() 
+{ 
+    pybase::Exit(); 
+    flext_base::Exit(); 
+}
 
-
-
-bool pyobj::m_method_(int n,const t_symbol *s,int argc,const t_atom *argv)
+bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
 	if(n == 1)
 		post("%s - no method for type %s",thisName(),GetString(s));
@@ -345,4 +378,16 @@ void pyobj::callwork(const t_symbol *s,int argc,const t_atom *argv)
     PyUnlock(state);
 
     Respond(ret);
+}
+
+void pyobj::CbClick() { pybase::OpenEditor(); }
+
+void pyobj::DumpOut(const t_symbol *sym,int argc,const t_atom *argv)
+{
+    ToOutAnything(GetOutAttr(),sym?sym:thisTag(),argc,argv);
+}
+
+bool pyobj::thrcall(void *data)
+{ 
+    return FLEXT_CALLMETHOD_X(work_wrapper,data);
 }
