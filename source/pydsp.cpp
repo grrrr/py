@@ -24,7 +24,7 @@ protected:
     virtual bool DoInit();
     virtual void DoExit();
 
-    virtual PyObject *GetSig(bool in,bool vec);
+    virtual PyObject *GetSig(int ix,bool in);
 
     void NewBuffers(bool update = false);
     void FreeBuffers();
@@ -77,34 +77,33 @@ void pydsp::NewBuffers(bool update)
     int i,n = Blocksize();
     const int ins = CntInSig(),outs = CntOutSig();
     t_sample *const *insigs = InSig();
-    t_sample *const *outsigs = InSig();
+    t_sample *const *outsigs = OutSig();
 
     if(!buffers) {
-        int cnt = (ins+outs)*2;
+        int cnt = ins+outs;
         if(cnt) {
             buffers = new PyObject *[cnt];
             memset(buffers,0,cnt*sizeof(*buffers));
         }
     }
 
-    PyObject **b = buffers;
-    for(i = 0; i < ins; ++i,b += 2) {
-        if(update) { Py_XDECREF(b[0]); Py_XDECREF(b[1]); }
-        b[0] = PyBuffer_FromReadWriteMemory(insigs[i],n*sizeof(t_sample));
-        b[1] = NAFromBuffer(b[0],1,n);
+    for(i = 0; i < ins; ++i) {
+        if(update) Py_XDECREF(buffers[i]);
+        PyObject *b = PyBuffer_FromReadWriteMemory(insigs[i],n*sizeof(t_sample));
+        buffers[i] = NAFromBuffer(b,1,n);
+        Py_DECREF(b);
     }
-    for(i = 0; i < outs; ++i,++b) {
-        if(update) { Py_XDECREF(b[0]); Py_XDECREF(b[1]); }
+    for(i = 0; i < outs; ++i) {
+        if(update) Py_XDECREF(buffers[ins+i]);
         if(i < ins && outsigs[i] == insigs[i]) {
             // same vectors - share the objects!
-            b[0] = buffers[i*2];
-            Py_XINCREF(b[0]);
-            b[1] = buffers[i*2+1];
-            Py_XINCREF(b[1]);
+            buffers[ins+i] = buffers[i];
+            Py_XINCREF(buffers[i]);
         }
         else {
-            b[0] = PyBuffer_FromReadWriteMemory(outsigs[i],n*sizeof(t_sample));
-            b[1] = NAFromBuffer(b[0],1,n);
+            PyObject *b = PyBuffer_FromReadWriteMemory(outsigs[i],n*sizeof(t_sample));
+            buffers[ins+i] = NAFromBuffer(b,1,n);
+            Py_DECREF(b);
         }
     }
 }
@@ -112,7 +111,7 @@ void pydsp::NewBuffers(bool update)
 void pydsp::FreeBuffers()
 {
     if(buffers) {
-        int cnt = (CntInSig()+CntOutSig())*2;
+        int cnt = CntInSig()+CntOutSig();
         for(int i = 0; i < cnt; ++i) Py_XDECREF(buffers[i]);
         delete[] buffers;
         buffers = NULL;
@@ -171,9 +170,9 @@ void pydsp::CbSignal()
         flext_dsp::CbSignal();
 }
 
-PyObject *pydsp::GetSig(bool in,bool vec) 
+PyObject *pydsp::GetSig(int ix,bool in) 
 {
-    PyObject *r = buffers[(in?0:CntInSig())*2+(vec?1:0)];
+    PyObject *r = buffers[in?ix:CntInSig()+ix];
     Py_XINCREF(r);
     return r;
 }

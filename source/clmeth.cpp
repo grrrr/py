@@ -30,9 +30,7 @@ PyMethodDef pyext::meth_tbl[] =
 #endif
 	{ "_isthreaded", pyext::pyext_isthreaded, METH_O,"Query whether threading is enabled" },
 
-	{ "_inbuf", pyext::pyext_inbuf, METH_VARARGS,"Get input buffer" },
 	{ "_invec", pyext::pyext_invec, METH_VARARGS,"Get input vector" },
-	{ "_outbuf", pyext::pyext_outbuf, METH_VARARGS,"Get output buffer" },
 	{ "_outvec", pyext::pyext_outvec, METH_VARARGS,"Get output vector" },
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
@@ -328,25 +326,6 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 }
 #endif
 
-PyObject *pyext::pyext_inbuf(PyObject *,PyObject *args)
-{
-	PyObject *self; 
-	int val = -1;
-    if(!PyArg_ParseTuple(args, "O|i:pyext_inbuf",&self,&val)) {
-        // handle error
-		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _inbuf(self,inlet)");
-        return NULL;
-    }
-	else {
-		pyext *ext = GetThis(self);
-        PyObject *b = ext->GetSig(true,false);
-        if(b) return b;
-	}
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
 PyObject *pyext::pyext_invec(PyObject *,PyObject *args)
 {
 	PyObject *self; 
@@ -358,26 +337,7 @@ PyObject *pyext::pyext_invec(PyObject *,PyObject *args)
     }
 	else {
 		pyext *ext = GetThis(self);
-        PyObject *b = ext->GetSig(true,true);
-        if(b) return b;
-	}
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
-PyObject *pyext::pyext_outbuf(PyObject *,PyObject *args)
-{
-	PyObject *self; 
-	int val = -1;
-    if(!PyArg_ParseTuple(args, "O|i:pyext_outbuf",&self,&val)) {
-        // handle error
-		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _outbuf(self,inlet)");
-        return NULL;
-    }
-	else {
-		pyext *ext = GetThis(self);
-        PyObject *b = ext->GetSig(false,false);
+        PyObject *b = ext->GetSig(val,true);
         if(b) return b;
 	}
 
@@ -396,7 +356,7 @@ PyObject *pyext::pyext_outvec(PyObject *,PyObject *args)
     }
 	else {
 		pyext *ext = GetThis(self);
-        PyObject *b = ext->GetSig(false,true);
+        PyObject *b = ext->GetSig(val,false);
         if(b) return b;
 	}
 

@@ -80,7 +80,7 @@ protected:
 	virtual bool DoInit();
 	virtual void DoExit();
 
-    virtual PyObject *GetSig(bool in,bool vec);
+    virtual PyObject *GetSig(int ix,bool in);
 
 	static pyext *GetThis(PyObject *self);
 

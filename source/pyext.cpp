@@ -261,10 +261,12 @@ void pyext::DoExit()
         if(objdel) {
             Py_INCREF(emptytuple);
             PyObject *ret = PyObject_Call(objdel,emptytuple,NULL);
-            if(!ret)
-                post("%s - Could not call _del method",thisName());
-            else 
+            if(ret)
                 Py_DECREF(ret);
+#ifdef FLEXT_DEBUG
+            else 
+                post("%s - Could not call _del method",thisName());
+#endif
             Py_DECREF(emptytuple);
             Py_DECREF(objdel);
         }
@@ -298,7 +300,7 @@ void pyext::InitInOut(int &inl,int &outl)
 
     if(inl < 0) {
 		// get number of inlets
-		inl = 1;
+		inl = inlets;
 		PyObject *res = PyObject_GetAttrString(pyobj,"_inlets"); // get ref
 		if(res) {
 			if(PyCallable_Check(res)) {
@@ -315,7 +317,7 @@ void pyext::InitInOut(int &inl,int &outl)
     }
     if(outl < 0) {
         // get number of outlets
-        outl = 1;
+        outl = outlets;
 		PyObject *res = PyObject_GetAttrString(pyobj,"_outlets"); // get ref
 		if(res) {
 			if(PyCallable_Check(res)) {
@@ -467,12 +469,10 @@ void pyext::m_set(int argc,const t_atom *argv)
 
 bool pyext::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
-    bool ret = false;
 	if(pyobj && n >= 1)
-		ret = work(n,s,argc,argv);
+		return work(n,s,argc,argv);
     else
-		post("%s - no method for type '%s' into inlet %i",thisName(),GetString(s),n);
-    return ret;
+        return flext_dsp::CbMethodResort(n,s,argc,argv);
 }
 
 
@@ -619,7 +619,7 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 	return ret;
 }
 
-PyObject *pyext::GetSig(bool in,bool vec) { return NULL; }
+PyObject *pyext::GetSig(int ix,bool in) { return NULL; }
 
 void pyext::CbClick() { pybase::OpenEditor(); }
 bool pyext::CbDsp() { return false; }

@@ -17,13 +17,14 @@ except:
     print "ERROR: This script must be loaded by the PD/Max py/pyext external"
 
 try:
-    # try to use JIT support
     import psyco
     psyco.full()
+    print "Using JIT compilation"
 except:
+    # don't care
     pass
 
-import sys
+import sys,math
 
 try:    
     import numarray
@@ -36,9 +37,28 @@ class gain(pyext._class):
     
     gain = 0
 
-    def float_1(self,g):
-        self.gain = g
-
     def _signal(self):
         # Multiply input vector by gain and copy to output
         self._outvec(0)[:] = self._invec(0)*self.gain
+
+
+class pan(pyext._class):
+    """Stereo panning"""
+
+    def __init__(self):
+        self.float_1(0.5)
+
+    def float_1(self,pos):
+        """pos ranges from 0 to 1"""
+        x = pos*math.pi/2
+        self.fl = math.cos(x)
+        self.fr = math.sin(x)
+    
+    def _signal(self):
+        # Multiply input vector by gain and copy to output
+        iv = self._invec(0)
+        # first process right output channel because left one could be
+        # identical to input
+        # we could also test with 'self._outvec(1)[:] is iv'
+        self._outvec(1)[:] = iv*self.fr
+        self._outvec(0)[:] = iv*self.fl
