@@ -381,7 +381,7 @@ V pyext::work_wrapper(V *data)
 	{
 		work_data *w = (work_data *)data;
 		work(w->n,w->Header(),w->Count(),w->Atoms());
-//		delete w;
+		delete w;
 	}
 	--thrcount;
 }

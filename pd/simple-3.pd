@@ -1,14 +1,14 @@
-#N canvas 307 249 546 386 12;
+#N canvas 384 270 546 386 12;
 #X msg 88 279 help;
 #X text 15 50 This demonstrates message handling. See the simple.py
 file.;
 #X msg 87 304 doc;
 #X msg 123 305 doc+;
-#X floatatom 288 345 5 0 0;
+#X floatatom 288 345 5 0 0 0 - - -;
 #X text 17 22 py/pyext - Python script objects \, (C)2002 Thomas Grill
 ;
-#X floatatom 316 119 5 0 0;
-#X floatatom 399 119 5 0 0;
+#X floatatom 316 119 5 0 0 0 - - -;
+#X floatatom 399 119 5 0 0 0 - - -;
 #X obj 225 279 pyext simple ex3 1;
 #X msg 39 195 reload.;
 #X msg 39 223 reload -10;
