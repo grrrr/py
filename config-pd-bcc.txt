@@ -12,7 +12,7 @@ FLEXTPATH=$(PDPATH)\flext
 BCCPATH=c:\programme\prog\bcc55		
 
 # which version of Python?
-PYTHONVER=python22
+PYTHONVER=python23
 
 # where are the python header files?
 PYTHONINCLUDE=c:\programme\prog\$(PYTHONVER)\include
