@@ -17,7 +17,9 @@ PyMethodDef pyext::meth_tbl[] =
     {"__del__", pyext::pyext__del__, METH_VARARGS, "Destructor"},
 
     {"_outlet", pyext::pyext_outlet, METH_VARARGS,"Send message to outlet"},
+#if FLEXT_SYS == FLEXT_SYS_PD
 	{"_tocanvas", pyext::pyext_tocanvas, METH_VARARGS,"Send message to canvas" },
+#endif
 
 	{ "_bind", pyext::pyext_bind, METH_VARARGS,"Bind function to a receiving symbol" },
 	{ "_unbind", pyext::pyext_unbind, METH_VARARGS,"Unbind function from a receiving symbol" },
@@ -25,6 +27,7 @@ PyMethodDef pyext::meth_tbl[] =
 	{ "_detach", pyext::pyext_detach, METH_VARARGS,"Set detach flag for called methods" },
 	{ "_stop", pyext::pyext_stop, METH_VARARGS,"Stop running threads" },
 #endif
+	{ "_isthreaded", pyext::pyext_isthreaded, METH_O,"Query whether threading is enabled" },
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -221,6 +224,19 @@ PyObject *pyext::pyext_stop(PyObject *,PyObject *args)
 
 #endif
 
+//! Query whether threading is enabled
+PyObject *pyext::pyext_isthreaded(PyObject *,PyObject *)
+{
+	return Py_BuildValue("i",
+#ifdef FLEXT_THREADED
+        1
+#else
+        0
+#endif
+        );
+}
+
+#if FLEXT_SYS == FLEXT_SYS_PD
 //! Send message to canvas
 PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 {
@@ -244,11 +260,7 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 				t_glist *gl = ext->thisCanvas(); //canvas_getcurrent();
 			    t_class **cl = (t_pd *)gl;
 				if(cl) {
-#if FLEXT_SYS == FLEXT_SYS_PD
 					pd_forwardmess(cl,lst->Count(),lst->Atoms());
-#else
-#pragma message ("Send is not implemented")
-#endif
 				}
 #ifdef FLEXT_DEBUG
 				else
@@ -269,6 +281,7 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
     Py_INCREF(Py_None);
     return Py_None;
 }
+#endif
 
 
 

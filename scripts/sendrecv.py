@@ -77,7 +77,7 @@ class ex1(pyext._class):
 
 		# you can but you don't need to
 		# unbinding is automatically done at destruction
-		# you can also comment the _unbind lines
+		# you can also comment out the _unbind lines
 		self._unbind(self.recvname,self.recv)
 		self._unbind(self.recvname,recv_gl)
 
@@ -118,7 +118,7 @@ class ex2(pyext._class):
 
 #################################################################
 
-from math import sin,cos,pi
+from math import pi
 from cmath import exp
 from random import random,randint
 
@@ -134,8 +134,9 @@ class ex3(pyext._class):
 		"""Class constructor"""
 
 		# called scripting method should run on its own thread
-		self._detach(1)  
-
+		if self._isthreaded():
+		    print "Threading is on"
+		    self._detach(1)  
 
 	def bang_1(self):
 		"""Do some scripting - PD only!"""

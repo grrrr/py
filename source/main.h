@@ -13,13 +13,14 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include <flext.h>
 #include <Python.h>
+#include <map>
 
 #if FLEXT_OS == FLEXT_LINUX || FLEXT_OS == FLEXT_IRIX
 #include <unistd.h>
 #endif
 
-#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 403)
-#error You need at least flext version 0.4.3
+#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 500)
+#error You need at least flext version 0.5.0
 #endif
 
 #define PY__VERSION "0.1.2pre"
@@ -103,14 +104,14 @@ protected:
 
 	BL detach,shouldexit;
 	I thrcount;
-	t_clock *clk;
 	I stoptick;
+    Timer stoptmr;
 
-	static V tick(py *obj);
+	V tick(V *);
 
 public:
 	static PyInterpreterState *pystate;
-	PyThreadState *pythrmain;
+    static std::map<flext::thrid_t,PyThreadState *> pythrmap;
 
 #ifdef FLEXT_THREADS
 	ThrMutex mutex;
@@ -127,19 +128,23 @@ protected:
 	FLEXT_CALLBACK_B(m_detach)
 	FLEXT_CALLBACK_V(m_stop)
 	FLEXT_CALLBACK(m_doc)
+    FLEXT_CALLBACK_T(tick)
 };
 
 #ifdef FLEXT_THREADS
+
 #define PY_LOCK \
 	{ \
-	PyThreadState *thrst = PyThreadState_New(pystate); \
-	PyEval_AcquireThread(thrst); 
+    PyEval_AcquireLock(); \
+    PyThreadState *__st = pythrmap[GetThreadId()]; \
+    FLEXT_ASSERT(__st != NULL); \
+	PyThreadState *__oldst = PyThreadState_Swap(__st);
 
 #define PY_UNLOCK \
-    PyThreadState_Clear(thrst);        /* must have lock */ \
-    PyEval_ReleaseThread(thrst);  \
-    PyThreadState_Delete(thrst);       /* needn't have lock */ \
-	}
+    PyThreadState_Swap(__oldst); \
+    PyEval_ReleaseLock(); \
+    }
+
 #else
 #define PY_LOCK 
 #define PY_UNLOCK 

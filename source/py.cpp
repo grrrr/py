@@ -73,7 +73,7 @@ private:
 FLEXT_LIB_V("py",pyobj)
 
 
-void pyobj::Setup(t_class *c)
+void pyobj::Setup(t_classid c)
 {
 	FLEXT_CADDBANG(c,0,m_bang);
 	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);

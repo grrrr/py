@@ -27,13 +27,16 @@ public:
 	static PyObject *pyext__del__(PyObject *,PyObject *args);
 
 	static PyObject *pyext_outlet(PyObject *,PyObject *args);
+#if FLEXT_SYS == FLEXT_SYS_PD
 	static PyObject *pyext_tocanvas(PyObject *,PyObject *args);
+#endif
 
 	static PyObject *pyext_setattr(PyObject *,PyObject *args);
 	static PyObject *pyext_getattr(PyObject *,PyObject *args);
 
 	static PyObject *pyext_detach(PyObject *,PyObject *args);
 	static PyObject *pyext_stop(PyObject *,PyObject *args);
+	static PyObject *pyext_isthreaded(PyObject *,PyObject *);
 
 	I Inlets() const { return inlets; }
 	I Outlets() const { return outlets; }
@@ -68,36 +71,9 @@ private:
 	static PyMethodDef attr_tbl[],meth_tbl[];
 	static const C *pyext_doc;
 
-	// -------- bound stuff ------------------
-
-#ifndef USEFLEXTBINDING
-	static t_class *px_class;
-
-	friend class py_proxy;
-
-	class py_proxy  // no virtual table!
-	{ 
-	public:
-		t_object obj;			// MUST reside at memory offset 0
-		PyObject *self,*func;
-		const t_symbol *name;
-
-		py_proxy *nxt;
-
-		void init(const t_symbol *n,PyObject *s,PyObject *f) { name = n,self = s,func = f,nxt = NULL; }
-//		bool cmp(PyObject *s,PyObject *f) const { return self == s && func == f; }
-//		void init(PyObject *s,char *f) { self = s,func = f,nxt = NULL; }
-//		bool cmp(PyObject *s,char *f) const { return self == s && func == f; }
-		static void px_method(py_proxy *c,const t_symbol *s,int argc,const t_atom *argv);
-	};
-	static py_proxy *px_head,*px_tail;
-
+	// -------- bind stuff ------------------
 	static PyObject *pyext_bind(PyObject *,PyObject *args);
 	static PyObject *pyext_unbind(PyObject *,PyObject *args);
-#else
-	static PyObject *pyext_bind(PyObject *,PyObject *args);
-	static PyObject *pyext_unbind(PyObject *,PyObject *args);
-#endif
 
 	// ---------------------------
 
@@ -123,7 +99,7 @@ private:
 	PyThreadState *pythr;
 
 private:
-    static bool boundmeth(flext_base *,const t_symbol *sym,int argc,const t_atom *argv,void *data);
+    static bool boundmeth(flext_base *,t_symbol *sym,int argc,t_atom *argv,void *data);
     
     FLEXT_CALLBACK(m_reload)
 	FLEXT_CALLBACK_V(m_reload_)

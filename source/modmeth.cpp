@@ -43,27 +43,27 @@ const C *py::py_doc =
 
 
 
-V py::tick(py *th)
+V py::tick(V *)
 {
-	th->Lock();
+	Lock();
 
-	if(!th->thrcount) {
+	if(!thrcount) {
 		// all threads have stopped
-		th->shouldexit = false;
-		th->stoptick = 0;
+		shouldexit = false;
+		stoptick = 0;
 	}
 	else {
 		// still active threads 
-		if(!--th->stoptick) {
-			post("%s - Threads couldn't be stopped entirely - %i remaining",th->thisName(),th->thrcount);
-			th->shouldexit = false;
+		if(!--stoptick) {
+			post("%s - Threads couldn't be stopped entirely - %i remaining",thisName(),thrcount);
+			shouldexit = false;
 		}
 		else
 			// continue waiting
-			clock_delay(th->clk,PY_STOP_TICK);
+            stoptmr.Delay(PY_STOP_TICK/1000.);
 	}
 
-	th->Unlock();
+	Unlock();
 }
 
 V py::m_stop(int argc,const t_atom *argv)
@@ -82,7 +82,7 @@ V py::m_stop(int argc,const t_atom *argv)
 		else
 			stoptick = ticks;
 		shouldexit = true;
-		clock_delay(clk,PY_STOP_TICK);
+        stoptmr.Delay(PY_STOP_TICK/1000.);
 
 		Unlock();
 	}

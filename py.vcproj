@@ -42,7 +42,7 @@
 				OutputFile=".\pd-msvc\d/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="c:/programme/audio/pd/bin;&quot;..\flext\pd-msvc&quot;"
+				AdditionalLibraryDirectories="c:/programme/audio/pd/bin;&quot;..\flext\pd-msvc&quot;;&quot;F:\prog\packs\Python-2.3.2\PCbuild&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\pd-msvc\d/py.pdb"
 				ImportLibrary=".\pd-msvc\d/py.lib"
@@ -87,8 +87,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="c:\programme\audio\pd\src,f:\prog\max\flext\source,C:\Programme\prog\Python22\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_THREADS"
+				AdditionalIncludeDirectories="c:\programme\audio\pd\src;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_THREADS;_USEFLEXTBINDING"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				RuntimeTypeInfo="TRUE"
@@ -106,7 +106,7 @@
 				OutputFile=".\pd-msvc\td/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="c:/programme/audio/pd/bin,..\flext\pd-msvc,f:\prog\packs\Python-2.2.1\PCbuild"
+				AdditionalLibraryDirectories="c:/programme/audio/pd/bin;&quot;..\flext\pd-msvc&quot;;&quot;f:\prog\packs\Python-2.3.2\PCbuild&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\pd-msvc\td/py.pdb"
 				ImportLibrary=".\pd-msvc\td/py.lib"
@@ -228,7 +228,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pd.lib python23.lib"
+				AdditionalDependencies="pd.lib"
 				OutputFile=".\pd-msvc\r/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -276,7 +276,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="f:\prog\pd\pd-cvs\src;f:\prog\packs\pthreads,f:\prog\max\flext\source,C:\Programme\prog\Python22\include"
+				AdditionalIncludeDirectories="&quot;f:\prog\pd\pd-cvs\src&quot;;f:\prog\packs\pthreads;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_SHARED"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -295,7 +295,7 @@
 				OutputFile="$(outdir)/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="f:\prog\pd\pd-cvs/bin,f:\prog\packs\pthreads;f:\prog\packs\Python-2.2.1\PCbuild"
+				AdditionalLibraryDirectories="&quot;f:\prog\pd\pd-cvs/bin&quot;;f:\prog\packs\pthreads;&quot;f:\prog\packs\Python-2.3.2\PCbuild&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\pd-msvc\td/py.pdb"
 				ImportLibrary=".\pd-msvc\td/py.lib"
@@ -380,6 +380,201 @@
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
+				Culture="3079"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Max Shared Debug|Win32"
+			OutputDirectory=".\max-msvc\sd"
+			IntermediateDirectory=".\max-msvc\sd"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="&quot;F:\prog\audio\MaxWinSDK\c74support\msp-includes&quot;;&quot;F:\prog\audio\MaxWinSDK\c74support\max-includes&quot;;f:\prog\packs\pthreads;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=1;FLEXT_SHARED"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				RuntimeTypeInfo="TRUE"
+				UsePrecompiledHeader="2"
+				BrowseInformation="1"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="4"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="maxapi.lib maxext.lib maxaudio.lib pthreadVC.lib"
+				OutputFile="$(outdir)/py.mxe"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="&quot;F:\prog\audio\MaxWinSDK\c74support\msp-includes\win-includes\debug&quot;;&quot;F:\prog\audio\MaxWinSDK\c74support\max-includes\win-includes\debug&quot;;f:\prog\packs\pthreads;&quot;f:\prog\packs\Python-2.3.2\PCbuild&quot;"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(intdir)/py.pdb"
+				ImportLibrary="$(intdir)/py.lib"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\pd-msvc\td/py.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="3079"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Max Threaded Debug|Win32"
+			OutputDirectory=".\max-msvc\td"
+			IntermediateDirectory=".\max-msvc\td"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="&quot;F:\prog\audio\MaxWinSDK\c74support\msp-includes&quot;;&quot;F:\prog\audio\MaxWinSDK\c74support\max-includes&quot;;f:\prog\packs\pthreads;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=1;FLEXT_THREADS"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				RuntimeTypeInfo="TRUE"
+				UsePrecompiledHeader="2"
+				BrowseInformation="1"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="4"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="maxapi.lib maxext.lib maxaudio.lib pthreadVC.lib"
+				OutputFile="$(outdir)/py.mxe"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="&quot;F:\prog\audio\MaxWinSDK\c74support\msp-includes\win-includes\debug&quot;;&quot;F:\prog\audio\MaxWinSDK\c74support\max-includes\win-includes\debug&quot;;f:\prog\packs\pthreads;&quot;f:\prog\packs\Python-2.3.2\PCbuild&quot;"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(intdir)/py.pdb"
+				ImportLibrary="$(intdir)/py.lib"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\pd-msvc\td/py.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="3079"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Max Threaded Release|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="2"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="3"
+				GlobalOptimizations="FALSE"
+				FavorSizeOrSpeed="1"
+				AdditionalIncludeDirectories="&quot;F:\prog\audio\MaxWinSDK\c74support\msp-includes&quot;;&quot;F:\prog\audio\MaxWinSDK\c74support\max-includes&quot;;f:\prog\packs\pthreads;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
+				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;FLEXT_SYS=1;FLEXT_THREADS"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="0"
+				EnableEnhancedInstructionSet="1"
+				RuntimeTypeInfo="TRUE"
+				UsePrecompiledHeader="2"
+				BrowseInformation="1"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="0"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="maxapi.lib maxext.lib maxaudio.lib pthreadVC.lib"
+				OutputFile="./max-msvc/py.mxe"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="&quot;F:\prog\audio\MaxWinSDK\c74support\msp-includes\win-includes\release&quot;;&quot;F:\prog\audio\MaxWinSDK\c74support\max-includes\win-includes\release&quot;;f:\prog\packs\pthreads;C:\Programme\prog\Python23\libs"
+				GenerateDebugInformation="FALSE"
+				ProgramDatabaseFile="$(intdir)/py.pdb"
+				ImportLibrary="$(intdir)/py.lib"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\pd-msvc\td/py.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
 				Culture="3079"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
@@ -489,6 +684,33 @@
 					Optimization="2"
 					AdditionalIncludeDirectories=""/>
 			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Shared Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Release|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="source\clmeth.cpp">
@@ -541,6 +763,33 @@
 					Optimization="2"
 					AdditionalIncludeDirectories=""/>
 			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Shared Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Release|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="source\main.cpp">
@@ -592,6 +841,33 @@
 					Name="VCCLCompilerTool"
 					Optimization="2"
 					AdditionalIncludeDirectories=""/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Shared Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Release|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
 			</FileConfiguration>
 		</File>
 		<File
@@ -648,6 +924,33 @@
 					Optimization="2"
 					AdditionalIncludeDirectories=""/>
 			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Shared Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Release|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="source\py.cpp">
@@ -699,6 +1002,33 @@
 					Name="VCCLCompilerTool"
 					Optimization="2"
 					AdditionalIncludeDirectories=""/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Shared Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Release|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
 			</FileConfiguration>
 		</File>
 		<File
@@ -752,6 +1082,33 @@
 					Optimization="2"
 					AdditionalIncludeDirectories=""/>
 			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Shared Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Release|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="source\pyext.cpp">
@@ -803,6 +1160,33 @@
 					Name="VCCLCompilerTool"
 					Optimization="2"
 					AdditionalIncludeDirectories=""/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Shared Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Release|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
 			</FileConfiguration>
 		</File>
 		<File
@@ -858,6 +1242,33 @@
 					Name="VCCLCompilerTool"
 					Optimization="2"
 					AdditionalIncludeDirectories=""/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Shared Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Debug|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Max Threaded Release|Win32">
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+					AdditionalIncludeDirectories=""
+					BasicRuntimeChecks="3"
+					BrowseInformation="1"/>
 			</FileConfiguration>
 		</File>
 	</Files>

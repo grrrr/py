@@ -49,7 +49,7 @@ Therefore, some help patches may not be functional.
 ----------------------------------------------------------------------------
 
 The py/pyext package should run with Python version >= 2.1.
-It has been thoroughly tested with version 2.2
+It has been thoroughly tested with version 2.2 and 2.3
 
 
 The package should at least compile (and is tested) with the following compilers:
@@ -79,6 +79,10 @@ Version history:
 0.1.2:
 - CHANGE: updates for flext 0.4.1 - method registering within class scope
 - fixed bugs in bound.cpp (object_free calls)
+- bug fixed for threaded methods along with flext bug fix.
+- map Python threads to system threads
+- shut down Python appropriately
+- use flext timer and bind functionality
 
 0.1.1:
 - CHANGE: updates for flext 0.4.0
@@ -120,6 +124,5 @@ tests:
 - check for python threading support
 
 bugs:
-- the python interpreter can't be unloaded due to some bug at re-initialization
 - named (keyword) arguments are not supported
 

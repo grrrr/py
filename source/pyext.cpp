@@ -16,13 +16,6 @@ FLEXT_LIB_V("pyext",pyext)
 
 V pyext::Setup(t_classid c)
 {
-#ifndef USEFLEXTBINDING
-	px_head = px_tail = NULL;
-
-	px_class = class_new(gensym("pyext proxy"),NULL,NULL,sizeof(py_proxy),CLASS_PD|CLASS_NOINLET, A_NULL);
-	::add_anything(px_class,py_proxy::px_method); // for other inlets
-#endif
-
 	FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
 	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
 	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
@@ -116,6 +109,7 @@ pyext::pyext(I argc,const t_atom *argv):
 			post("%s - script name argument is invalid",thisName());
 		else {
 			SetArgs(0,NULL);
+
 			ImportModule(GetString(argv[0]));
 		}
 	}
@@ -192,14 +186,12 @@ pyext::~pyext()
 
 	Py_XDECREF(class_obj);
 	Py_XDECREF(class_dict);
-/*
-	// Don't unregister
 
 	if(!--pyextref) {
 		class_obj = NULL;
 		class_dict = NULL;
 	}
-*/
+
 	PY_UNLOCK
 }
 
@@ -358,9 +350,6 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_ato
 #else
 				PyErr_Clear();  
 #endif
-			else {
-//				Py_DECREF(pres);
-			}
 
 			Py_DECREF(pargs);
 		}
@@ -379,9 +368,41 @@ V pyext::work_wrapper(V *data)
 	else
 #endif
 	{
-		work_data *w = (work_data *)data;
-		work(w->n,w->Header(),w->Count(),w->Atoms());
-		delete w;
+        // --- make new Python thread ---
+        // get the global lock
+        PyEval_AcquireLock();
+        // get a reference to the PyInterpreterState
+        // create a thread state object for this thread
+        PyThreadState *newthr = PyThreadState_New(pystate);
+        // free the lock
+        PyEval_ReleaseLock();
+        // -----------------------------
+
+        // store new thread state
+        pythrmap[GetThreadId()] = newthr;
+
+        {
+            // call worker
+		    work_data *w = (work_data *)data;
+		    work(w->n,w->Header(),w->Count(),w->Atoms());
+		    delete w;
+        }
+
+        // delete mapped thread state
+        pythrmap.erase(GetThreadId());
+
+        // --- delete Python thread ---
+        // grab the lock
+        PyEval_AcquireLock();
+        // swap my thread state out of the interpreter
+        PyThreadState_Swap(NULL);
+        // clear out any cruft from thread state object
+        PyThreadState_Clear(newthr);
+        // delete my thread state object
+        PyThreadState_Delete(newthr);
+        // release the lock
+        PyEval_ReleaseLock();
+        // -----------------------------
 	}
 	--thrcount;
 }
