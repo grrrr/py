@@ -27,9 +27,9 @@ public:
 protected:
 	BL m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
 
-	V work(const t_symbol *s,I argc,t_atom *argv); 
+	virtual BL work(I n,const t_symbol *s,I argc,t_atom *argv); 
 
-	virtual V m_bang() { work(sym_bang,0,NULL); }
+//	virtual V m_bang() { work(sym_bang,0,NULL); }
 	virtual V m_reload(I argc,t_atom *argv);
 	virtual V m_set(I argc,t_atom *argv);
 
@@ -42,7 +42,9 @@ private:
 
 	static V setup(t_class *);
 	
-	FLEXT_CALLBACK(m_bang)
+	BL call(const C *meth,const t_symbol *s,I argc,t_atom *argv);
+	
+//	FLEXT_CALLBACK(m_bang)
 
 	FLEXT_CALLBACK_G(m_reload)
 	FLEXT_CALLBACK_G(m_set)
@@ -98,7 +100,7 @@ PyObject *pyext::py_outlet(PyObject *self,PyObject *args)
 
 static PyMethodDef pyext_meths[] = 
 {
-//    {"__init__", pyext::py__init__, METH_VARARGS, "pyext init"},
+    {"__init__", pyext::py__init__, METH_VARARGS, "pyext init"},
     {"outlet", pyext::py_outlet, METH_VARARGS,"pyext outlet"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
@@ -173,64 +175,36 @@ pyext::pyext(I argc,t_atom *argv):
 
 		PyObject *pmod = GetModule();
 		
-
-		PyObject *pclass = PyObject_GetAttrString(pmod,const_cast<C *>(GetString(sobj)));   /* fetch module.class */
-		Py_DECREF(pmod);
-		if (pclass == NULL) 
-			PyErr_Print();
-			//error("Can't instantiate class");
-
-		PyObject *pargs = MakePyArgs(NULL,argc-2,argv+2);
-		if (pargs == NULL) 
-			PyErr_Print();
-//			error("Can't build arguments list");
-
-		pyobj = PyEval_CallObject(pclass, pargs);         /* call class() */
-		Py_DECREF(pclass);
-		Py_DECREF(pargs);
-		if(pyobj == NULL) 
-			PyErr_Print();
-//			error("Error calling class __init__");
-		else {
-			/* result = instance.method(x,y) */
-			PyObject *pmeth  = PyObject_GetAttrString(pyobj,"fun"); /* fetch bound method */
-			if(pmeth == NULL)
+		if(pmod) {
+			PyObject *pclass = PyObject_GetAttrString(pmod,const_cast<C *>(GetString(sobj)));   /* fetch module.class */
+			Py_DECREF(pmod);
+			if (pclass == NULL) 
 				PyErr_Print();
-//				error("Can't fetch method");
-			else {
-				pargs = Py_BuildValue("(i)",1);
-				if(!pargs)
-					PyErr_Print();
-				else {
-					PyObject *pres = PyEval_CallObject(pmeth, pargs);           /* call method(x,y) */
-					if (pres == NULL)
-						PyErr_Print();
-	//					error("Error calling method");
-					else {
-						Py_DECREF(pres);
-					}
+				//error("Can't instantiate class");
 
-					Py_DECREF(pargs);
-				}
-				Py_DECREF(pmeth);
+			PyObject *pargs = MakePyArgs(NULL,argc-2,argv+2);
+			if (pargs == NULL) 
+				PyErr_Print();
+	//			error("Can't build arguments list");
+
+			if(pclass) {
+				pyobj = PyEval_CallObject(pclass, pargs);         /* call class() */
+				Py_DECREF(pclass);
+				if(pargs) Py_DECREF(pargs);
+				if(pyobj == NULL) 
+					PyErr_Print();
 			}
 		}
 	}
 		
-	AddInAnything();  
+	AddInAnything(2);  
 	AddOutAnything();  
 	SetupInOut();  // set up inlets and outlets
 
-	FLEXT_ADDBANG(0,m_bang);
 	FLEXT_ADDMETHOD_(0,"reload",m_reload);
 	FLEXT_ADDMETHOD_(0,"set",m_set);
 
-/*
-	FLEXT_ADDMETHOD_(1,"float",m_py_float);
-	FLEXT_ADDMETHOD_(1,"int",m_py_int);
-	FLEXT_ADDMETHOD(1,m_py_list);
-	FLEXT_ADDMETHOD(1,m_py_any);
-*/
+//	if(!pyobj) InitProblem();
 }
 
 pyext::~pyext()
@@ -269,9 +243,13 @@ V pyext::m_set(I argc,t_atom *argv)
 
 BL pyext::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 {
-	if(n == 1)
-		post("%s - no method for type %s",thisName(),GetString(s));
-	return false;
+	if(pyobj && n >= 1) {
+		return work(n,s,argc,argv);
+	}
+	else {
+		post("%s - no method for type '%s' into inlet %i",thisName(),GetString(s),n);
+		return false;
+	}
 }
 
 
@@ -296,33 +274,57 @@ V pyext::m_help()
 	post("");
 }
 
-V pyext::work(const t_symbol *s,I argc,t_atom *argv)
+BL pyext::call(const C *meth,const t_symbol *s,I argc,t_atom *argv) 
 {
-/*
-	PyObject *pFunc = GetFunction(sObj);
-
-	if(pFunc && PyCallable_Check(pFunc)) {
-		PyObject *pArgs = MakeArgs(s,argc,argv);
-		PyObject *pValue = PyObject_CallObject(pFunc, pArgs);
-
-		I rargc;
-		t_atom *rargv = GetRets(rargc,pValue);
-
-		if(rargv) {
-			ToOutList(0,rargc,rargv);
-			delete[] rargv;
-		}
-		else {
-			PyErr_Print();
-//			post("%s: python function call failed",thisName());
-		}
-		if(pArgs) Py_DECREF(pArgs);
-		if(pValue) Py_DECREF(pValue);
+	PyObject *pmeth  = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
+	if(pmeth == NULL) {
+		PyErr_Clear(); // no method found
+		return false;
 	}
 	else {
-		post("%s: no function defined",thisName());
+		PyObject *pargs = MakePyArgs(s,argc,argv);
+		if(!pargs)
+			PyErr_Print();
+		else {
+			PyObject *pres = PyEval_CallObject(pmeth, pargs);           /* call method(x,y) */
+			if (pres == NULL)
+				PyErr_Print();
+			else {
+				Py_DECREF(pres);
+			}
+
+			Py_DECREF(pargs);
+		}
+		Py_DECREF(pmeth);
+
+		return true;
 	}
-*/
+}
+
+BL pyext::work(I n,const t_symbol *s,I argc,t_atom *argv)
+{
+	BL ret = false;
+	char *str = new char[strlen(GetString(s))+10];
+
+	sprintf(str,"_%s_%i",GetString(s),n);
+	ret = call(str,s,argc,argv);
+	if(!ret) {
+		sprintf(str,"_anything_%i",n);
+		ret = call(str,s,argc,argv);
+	}
+	if(!ret) {
+		sprintf(str,"_%s_",GetString(s));
+		ret = call(str,s,argc,argv);
+	}
+	if(!ret) {
+		strcpy(str,"_anything_");
+		ret = call(str,s,argc,argv);
+	}
+	if(!ret) post("%s - no matching method found for '%s' into inlet %i",thisName(),GetString(s),n);
+
+	if(str) delete[] str;
+
+	return ret;
 }
 
 
