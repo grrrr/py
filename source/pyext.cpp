@@ -78,6 +78,8 @@ pyext::pyext(I argc,t_atom *argv):
 			ImportModule(GetString(argv[0]));
 	}
 
+	Register("_pyext");
+
 //	t_symbol *sobj = NULL;
 	if(argc >= 2) {
 		// object name
@@ -89,7 +91,8 @@ pyext::pyext(I argc,t_atom *argv):
 	}
 
 	if(methname) {
-		SetClssMeth(argc-2,argv+2);
+		args(argc-2,argv+2);
+		SetClssMeth();
 
 		// now get number of inlets and outlets
 		inlets = 1,outlets = 1;
@@ -148,6 +151,7 @@ pyext::~pyext()
 	PY_LOCK
 
 	ClearBinding();
+	Unregister("_pyext");
 	
 	Py_XDECREF(pyobj);
 /*
@@ -163,16 +167,16 @@ pyext::~pyext()
 	PY_UNLOCK
 }
 
-BL pyext::SetClssMeth(I argc,t_atom *argv)
+BL pyext::SetClssMeth() //I argc,t_atom *argv)
 {
 	if(module) {
-		Py_XDECREF(pyobj); pyobj = NULL;
+		Py_XDECREF(pyobj); //pyobj = NULL;
 
 		PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(methname)));  
 		if(!pref) 
 			PyErr_Print();
 		else if(PyClass_Check(pref)) {
-			PyObject *pargs = MakePyArgs(NULL,argc,argv);
+			PyObject *pargs = MakePyArgs(NULL,args.Count(),args.Atoms());
 			if (pargs == NULL) PyErr_Print();
 
 			// call class
@@ -195,13 +199,25 @@ BL pyext::SetClssMeth(I argc,t_atom *argv)
 		return false;
 }
 
+V pyext::Reload()
+{
+	SetClssMeth();
+}
+
+
+
 V pyext::m_reload(I argc,t_atom *argv)
 {
 	PY_LOCK
+
+	Unregister("_pyext");
 	SetArgs(0,NULL);
 
+	args(argc,argv);
 	ReloadModule();
-	SetClssMeth(argc,argv);
+	Reregister("_pyext");
+	Register("_pyext");
+
 	PY_UNLOCK
 }
 

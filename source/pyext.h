@@ -50,7 +50,10 @@ private:
 
 	static pyext *GetThis(PyObject *self);
 	V ClearBinding();
-	BL SetClssMeth(I argc,t_atom *argv);
+	BL SetClssMeth(); //I argc,t_atom *argv);
+
+	AtomList args;
+	virtual V Reload();
 
 	static PyObject *class_obj,*class_dict;
 	static PyMethodDef attr_tbl[],meth_tbl[];

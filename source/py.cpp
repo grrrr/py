@@ -20,6 +20,7 @@ class pyobj:
 
 public:
 	pyobj(I argc,t_atom *argv);
+	~pyobj();
 
 protected:
 	BL m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
@@ -40,9 +41,13 @@ protected:
 	V m_py_int(I argc,t_atom *argv) { callwork(sym_int,argc,argv); }
 	V m_py_any(const t_symbol *s,I argc,t_atom *argv) { callwork(s,argc,argv); }
 
-	V SetFunction(const C *func);
 	const t_symbol *funname;
 	PyObject *function;
+
+	virtual V Reload();
+
+	V SetFunction(const C *func);
+	V ResetFunction();
 
 private:
 
@@ -105,6 +110,8 @@ pyobj::pyobj(I argc,t_atom *argv):
 			ImportModule(GetString(argv[0]));
 	}
 
+	Register("_py");
+
 	if(argc >= 2) {
 		// set function name
 		if(!IsString(argv[1])) 
@@ -117,6 +124,12 @@ pyobj::pyobj(I argc,t_atom *argv):
 
 	PY_UNLOCK
 }
+
+pyobj::~pyobj() 
+{
+	Unregister("_py");
+}
+
 
 
 
@@ -131,11 +144,15 @@ V pyobj::m_reload(I argc,t_atom *argv)
 {
 	PY_LOCK
 
+	Unregister("_py");
+
 	if(argc > 2) SetArgs(argc,argv);
 	else
 		SetArgs(0,NULL);
 
 	ReloadModule();
+	Reregister("_py");
+	Register("_py");
 	SetFunction(funname?GetString(funname):NULL);
 
 	PY_UNLOCK
@@ -153,8 +170,10 @@ V pyobj::m_set(I argc,t_atom *argv)
 		}
 		const C *sn = GetString(argv[ix]);
 
-		if(!module || !strcmp(sn,PyModule_GetName(module)))
+		if(!module || !strcmp(sn,PyModule_GetName(module))) {
 			ImportModule(sn);
+			Register("_py");
+		}
 
 		++ix;
 	}
@@ -191,22 +210,35 @@ V pyobj::m_help()
 	post("");
 }
 
+V pyobj::ResetFunction()
+{
+	function = PyDict_GetItemString(dict,(C *)GetString(funname)); // borrowed!!!
+	if(!function) {
+		PyErr_Clear();
+		post("%s - Function %s could not be found",thisName(),GetString(funname));
+	}
+	else if(!PyFunction_Check(function)) {
+		post("%s - Object %s is not a function",thisName(),GetString(funname));
+		function = NULL;
+	}
+}
+
 V pyobj::SetFunction(const C *func)
 {
 	if(func) {
 		funname = MakeSymbol(func);
-		PyObject *dict = PyModule_GetDict(module); // borrowed
-		function = PyDict_GetItemString(dict,const_cast<C *>(func)); // borrowed!!!
-		if(!function)
-			PyErr_Clear();
-		else if(!PyFunction_Check(function)) {
-			post("%s - Object %s is not a function",thisName());
-			function = NULL;
-		}
+		ResetFunction();
 	}
 	else 
 		function = NULL,funname = NULL;
 }
+
+
+V pyobj::Reload()
+{
+	ResetFunction();
+}
+
 
 V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 {

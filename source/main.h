@@ -23,7 +23,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.3.2
 #endif
 
-#define PY__VERSION "0.1.0pre"
+#define PY__VERSION "0.1.0pre3"
 
 #define PYEXT_MODULE "pyext" // name for module
 #define PYEXT_CLASS "_class"  // name for base class
@@ -53,7 +53,7 @@ public:
 
 protected:
 
-	PyObject *module;
+	PyObject *module,*dict; // inherited user class module and associated dictionary
 
 	static I pyref;
 
@@ -62,6 +62,11 @@ protected:
 	V SetArgs(I argc,t_atom *argv);
 	V ImportModule(const C *name);
 	V ReloadModule();
+
+	V Register(const C *reg);
+	V Unregister(const C *reg);
+	V Reregister(const C *reg);
+	virtual V Reload() = 0;
 
 	static BL IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 
