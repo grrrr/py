@@ -14,7 +14,11 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #define FLEXT_ATTRIBUTES 1
 
 #include <flext.h>
+#if FLEXT_OS == FLEXT_OS_MAC
+#include <Python/Python.h>
+#else
 #include <Python.h>
+#endif
 #include <map>
 
 #if FLEXT_OS == FLEXT_LINUX || FLEXT_OS == FLEXT_IRIX

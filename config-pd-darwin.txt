@@ -15,13 +15,6 @@ PD=/usr/local/bin/pd
 # where do the flext libraries reside?
 FLEXTPATH=/usr/local/lib/pd/flext
 
-# what is the python version?
-PYTHONVER=2.3
-# where are the python header files?
-PYTHONINCLUDE=/Library/Frameworks/Python.Framework/Versions/$(PYTHONVER)/include/python$(PYTHONVER)
-# where is the python library file?
-PYTHONLIB=/Library/Frameworks/Python.Framework/Versions/$(PYTHONVER)/bin/python$(PYTHONVER)
-
 # where should flext libraries be built?
 TARGDIR=./pd-darwin
 # where should the external be installed?
