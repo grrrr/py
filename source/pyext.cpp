@@ -37,26 +37,16 @@ protected:
 	virtual V m_help();
 
 	PyObject *pyobj;
-
-	class instt 
-	{ 
-	public:
-		instt(PyObject *p,pyext *t): th(t),pi(p),nxt(NULL) {}
-
-		pyext *th; 
-		PyObject *pi; 
-		instt *nxt;
-	};
-
-	static instt *insthead,*insttail;
+	I inlets,outlets;
 
 private:
 	enum retval { nothing,atom,tuple,list };
 
 	static V setup(t_class *);
 	
-	BL call(const C *meth,const t_symbol *s,I argc,t_atom *argv);
-	
+	PyObject *call(const C *meth,const t_symbol *s,I argc,t_atom *argv);
+	PyObject *call(const C *meth,PyObject *self);
+
 //	FLEXT_CALLBACK(m_bang)
 
 	FLEXT_CALLBACK_G(m_reload)
@@ -64,9 +54,6 @@ private:
 };
 
 FLEXT_LIB_G("pyext",pyext)
-
-pyext::instt *pyext::insthead = NULL;
-pyext::instt *pyext::insttail = NULL;
 
 
 PyObject* pyext::py__init__(PyObject *sl, PyObject *args)
@@ -86,10 +73,14 @@ PyObject *pyext::py_outlet(PyObject *sl,PyObject *args)
 	t_atom *rargv = GetPyArgs(rargc,args,&self);
 
 	if(rargv) {
-		instt *p;
-		for(p = insthead; p; p = p->nxt)
-			if(p->pi == self) break;
-		py *ext = p?p->th:NULL;
+		py *ext = NULL;
+		PyObject *th = PyObject_GetAttrString(self,"thisptr");
+		if(th) {
+			ext = (py *)PyLong_AsVoidPtr(th); 
+		}
+		else {
+			post("Attribut nicht gefunden");
+		}
 
 		if(ext && rargv && rargc >= 2) {
 			I o = GetAInt(rargv[1]);
@@ -124,12 +115,12 @@ static PyMethodDef pyext_meths[] =
 
 static PyMethodDef pyext_mod_meths[] = {{NULL, NULL, 0, NULL}};
 
-
+static I ref = 0;
 
 pyext::pyext(I argc,t_atom *argv):
 	pyobj(NULL)
 { 
-	if(!insthead) {
+	if(!(ref++)) {
 		PyObject *module = Py_InitModule("pyext", pyext_mod_meths);
 
 		PyObject *moduleDict = PyModule_GetDict(module);
@@ -209,17 +200,29 @@ pyext::pyext(I argc,t_atom *argv):
 				if(pyobj == NULL) 
 					PyErr_Print();
 				else {
-					instt *no = new instt(pyobj,this);
-					if(insttail) insttail->nxt = no;
-					else insthead = no;
-					insttail = no;
+					PyObject *th = PyLong_FromVoidPtr(this); 
+					int ret = PyObject_SetAttrString(pyobj,"thisptr",th);
+
+					PyObject *res;
+					res = call("_inlets",pyobj);
+					if(res) {
+						inlets = PyLong_AsLong(res);
+						Py_DECREF(res);
+					}
+					else inlets = 1;
+					res = call("_outlets",pyobj);
+					if(res) {
+						outlets = PyLong_AsLong(res);
+						Py_DECREF(res);
+					}
+					else outlets = 1;
 				}
 			}
 		}
 	}
 		
-	AddInAnything(2);  
-	AddOutAnything(2);  
+	AddInAnything(1+inlets);  
+	AddOutAnything(1+outlets);  
 	SetupInOut();  // set up inlets and outlets
 
 	FLEXT_ADDMETHOD_(0,"reload",m_reload);
@@ -230,23 +233,7 @@ pyext::pyext(I argc,t_atom *argv):
 
 pyext::~pyext()
 {
-	instt *pp = NULL,*p = insthead;
-	while(p) {
-		instt *pn = p->nxt;
-		if(p->th == this) {
-			if(pp) pp->nxt = pn;
-			else insthead = pn;
-			p->nxt = NULL;
-			if(!insthead) insttail = NULL;
-
-			pp = p;
-			delete p;
-			p = pn;
-		}
-		else
-			pp = p,p = pn;
-	}
-
+	--ref;
 	if(pyobj) Py_DECREF(pyobj);
 }
 
@@ -312,36 +299,57 @@ V pyext::m_help()
 	post("");
 }
 
-BL pyext::call(const C *meth,const t_symbol *s,I argc,t_atom *argv) 
+PyObject *pyext::call(const C *meth,const t_symbol *s,I argc,t_atom *argv) 
 {
 	PyObject *pmeth  = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
 	if(pmeth == NULL) {
 		PyErr_Clear(); // no method found
-		return false;
+		return NULL;
 	}
 	else {
+		PyObject *pres;
 		PyObject *pargs = MakePyArgs(s,argc,argv);
 		if(!pargs)
 			PyErr_Print();
 		else {
-			PyObject *pres = PyEval_CallObject(pmeth, pargs);           /* call method(x,y) */
+			pres = PyEval_CallObject(pmeth, pargs);           /* call method(x,y) */
 			if (pres == NULL)
 				PyErr_Print();
 			else {
-				Py_DECREF(pres);
+//				Py_DECREF(pres);
 			}
 
 			Py_DECREF(pargs);
 		}
 		Py_DECREF(pmeth);
 
-		return true;
+		return pres;
+	}
+}
+
+PyObject *pyext::call(const C *meth,PyObject *self) 
+{
+	PyObject *pmeth  = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
+	if(pmeth == NULL) {
+		PyErr_Clear(); // no method found
+		return NULL;
+	}
+	else {
+		PyObject *pres = PyEval_CallObject(pmeth, self);           /* call method(x,y) */
+		if (pres == NULL)
+			PyErr_Print();
+		else {
+//			Py_DECREF(pres);
+		}
+		Py_DECREF(pmeth);
+
+		return pres;
 	}
 }
 
 BL pyext::work(I n,const t_symbol *s,I argc,t_atom *argv)
 {
-	BL ret = false;
+	PyObject *ret = NULL;
 	char *str = new char[strlen(GetString(s))+10];
 
 	sprintf(str,"_%s_%i",GetString(s),n);
@@ -362,7 +370,12 @@ BL pyext::work(I n,const t_symbol *s,I argc,t_atom *argv)
 
 	if(str) delete[] str;
 
-	return ret;
+	if(ret) {
+		post("%s - returned value is ignored",thisName());
+		Py_DECREF(ret);
+		return true;
+	}
+	return false;
 }
 
 
