@@ -28,6 +28,9 @@ o Microsoft Visual C++ 6: edit "py.dsp" project file
 - pd - linux:
 o GCC for linux: edit & run "make -f makefile.pd-linux" 
 
+- Max/MSP - MacOS:
+o MPW-PR and GUSI: #undefine HAVE_WCHAR_H in pyconfig.h
+
 ----------------------------------------------------------------------------
 
 Goals/features of the package:

@@ -1,0 +1,91 @@
+# py - python script object for PD and MaxMSP
+# Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
+#
+# Makefile for Apple MPW-PR 
+#
+# usage: make -f py.mpw
+#
+# ---------------------------------------------
+
+MAKEFILE        = py.mpw
+ÄMondoBuildÄ    = {MAKEFILE}  # Make blank to avoid rebuilds when makefile is modified
+
+Name			= py
+
+ObjDir          = :MPW:
+MaxSDK			= HD Daten:Prog Stuff:Max/MSP SDK:SDK Examples
+flext			= ::flext:
+Python			= HD Daten:Prog Stuff:Packs:Python-2.2
+PythonIncludes  = {Python}:Include
+PythonMacIncludes = {Python}:Mac:Include
+PythonCore 		= HD MacOS:Applications (Mac OS 9):dev:Python 2.2:PythonCore
+
+
+
+Includes        = -i :,"{flext}","{MaxSDK}:Max Includes","{MaxSDK}:MSP Includes","{GUSI}include","{PythonIncludes}","{PythonMacIncludes}"
+### MPW Shell - Command "Includes" was not found.
+
+Defines			= -d MAXMSP -d USE_GUSI2
+
+Sym-PPC         = -sym off
+Flags			= -bool on -enum int -includes unix -opt speed,unroll,unswitch  
+
+
+PPCCPlusOptions = {Includes} {Sym-PPC} {Defines} {Flags} 
+
+
+### Source Files ###
+
+SrcFiles        =  main.cpp
+Headers			=  
+
+
+### Object Files ###
+
+Obj-PPC    =  		è
+				  "{ObjDir}main.cpp.x" 
+
+LibFiles-Ext    =  è
+				  "{flext}MPW:flext.o" è
+				  "{MaxSDK}:Max Includes:MaxLib" è
+				  "{MaxSDK}:MSP Includes:MaxAudioLib" è
+				  "{PythonCore}"
+
+### Libraries ###
+
+LibFiles-PPC    =  è
+				  "{SharedLibraries}StdCLib" è
+				  "{SharedLibraries}MathLib" è
+				  "{PPCLibraries}StdCRuntime.o" è
+				  "{PPCLibraries}PPCCRuntime.o" è
+				  "{PPCLibraries}MrCPlusLib.o" è
+
+
+### Default Rules ###
+
+{ObjDir} ü :
+
+.cpp.x  ü  .cpp  {ÄMondoBuildÄ} {Headers}
+	{PPCCPlus} {depDir}{default}.cpp -o {targDir}{default}.cpp.x {PPCCPlusOptions}
+
+
+### Build Rules ###
+
+all ü Folder {ÄMondoBuildÄ} {ObjDir}{Name}
+
+Folder üü
+	if !`Exists {ObjDir}` ; NewFolder {ObjDir} ; end
+
+{ObjDir}{Name}  ü {Obj-PPC} 
+	PPCLink è
+		-o {Targ} è
+		{deps} è
+		{LibFiles-Ext}  è
+		{LibFiles-PPC} è
+		{Sym-PPC} è
+		-mf -d è
+		-t 'iLaF' è
+		-c 'max2' è
+		-xm s è
+		-export main è
+		-main main
