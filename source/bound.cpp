@@ -11,6 +11,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pyext.h"
 #include "flinternal.h"
 
+#ifndef USEFLEXTBINDING
 t_class *pyext::px_class;
 pyext::py_proxy *pyext::px_head,*pyext::px_tail;
 
@@ -28,6 +29,26 @@ void pyext::py_proxy::px_method(py_proxy *obj,const t_symbol *s,int argc,const t
 	PY_UNLOCK
 }
 
+#else
+struct bounddata { PyObject *self,*func; };
+
+bool pyext::boundmeth(flext_base *,const t_symbol *sym,int argc,const t_atom *argv,void *data)
+{
+    bounddata *obj = (bounddata *)data;
+
+	PY_LOCK
+
+	PyObject *args = MakePyArgs(sym,AtomList(argc,argv),-1,obj->self != NULL);
+	PyObject *ret = PyObject_CallObject(obj->func,args);
+	if(!ret) {
+		PyErr_Print();
+	}
+	Py_XDECREF(ret);
+
+	PY_UNLOCK
+    return true;
+}
+#endif
 
 PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 {
@@ -39,18 +60,20 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 		post("py/pyext - Wrong argument types!");
     }
 	else {
-		t_symbol *recv = gensym(name);
+		const t_symbol *recv = MakeSymbol(name);
 /*
 		if(GetBound(recv))
 			post("py/pyext - Symbol \"%s\" is already hooked",GetString(recv));
 */		
 		// make a proxy object
-		py_proxy *px = (py_proxy *)object_new(px_class);
+
 		if(PyMethod_Check(meth)) {
 			PyObject *no = PyObject_GetAttrString(meth,"__name__");
 			meth  = PyObject_GetAttr(self,no); 
 			Py_DECREF(no);
 		}
+#ifndef USEFLEXTBINDING
+		py_proxy *px = (py_proxy *)object_new(px_class);
 		px->init(recv,self,meth);  
 
 		// add it to the list
@@ -59,7 +82,13 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 		px_tail = px;
 
 		// Do bind
-		pd_bind(&px->obj.ob_pd,recv);  
+		pd_bind(&px->obj.ob_pd,(t_symbol *)recv);  
+#else
+        bounddata *data = new bounddata;
+        data->self = self;
+        data->func = meth;
+        GetThis(self)->BindMethod(recv,boundmeth,data);
+#endif
 
 		Py_INCREF(self); // self is borrowed reference
 	}
@@ -78,13 +107,14 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 		post("py/pyext - Wrong argument types!");
     }
 	else {
-		t_symbol *recv = gensym(name);
+		const t_symbol *recv = MakeSymbol(name);
 		if(PyMethod_Check(meth)) {
 			PyObject *no = PyObject_GetAttrString(meth,"__name__");
 			meth  = PyObject_GetAttr(self,no); // meth is given a new reference!
 			Py_DECREF(no);
 		}
 
+#ifndef USEFLEXTBINDING
 		// search proxy object
 		py_proxy *pp = NULL,*px = px_head;
 		while(px) {
@@ -103,12 +133,23 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 
 		// do unbind
 		if(px) {
-			pd_unbind(&px->obj.ob_pd,recv);  
+			pd_unbind(&px->obj.ob_pd,(t_symbol *)recv);  
 			object_free(&px->obj);
 
 			Py_DECREF(self);
 			if(PyMethod_Check(meth)) Py_DECREF(meth);
 		}
+#else
+        void *data = NULL;
+        if(GetThis(self)->UnbindMethod(recv,boundmeth,&data)) {
+            bounddata *bdt = (bounddata *)data; 
+            if(bdt) {
+		        Py_DECREF(bdt->self);
+		        if(PyMethod_Check(bdt->func)) Py_DECREF(bdt->func);
+                if(data) delete bdt; 
+            }
+        }
+#endif
 	}
 
     Py_INCREF(Py_None);
@@ -118,6 +159,7 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 
 V pyext::ClearBinding()
 {
+#ifndef USEFLEXTBINDING
 	// search proxy object
 	py_proxy *pp = NULL,*px = px_head;
 	while(px) {
@@ -132,12 +174,26 @@ V pyext::ClearBinding()
 			Py_DECREF(px->self);
 			if(PyMethod_Check(px->func)) Py_DECREF(px->func);
 
-			pd_unbind(&px->obj.ob_pd,px->name);  
+			pd_unbind(&px->obj.ob_pd,(t_symbol *)px->name);  
 			object_free(&px->obj);
 		}
 		else pp = px;	
 		px = pn;
 	}
+#else
+    void *data = NULL;
+    const t_symbol *sym = NULL;
+
+    // unbind all 
+    while(GetThis(pyobj)->UnbindMethod(sym,NULL,&data)) {
+        bounddata *bdt = (bounddata *)data; 
+        if(bdt) {
+		    Py_DECREF(bdt->self);
+		    if(PyMethod_Check(bdt->func)) Py_DECREF(bdt->func);
+            if(data) delete bdt; 
+        }
+    }
+#endif
 }
 
 

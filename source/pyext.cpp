@@ -16,10 +16,12 @@ FLEXT_LIB_V("pyext",pyext)
 
 V pyext::Setup(t_classid c)
 {
+#ifndef USEFLEXTBINDING
 	px_head = px_tail = NULL;
 
 	px_class = class_new(gensym("pyext proxy"),NULL,NULL,sizeof(py_proxy),CLASS_PD|CLASS_NOINLET, A_NULL);
 	::add_anything(px_class,py_proxy::px_method); // for other inlets
+#endif
 
 	FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
 	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);

@@ -70,6 +70,7 @@ private:
 
 	// -------- bound stuff ------------------
 
+#ifndef USEFLEXTBINDING
 	static t_class *px_class;
 
 	friend class py_proxy;
@@ -79,11 +80,11 @@ private:
 	public:
 		t_object obj;			// MUST reside at memory offset 0
 		PyObject *self,*func;
-		t_symbol *name;
+		const t_symbol *name;
 
 		py_proxy *nxt;
 
-		void init(t_symbol *n,PyObject *s,PyObject *f) { name = n,self = s,func = f,nxt = NULL; }
+		void init(const t_symbol *n,PyObject *s,PyObject *f) { name = n,self = s,func = f,nxt = NULL; }
 //		bool cmp(PyObject *s,PyObject *f) const { return self == s && func == f; }
 //		void init(PyObject *s,char *f) { self = s,func = f,nxt = NULL; }
 //		bool cmp(PyObject *s,char *f) const { return self == s && func == f; }
@@ -93,6 +94,10 @@ private:
 
 	static PyObject *pyext_bind(PyObject *,PyObject *args);
 	static PyObject *pyext_unbind(PyObject *,PyObject *args);
+#else
+	static PyObject *pyext_bind(PyObject *,PyObject *args);
+	static PyObject *pyext_unbind(PyObject *,PyObject *args);
+#endif
 
 	// ---------------------------
 
@@ -118,7 +123,9 @@ private:
 	PyThreadState *pythr;
 
 private:
-	FLEXT_CALLBACK(m_reload)
+    static bool boundmeth(flext_base *,const t_symbol *sym,int argc,const t_atom *argv,void *data);
+    
+    FLEXT_CALLBACK(m_reload)
 	FLEXT_CALLBACK_V(m_reload_)
 	FLEXT_CALLBACK(m_doc_)
 };
