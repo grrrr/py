@@ -85,7 +85,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="c:\data\prog\pd\pd-cvs\src;c:\data\pdmax\flext\source;&quot;C:\data\prog\packs\Python-2.4\include&quot;;&quot;C:\data\prog\packs\Python-2.4\PC&quot;"
+				AdditionalIncludeDirectories="&quot;c:\data\prog\pd\pd-cvs\src&quot;;c:\data\pdmax\flext\source;&quot;C:\data\prog\packs\Python-2.4\include&quot;;&quot;C:\data\prog\packs\Python-2.4\PC&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_THREADS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -105,7 +105,7 @@
 				OutputFile="$(outdir)/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="c:/data/prog/pd/pd-cvs/bin;&quot;c:\data\prog\packs\Python-2.4\PCbuild&quot;"
+				AdditionalLibraryDirectories="&quot;c:/data/prog/pd/pd-cvs/bin&quot;;&quot;c:\data\prog\packs\Python-2.4\PCbuild&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(outdir)/py.pdb"
 				SubSystem="2"
@@ -636,10 +636,16 @@
 			Name="make"
 			Filter="">
 			<File
-				RelativePath=".\config-pd-msvc.txt">
+				RelativePath=".\build\config-win.def">
 			</File>
 			<File
-				RelativePath=".\makefile.pd-msvc">
+				RelativePath=".\config.txt">
+			</File>
+			<File
+				RelativePath=".\build\nmake-win-msvc.inc">
+			</File>
+			<File
+				RelativePath=".\package.txt">
 			</File>
 		</Filter>
 		<File

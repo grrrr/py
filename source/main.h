@@ -58,9 +58,6 @@ protected:
 };
 
 
-PyThreadState *FindThreadState();
-void FreeThreadState();
-
 class py:
 	public flext_base
 {
@@ -141,9 +138,11 @@ protected:
     bool gencall(PyObject *fun,PyObject *args);
     virtual bool callpy(PyObject *fun,PyObject *args) = 0;
 
-private:
-//    PyInterpreterState *interpreter;
+#if FLEXT_SYS == FLEXT_SYS_MAX
+    static short patcher_myvol(t_patcher *x);
+#endif
 
+private:
     bool qucall(PyObject *fun,PyObject *args);
     void threadworker();
     Fifo qufifo;
@@ -155,6 +154,11 @@ private:
 	FLEXT_THREAD_X(work_wrapper)
 #else
 	FLEXT_CALLBACK_X(work_wrapper)
+#endif
+
+#ifdef FLEXT_THREADS
+    static PyThreadState *FindThreadState();
+    static void FreeThreadState();
 #endif
 
 public:

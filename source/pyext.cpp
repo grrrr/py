@@ -99,20 +99,6 @@ void pyext::SetThis()
 }
 
 
-#if FLEXT_SYS == FLEXT_SYS_MAX
-static short patcher_myvol(t_patcher *x)
-{
-    t_box *w;
-    if (x->p_vol)
-        return x->p_vol;
-    else if (w = (t_box *)x->p_vnewobj)
-        return patcher_myvol(w->b_patcher);
-    else
-        return 0;
-}
-#endif
-
-
 PyObject *pyext::class_obj = NULL;
 PyObject *pyext::class_dict = NULL;
 

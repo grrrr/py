@@ -55,6 +55,7 @@ Version history:
 - ADD: support for Max/MSP @ OSX and Windows
 - DEL: eliminated meaningless inchannels and outchannels methods
 - ADD: enabled "int"-tags for pyext class functions
+- ADD: py: when no function is given on the command line, let it be selected by message tag
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)
