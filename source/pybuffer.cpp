@@ -11,15 +11,25 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "main.h"
 
 #ifdef PY_NUMARRAY
+#if FLEXT_OS == FLEXT_OS_MAC
+#include <Python/numarray/numarray.h>
+#else
 #include <numarray/numarray.h>
+#endif
 static bool nasupport = false;
 static NumarrayType numtype;
 #endif
 
 // PD defines a T_OBJECT symbol
 #undef T_OBJECT
-#include "structmember.h"
+
+#if FLEXT_OS == FLEXT_OS_MAC
+#include "Python/bufferobject.h"
+#include "Python/structmember.h"
+#else
 #include "bufferobject.h"
+#include "structmember.h"
+#endif
 
 static PyObject *buffer_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
