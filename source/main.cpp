@@ -201,8 +201,15 @@ V py::AddToPath(const C *dir)
 	if(dir && *dir) {
 		PyObject *pobj = PySys_GetObject("path");
 		if(pobj && PyList_Check(pobj)) {
-			PyObject *ps = PyString_FromString(dir);
-			PyList_Append(pobj,ps);
+			int i,n = PyList_Size(pobj);
+			for(i = 0; i < n; ++i) {
+				PyObject *pt = PyList_GetItem(pobj,i);
+				if(PyString_Check(pt) && !strcmp(dir,PyString_AsString(pt))) break;
+			}
+			if(i < n) { // string is not yet existent in path
+				PyObject *ps = PyString_FromString(dir);
+				PyList_Append(pobj,ps);
+			}
 		}
 		PySys_SetObject("path",pobj);
 	}

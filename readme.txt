@@ -74,6 +74,7 @@ Version history:
 - FIX: GetBound method (modmeth.cpp, line 138) doesn't exist in flext any more
 - FIX: deadlock occured when connecting to py/pyext boxes in non-detached mode
 - ADD: current path and path of the canvas is added to the python path
+- FIX: path is not added to python path if already included
 
 0.1.0:
 - completely reworked all code

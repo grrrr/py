@@ -1,4 +1,4 @@
-#N canvas 307 249 576 388 12;
+#N canvas 307 249 578 390 12;
 #X msg 38 265 help;
 #X msg 37 290 doc;
 #X msg 73 291 doc+;
@@ -21,12 +21,12 @@
 #X obj 289 179 1;
 #X obj 160 181 0;
 #X text 87 87 without threads;
-#X text 113 105 blocking;
 #X text 251 85 with threads;
 #X text 252 102 non-blocking;
 #X text 178 345 watch that!;
 #X msg 414 127 stop;
 #X text 384 106 you can even stop it;
+#X text 115 102 blocking;
 #X connect 0 0 6 0;
 #X connect 1 0 6 0;
 #X connect 2 0 6 0;
@@ -44,4 +44,4 @@
 #X connect 13 2 14 0;
 #X connect 14 0 7 0;
 #X connect 15 0 7 0;
-#X connect 21 0 6 0;
+#X connect 20 0 6 0;
