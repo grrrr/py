@@ -70,6 +70,8 @@ pyext::pyext(I argc,t_atom *argv):
 		}
 
 		PyDict_Merge(class_dict,module_dict,0);
+
+		PyDict_SetItemString(class_dict,"__doc__",PyString_FromString(pyext_doc));
  	}
 	else {
 		Py_INCREF(class_obj);
@@ -185,30 +187,37 @@ pyext::~pyext()
 
 BL pyext::SetClssMeth() //I argc,t_atom *argv)
 {
-	// pyobj should have been decref'd / cleared before!!
+	// pyobj should already have been decref'd / cleared before getting here!!
 	
 	if(module) {
 		PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(methname)));  
 		if(!pref) 
 			PyErr_Print();
 		else if(PyClass_Check(pref)) {
-			PyObject *pargs = MakePyArgs(NULL,args);
-			if (pargs == NULL) PyErr_Print();
-
-			// call class
-//			pyobj = PyInstance_New(pref, pargs,NULL);
-			pyobj = PyInstance_NewRaw(pref, pargs,NULL);
-
-#pragma message("!")
+			// make instance, but don't call __init__ 
+			pyobj = PyInstance_NewRaw(pref,NULL);
 
 			Py_DECREF(pref);
-			Py_XDECREF(pargs);
 			if(pyobj == NULL) 
 				PyErr_Print();
 			else {
 				// remember the this pointer
 				PyObject *th = PyLong_FromVoidPtr(this); 
 				int ret = PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
+
+				// call init now, after _this has been set, which is
+				// important for eventual callbacks from __init__ to c
+				PyObject *pargs = MakePyArgs(NULL,args);
+				if (pargs == NULL) PyErr_Print();
+
+				PyObject *init;
+				init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
+				if(init && PyCallable_Check(init)) {
+					PyObject *res = PyEval_CallObject(init,pargs);
+					Py_XDECREF(res);
+				}
+				
+				Py_XDECREF(pargs);
 			}
 		}
 		else 

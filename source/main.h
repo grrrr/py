@@ -62,6 +62,7 @@ protected:
 	PyObject *module,*dict; // inherited user class module and associated dictionary
 
 	static I pyref;
+	static const C *py_doc;
 
 	V GetModulePath(const C *mod,C *dir,I len);
 	V AddToPath(const C *dir);

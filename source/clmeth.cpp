@@ -9,22 +9,26 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 */
 
 #include "pyext.h"
+
+#ifdef _MSC_VER
+#pragma warning(disable: 4091)
+#endif
 #include <g_canvas.h>
 
 
 PyMethodDef pyext::meth_tbl[] = 
 {
-    {"__doc__", pyext::pyext__doc__, METH_VARARGS, "Print documentation string"},
     {"__init__", pyext::pyext__init__, METH_VARARGS, "Constructor"},
     {"__del__", pyext::pyext__del__, METH_VARARGS, "Destructor"},
 
-	{ "_name", pyext::pyext_name, METH_VARARGS,"Return name of the canvas" },
     {"_outlet", pyext::pyext_outlet, METH_VARARGS,"Send message to outlet"},
+	{"_tocanvas", pyext::pyext_tocanvas, METH_VARARGS,"Send message to canvas" },
 
 	{ "_bind", pyext::pyext_bind, METH_VARARGS,"Bind function to a receiving symbol" },
 	{ "_unbind", pyext::pyext_unbind, METH_VARARGS,"Unbind function from a receiving symbol" },
-
+#ifdef FLEXT_THREADS
 	{ "_detach", pyext::pyext_detach, METH_VARARGS,"Set detach flag for called methods" },
+#endif
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -36,14 +40,18 @@ PyMethodDef pyext::attr_tbl[] =
 };
 
 
-PyObject *pyext::pyext__doc__(PyObject *,PyObject *args)
-{
-	post("CLASS DOC");
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
-
+const C *pyext::pyext_doc =
+	"py/pyext - python external object for PD and MaxMSP, (C)2002 Thomas Grill\n"
+	"\n"
+	"This is the pyext base class. Available methods:\n"
+	"_outlet(self,ix,args...): Send a message to an indexed outlet\n"
+	"_tocanvas(self,args...): Send a message to the parent canvas\n"
+#ifdef FLEXT_THREADS
+	"_detach(self,int): Define whether called Python method run in their own threads\n"
+#endif
+	"_bind(self,name,func): Bind a python function to a symbol\n"
+	"_unbind(self,name,func): Unbind a python function from a symbol\n"
+;
 
 PyObject* pyext::pyext__init__(PyObject *,PyObject *args)
 {
@@ -149,6 +157,7 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 }
 
 #ifdef FLEXT_THREADS
+//! Detach threads
 PyObject *pyext::pyext_detach(PyObject *,PyObject *args)
 {
 	PyObject *self; 
@@ -167,18 +176,40 @@ PyObject *pyext::pyext_detach(PyObject *,PyObject *args)
 }
 #endif
 
-
-PyObject *pyext::pyext_name(PyObject *,PyObject *args)
+//! Send message to canvas
+PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 {
-	PyObject *self; 
-    if(!PyArg_ParseTuple(args, "O:py_name",&self)) {
-        // handle error
-		post("pyext - Syntax: _name(self)");
-    }
-	else {
-		pyext *ext = GetThis(self);
-		return PyString_FromString(GetString(ext->thisCanvas()->gl_name));
+	BL ok = false;
+    if(PyTuple_Check(args)) {
+		PyObject *self = PyTuple_GetItem(args,0);
+		if(self && PyInstance_Check(self)) {
+			pyext *ext = GetThis(self);
+
+#ifdef PD
+			PyObject *val = PyTuple_GetSlice(args,1,PyTuple_Size(args));
+			AtomList *lst = GetPyArgs(val);
+			if(lst) {
+				t_glist *gl = ext->thisCanvas(); //canvas_getcurrent();
+			    t_class **cl = (t_pd *)gl;
+				if(cl) 
+					pd_forwardmess(cl,lst->Count(),lst->Atoms());
+#ifdef _DEBUG
+				else
+					post("pyext - no parent canvas?!");
+#endif
+				ok = true;
+			}
+			else 
+				post("py/pyext - No data to send");
+			if(lst) delete lst;
+			Py_DECREF(val);
+#else
+#pragma message ("Not implemented for MaxMSP")
+#endif
+		}
 	}
+
+	if(!ok)	post("pyext - Syntax: _tocanvas(self,args...)");
 
     Py_INCREF(Py_None);
     return Py_None;

@@ -26,8 +26,8 @@ public:
 	static PyObject *pyext__init__(PyObject *,PyObject *args);
 	static PyObject *pyext__del__(PyObject *,PyObject *args);
 
-	static PyObject *pyext_name(PyObject *,PyObject *args);
 	static PyObject *pyext_outlet(PyObject *,PyObject *args);
+	static PyObject *pyext_tocanvas(PyObject *,PyObject *args);
 
 	static PyObject *pyext_setattr(PyObject *,PyObject *args);
 	static PyObject *pyext_getattr(PyObject *,PyObject *args);
@@ -65,6 +65,7 @@ private:
 	static I pyextref;
 	static PyObject *class_obj,*class_dict;
 	static PyMethodDef attr_tbl[],meth_tbl[];
+	static const C *pyext_doc;
 
 	// -------- bound stuff ------------------
 

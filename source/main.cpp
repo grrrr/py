@@ -31,6 +31,7 @@ I py::pyref = 0;
 PyObject *py::module_obj = NULL;
 PyObject *py::module_dict = NULL;
 
+
 py::py(): 
 	module(NULL),
 	detach(false),shouldexit(false),thrcount(0),
@@ -50,6 +51,8 @@ py::py():
 		// register/initialize pyext module only once!
 		module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
 		module_dict = PyModule_GetDict(module_obj);
+
+		PyModule_AddStringConstant(module_obj,"__doc__",(C *)py_doc);
 
 	#ifdef FLEXT_THREADS
 		pythrmain = PyEval_SaveThread();

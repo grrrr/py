@@ -13,8 +13,6 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 // function table for module
 PyMethodDef py::func_tbl[] = 
 {
-	{ "__doc__", py::py__doc__, METH_VARARGS,"Print documentation string" },
-
 	{ "_send", py::py_send, METH_VARARGS,"Send message to a named object" },
 #ifdef FLEXT_THREADS
 	{ "_priority", py::py_priority, METH_VARARGS,"Set priority of current thread" },
@@ -28,13 +26,20 @@ PyMethodDef py::func_tbl[] =
 	{NULL, NULL, 0, NULL} // sentinel
 };
 
-PyObject *py::py__doc__(PyObject *,PyObject *args)
-{
-	post("MODULE DOC");
+const C *py::py_doc =
+	"py/pyext - python external object for PD and MaxMSP, (C)2002 Thomas Grill\n"
+	"\n"
+	"This is the pyext module. Available function:\n"
+	"_send(args...): Send a message to a send symbol\n"
+#ifdef FLEXT_THREADS
+	"_priority(int): Raise/lower thread priority\n"
+#endif
+	"_samplerate(): Get system sample rate\n"
+	"_blocksize(): Get current blocksize\n"
+	"_inchannels(): Get number of audio in channels\n"
+	"_outchannels(): Get number of audio out channels\n"
+;
 
-    Py_INCREF(Py_None);
-    return Py_None;
-}
 
 
 V py::tick(py *th)
@@ -115,33 +120,36 @@ PyObject *py::py_outchannels(PyObject *self,PyObject *args)
 
 PyObject *py::py_send(PyObject *,PyObject *args)
 {
-	const char *name;
-    PyObject *val;
-    if(!PyArg_ParseTuple(args, "sO:py_send", &name,&val)) {
-        // handle error
-		error("py/pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
-    }
-
-	const t_symbol *recv = MakeSymbol(name);
-	
-	AtomList *lst = GetPyArgs(val);
-	if(lst) {
-		t_class **cl = (t_class **)GetBound(recv);
-		if(cl) {
+    if(PyTuple_Check(args)) {
+		PyObject *name = PyTuple_GetItem(args,0); // borrowed
+		if(name && PyString_Check(name)) {
+			const t_symbol *recv = MakeSymbol(PyString_AsString(name));
+			
+			PyObject *val = PyTuple_GetSlice(args,1,PyTuple_Size(args));  // new ref
+			AtomList *lst = GetPyArgs(val);
+			if(lst) {
+				t_class **cl = (t_class **)GetBound(recv);
+				if(cl) {
 #ifdef PD
-			pd_forwardmess(cl,lst->Count(),lst->Atoms());
+					pd_forwardmess(cl,lst->Count(),lst->Atoms());
 #else
-			#pragma message ("Send is not implemented")
+					#pragma message ("Send is not implemented")
 #endif
-		}
+				}
 #ifdef _DEBUG
-		else 
-			post("py/pyext - Receiver doesn't exist");
+				else 
+					post("py/pyext - Receiver doesn't exist");
 #endif
+			}
+			else 
+				post("py/pyext - No data to send");
+			if(lst) delete lst;
+
+			Py_DECREF(val);
+		}
+		else
+			post("py/pyext - Send name is invalid");
 	}
-	else 
-		post("py/pyext - No data to send");
-	if(lst) delete lst;
 
     Py_INCREF(Py_None);
     return Py_None;
