@@ -551,6 +551,10 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 
     bool isfloat = s == sym_float && argc == 1;
 
+    // offset inlet index by signal inlets
+    // \note first one is shared with messages!
+    if(siginlets) n += siginlets-1;
+
 	// if float equals an integer, try int_* method
     if(isfloat && GetAFloat(argv[0]) == GetAInt(argv[0])) {
 		sprintf(str,"int_%i",n);

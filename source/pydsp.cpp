@@ -74,26 +74,38 @@ PyObject *NAFromBuffer(PyObject *buf,int c,int n);
 
 void pydsp::NewBuffers(bool update)
 {
+    int i,n = Blocksize();
+    const int ins = CntInSig(),outs = CntOutSig();
+    t_sample *const *insigs = InSig();
+    t_sample *const *outsigs = InSig();
+
     if(!buffers) {
-        int cnt = (CntInSig()+CntOutSig())*2;
+        int cnt = (ins+outs)*2;
         if(cnt) {
             buffers = new PyObject *[cnt];
             memset(buffers,0,cnt*sizeof(*buffers));
         }
     }
 
-    int i,n = Blocksize();
-
     PyObject **b = buffers;
-    for(i = 0; i < CntInSig(); ++i,b += 2) {
+    for(i = 0; i < ins; ++i,b += 2) {
         if(update) { Py_XDECREF(b[0]); Py_XDECREF(b[1]); }
-        b[0] = PyBuffer_FromMemory(InSig()[i],n*sizeof(t_sample));
+        b[0] = PyBuffer_FromReadWriteMemory(insigs[i],n*sizeof(t_sample));
         b[1] = NAFromBuffer(b[0],1,n);
     }
-    for(i = 0; i < CntOutSig(); ++i,++b) {
+    for(i = 0; i < outs; ++i,++b) {
         if(update) { Py_XDECREF(b[0]); Py_XDECREF(b[1]); }
-        b[0] = PyBuffer_FromReadWriteMemory(OutSig()[i],n*sizeof(t_sample));
-        b[1] = NAFromBuffer(b[0],1,n);
+        if(i < ins && outsigs[i] == insigs[i]) {
+            // same vectors - share the objects!
+            b[0] = buffers[i*2];
+            Py_XINCREF(b[0]);
+            b[1] = buffers[i*2+1];
+            Py_XINCREF(b[1]);
+        }
+        else {
+            b[0] = PyBuffer_FromReadWriteMemory(outsigs[i],n*sizeof(t_sample));
+            b[1] = NAFromBuffer(b[0],1,n);
+        }
     }
 }
 
@@ -115,8 +127,9 @@ bool pydsp::CbDsp()
 
         if(dspfun) {
         	PyThreadState *state = PyLock();
-            Py_INCREF(emptytuple);
+//            Py_INCREF(emptytuple);
             PyObject *ret = PyObject_Call(dspfun,emptytuple,NULL);
+//            Py_DECREF(emptytuple);
             if(ret)
                 Py_DECREF(ret);
             else {
@@ -126,7 +139,6 @@ bool pydsp::CbDsp()
                 PyErr_Clear();
 #endif   
             }
-            Py_DECREF(emptytuple);
             PyUnlock(state);
         }
         return true;
@@ -140,8 +152,9 @@ void pydsp::CbSignal()
 {
     if(sigfun) {
       	PyThreadState *state = PyLock();
-        Py_INCREF(emptytuple);
+//        Py_INCREF(emptytuple);
         PyObject *ret = PyObject_Call(sigfun,emptytuple,NULL);
+//        Py_DECREF(emptytuple);
 
         if(ret) 
             Py_DECREF(ret);
@@ -152,7 +165,6 @@ void pydsp::CbSignal()
             PyErr_Clear();
 #endif   
         }
-        Py_DECREF(emptytuple);
         PyUnlock(state);
     }
     else
@@ -162,7 +174,7 @@ void pydsp::CbSignal()
 PyObject *pydsp::GetSig(bool in,bool vec) 
 {
     PyObject *r = buffers[(in?0:CntInSig())*2+(vec?1:0)];
-    if(r) Py_INCREF(r);
+    Py_XINCREF(r);
     return r;
 }
 

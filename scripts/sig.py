@@ -11,12 +11,19 @@ For numarray see http://numeric.scipy.org
 It will probably once be replaced by Numeric(3)
 """
 
-import sys
-
 try:
     import pyext
 except:
     print "ERROR: This script must be loaded by the PD/Max py/pyext external"
+
+try:
+    # try to use JIT support
+    import psyco
+    psyco.full()
+except:
+    pass
+
+import sys
 
 try:    
     import numarray
