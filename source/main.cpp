@@ -21,21 +21,24 @@ V py::lib_setup()
 	FLEXT_SETUP(pyobj);
 	FLEXT_SETUP(pyext);
 
-	py::pyref = 0;
+	pyref = 0;
 }
 
 FLEXT_LIB_SETUP(py,py::lib_setup)
 
 PyInterpreterState *py::pystate = NULL;
 
+// function table for module
 PyMethodDef py::func_tbl[] = 
 {
-	{ "_samplerate", py::py_samplerate, NULL,"get sample rate" },
-	{ "_blocksize", py::py_blocksize, NULL,"get block size" },
-	{ "_inchannels", py::py_inchannels, NULL,"get number of audio in channels" },
-	{ "_outchannels", py::py_outchannels, NULL,"get number of audio out channels" },
-	{ "_send", py::py_send, METH_VARARGS,"get number of audio out channels" },
-	{NULL, NULL, 0, NULL}
+	{ "_send", py::py_send, METH_VARARGS,"Send message to a named object" },
+
+	{ "_samplerate", py::py_samplerate, NULL,"Get system sample rate" },
+	{ "_blocksize", py::py_blocksize, NULL,"Get system block size" },
+	{ "_inchannels", py::py_inchannels, NULL,"Get number of audio in channels" },
+	{ "_outchannels", py::py_outchannels, NULL,"Get number of audio out channels" },
+
+	{NULL, NULL, 0, NULL} // sentinel
 };
 
 I py::pyref = 0;
@@ -82,7 +85,7 @@ py::~py()
 	if(thrcount) {
 		shouldexit = true;
 
-		// Wait for 0.5 seconds
+		// Wait for a certain time
 		for(int i = 0; i < (STOP_WAIT/STOP_TICK) && thrcount; ++i) Sleep((F)(STOP_TICK/1000.));
 
 		// Wait forever
@@ -171,8 +174,9 @@ PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet,BL withse
 	I pix = 0;
 
 	if(inlet >= 0) {
-		PyObject *pValue = PyInt_FromLong(inlet);
-		/* pValue reference stolen here: */
+		PyObject *pValue = PyInt_FromLong(inlet); 
+		
+		// reference stolen:
 		PyTuple_SetItem(pArgs, pix++, pValue); 
 	}
 
@@ -184,7 +188,7 @@ PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet,BL withse
 	if(any) {
 		PyObject *pValue = PyString_FromString(GetString(s));
 
-		/* pValue reference stolen here: */
+		// reference stolen here: 
 		PyTuple_SetItem(tmp, ix++, pValue); 
 	}
 
@@ -387,39 +391,36 @@ PyObject *py::py_outchannels(PyObject *self,PyObject *args)
 	return PyLong_FromLong(ch);
 }
 
-PyObject *py::py_send(PyObject *self,PyObject *args)
+PyObject *py::py_send(PyObject *,PyObject *args)
 {
-    PyObject *name,*val;
-    if(!PyArg_ParseTuple(args, "OO:py_send", &name,&val)) {
+	const char *name;
+    PyObject *val;
+    if(!PyArg_ParseTuple(args, "sO:py_send", &name,&val)) {
         // handle error
 		error("py/pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
     }
 
-	if(!PyString_Check(name)) 
-		post("py/pyext - Receiver name must be a string!");
-	else {
-		const t_symbol *recv = MakeSymbol(PyString_AsString(name));
-		
-		I argc;
-		t_atom *lst = GetPyArgs(argc,val);
-		if(argc && lst) {
-			t_class **cl = (t_class **)GetThing(recv);
-			if(cl) {
+	const t_symbol *recv = MakeSymbol(name);
+	
+	I argc;
+	t_atom *lst = GetPyArgs(argc,val);
+	if(argc && lst) {
+		t_class **cl = (t_class **)GetBound(recv);
+		if(cl) {
 #ifdef PD
-				pd_forwardmess(cl,argc,lst);
+			pd_forwardmess(cl,argc,lst);
 #else
-				#pragma message ("Send is not implemented")
-#endif
-			}
-#ifdef _DEBUG
-			else 
-				post("py/pyext - Receiver doesn't exist");
+			#pragma message ("Send is not implemented")
 #endif
 		}
+#ifdef _DEBUG
 		else 
-			post("py/pyext - No data to send");
-		if(lst) delete[] lst;
+			post("py/pyext - Receiver doesn't exist");
+#endif
 	}
+	else 
+		post("py/pyext - No data to send");
+	if(lst) delete[] lst;
 
     Py_INCREF(Py_None);
     return Py_None;

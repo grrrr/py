@@ -129,7 +129,11 @@ BL pyobj::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 V pyobj::m_reload(I argc,t_atom *argv)
 {
 	PY_LOCK
+	/*
 	if(argc > 2) SetArgs(argc,argv);
+	else
+	*/
+	SetArgs(0,NULL);
 
 	ReloadModule();
 	PY_UNLOCK

@@ -1,197 +1,26 @@
-/* 
+#include "pyext.h"
+#include <flinternal.h>
 
-py/pyext - python external object for PD and MaxMSP
-
-Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
-For information on usage and redistribution, and for a DISCLAIMER OF ALL
-WARRANTIES, see the file, "license.txt," in this distribution.  
-
--------------------------------------------------------------------------
-
-*/
-
-#include "main.h"
-
-class pyext:
-	public py
-{
-	FLEXT_HEADER(pyext,py)
-
-public:
-	pyext(I argc,t_atom *argv);
-	~pyext();
-
-	static PyObject *py__init__(PyObject *self,PyObject *args);
-	static PyObject *py_outlet(PyObject *self,PyObject *args);
-	static PyObject *py_setattr(PyObject *self,PyObject *args);
-	static PyObject *py_getattr(PyObject *self,PyObject *args);
-
-	I Inlets() const { return inlets; }
-	I Outlets() const { return outlets; }
-
-protected:
-	BL m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
-
-	BL work(I n,const t_symbol *s,I argc,t_atom *argv); 
-
-	V m_reload(I argc,t_atom *argv);
-	virtual V m_help();
-
-	PyObject *pyobj;
-	I inlets,outlets;
-
-private:
-	static PyObject *class_obj,*class_dict;
-	static PyMethodDef attr_tbl[],meth_tbl[];
-
-	PyObject *call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *argv);
-
-	V work_wrapper(void *data); 
-	BL callwork(I n,const t_symbol *s,I argc,t_atom *argv); 
-
-	class work_data:
-		public flext_base::AtomAnything
-	{
-	public:
-		work_data(I _n,const t_symbol *_s,I _argc,t_atom *_argv): n(_n),AtomAnything(_s,_argc,_argv) {}
-		I n;
-	};
-
-#ifdef FLEXT_THREADS
-	FLEXT_THREAD_X(work_wrapper)
-#else
-	FLEXT_CALLBACK_X(work_wrapper)
-#endif
-
-	PyThreadState *pythr;
-
-private:
-	FLEXT_CALLBACK_V(m_reload)
-};
 
 FLEXT_LIB_V("pyext",pyext)
 
 
-PyObject* pyext::py__init__(PyObject *,PyObject *args)
+V pyext::setup(t_class *)
 {
-//    post("pyext.__init__ called");
+	px_head = px_tail = NULL;
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	px_class = class_new(gensym("pyext proxy"),NULL,NULL,sizeof(py_proxy),CLASS_PD|CLASS_NOINLET, A_NULL);
+	::add_anything(px_class,py_proxy::px_method); // for other inlets
 }
 
-PyObject* pyext::py_setattr(PyObject *,PyObject *args)
+pyext *pyext::GetThis(PyObject *self)
 {
-    PyObject *self,*name,*val,*ret = NULL;
-    if(!PyArg_ParseTuple(args, "OOO:test_foo", &self,&name,&val)) {
-        // handle error
-		error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
-		return NULL;
-    }
-
-	BL handled = false;
-    if(PyString_Check(name)) {
-	    char* sname = PyString_AsString(name);
-		if (sname) {
-//			post("pyext::setattr %s",sname);
-		}
-	}
-
-	if(!handled) {
-		if(PyInstance_Check(self)) 
-			PyDict_SetItem(((PyInstanceObject *)self)->in_dict, name,val);
-		else
-			error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
-	}
-
-	Py_INCREF(Py_None);
-	return Py_None;
+	PyObject *th = PyObject_GetAttrString(self,"_this");
+	pyext *ret = th?(pyext *)PyLong_AsVoidPtr(th):NULL;
+	PyErr_Clear();
+	Py_XDECREF(th);
+	return ret;
 }
-
-PyObject* pyext::py_getattr(PyObject *,PyObject *args)
-{
-    PyObject *self,*name,*ret = NULL;
-    if(!PyArg_ParseTuple(args, "OO:test_foo", &self,&name)) {
-        // handle error
-		error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
-    }
-
-    if(PyString_Check(name)) {
-	    char* sname = PyString_AsString(name);
-		if (sname) {
-			if(!strcmp(sname,"_shouldexit")) {
-				PyObject *th = PyObject_GetAttrString(self,"_this");
-				if(th) {
-					pyext *ext = (pyext *)PyLong_AsVoidPtr(th); 
-					ret = PyLong_FromLong(ext->shouldexit?1:0);
-				}
-			}
-//			post("pyext::getattr %s",sname);
-		}
-	}
-
-	return ret?ret:PyObject_GenericGetAttr(self,name);
-}
-
-PyObject *pyext::py_outlet(PyObject *,PyObject *args) 
-{
-//	PY_LOCK
-
-	I rargc;
-	PyObject *self;
-	t_atom *rargv = GetPyArgs(rargc,args,&self);
-
-//    post("pyext.outlet called, args:%i",rargc);
-
-	if(rargv) {
-		pyext *ext = NULL;
-		PyObject *th = PyObject_GetAttrString(self,"_this");
-		if(th) {
-			ext = (pyext *)PyLong_AsVoidPtr(th); 
-		}
-		else {
-			error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
-		}
-
-		if(ext && rargv && rargc >= 2) {
-			I o = GetAInt(rargv[1]);
-			if(o >= 1 && o <= ext->Outlets()) {
-				if(rargc >= 3 && IsSymbol(rargv[2]))
-					ext->ToOutAnything(o-1,GetSymbol(rargv[2]),rargc-3,rargv+3);
-				else
-					ext->ToOutList(o-1,rargc-2,rargv+2);
-			}
-			else
-				post("pyext: outlet index out of range");
-		}
-		else {
-//			PyErr_Print();
-			error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
-		}
-	}
-
-	if(rargv) delete[] rargv;
-
-    Py_INCREF(Py_None);
-
-//	PY_UNLOCK
-    return Py_None;
-}
-
-
-PyMethodDef pyext::meth_tbl[] = 
-{
-//    {"__init__", pyext::py__init__, METH_VARARGS, "pyext init"},
-    {"_outlet", pyext::py_outlet, METH_VARARGS,"pyext outlet"},
-    {NULL, NULL, 0, NULL}        /* Sentinel */
-};
-
-PyMethodDef pyext::attr_tbl[] =
-{
-	{ "__setattr__", pyext::py_setattr, METH_VARARGS,"pyext setattr" },
-	{ "__getattr__", pyext::py_getattr, METH_VARARGS,"pyext getattr" },
-	{ NULL, NULL,0,NULL },
-};
 
 
 PyObject *pyext::class_obj = NULL;
@@ -228,6 +57,8 @@ pyext::pyext(I argc,t_atom *argv):
 			Py_DECREF(func);
 			Py_DECREF(method);
 		}
+
+		PyDict_Merge(class_dict,module_dict,0);
  	}
 	else {
 		Py_INCREF(class_obj);
@@ -258,10 +89,12 @@ pyext::pyext(I argc,t_atom *argv):
 	}
 
 	if(sobj) {
+/*
 		if(argc > 2) 
 			SetArgs(argc-2,argv+2);
 		else
-			SetArgs(0,NULL);
+*/
+		SetArgs(0,NULL);
 
 		if(module) {
 			PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(sobj)));  
@@ -340,6 +173,8 @@ pyext::pyext(I argc,t_atom *argv):
 pyext::~pyext()
 {
 	PY_LOCK
+
+	ClearBinding();
 	
 	Py_XDECREF(pyobj);
 
@@ -359,7 +194,8 @@ pyext::~pyext()
 V pyext::m_reload(I argc,t_atom *argv)
 {
 	PY_LOCK
-	if(argc > 2) SetArgs(argc,argv);
+//	SetArgs(argc,argv);
+	SetArgs(0,NULL);
 
 	ReloadModule();
 	PY_UNLOCK
@@ -464,7 +300,7 @@ BL pyext::work(I n,const t_symbol *s,I argc,t_atom *argv)
 
 	{
 		// try tag/inlet
-		sprintf(str,"_%s_%i",GetString(s),n);
+		sprintf(str,"%s_%i",GetString(s),n);
 		ret = call(str,0,NULL,argc,argv);
 	}
 
@@ -481,7 +317,7 @@ BL pyext::work(I n,const t_symbol *s,I argc,t_atom *argv)
 	}
 	if(!ret) {
 		// try tag at any inlet
-		sprintf(str,"_%s_",GetString(s));
+		sprintf(str,"%s_",GetString(s));
 		ret = call(str,n,NULL,argc,argv);
 	}
 	if(!ret) {

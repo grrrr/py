@@ -25,6 +25,7 @@ public:
 	~pyext();
 
 	static PyObject *py__init__(PyObject *self,PyObject *args);
+	static PyObject *py__del__(PyObject *self,PyObject *args);
 	static PyObject *py_outlet(PyObject *self,PyObject *args);
 	static PyObject *py_setattr(PyObject *self,PyObject *args);
 	static PyObject *py_getattr(PyObject *self,PyObject *args);
@@ -44,7 +45,10 @@ protected:
 	I inlets,outlets;
 
 private:
-	V setup(t_class *);
+	static V setup(t_class *);
+
+	static pyext *GetThis(PyObject *self);
+	V ClearBinding();
 
 	static PyObject *class_obj,*class_dict;
 	static PyMethodDef attr_tbl[],meth_tbl[];
@@ -60,11 +64,14 @@ private:
 	public:
 		t_object obj;			// MUST reside at memory offset 0
 		PyObject *self,*func;
+		t_symbol *name;
 
 		py_proxy *nxt;
 
-		void init(PyObject *s,PyObject *f) { self = s,func = f,nxt = NULL; }
-		bool cmp(PyObject *s,PyObject *f) const { return self == s && func == f; }
+		void init(t_symbol *n,PyObject *s,PyObject *f) { name = n,self = s,func = f,nxt = NULL; }
+//		bool cmp(PyObject *s,PyObject *f) const { return self == s && func == f; }
+//		void init(PyObject *s,char *f) { self = s,func = f,nxt = NULL; }
+//		bool cmp(PyObject *s,char *f) const { return self == s && func == f; }
 		static void px_method(py_proxy *c,const t_symbol *s,int argc,t_atom *argv);
 	};
 	static py_proxy *px_head,*px_tail;

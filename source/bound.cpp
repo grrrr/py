@@ -1,4 +1,5 @@
-#include "main.h"
+#include "pyext.h"
+#include "flinternal.h"
 
 t_class *pyext::px_class;
 pyext::py_proxy *pyext::px_head,*pyext::px_tail;
@@ -7,7 +8,7 @@ void pyext::py_proxy::px_method(py_proxy *obj,const t_symbol *s,int argc,t_atom 
 {
 	PY_LOCK
 
-	PyObject *args = MakePyArgs(s,argc,argv); //,-1,obj->self != NULL);
+	PyObject *args = MakePyArgs(s,argc,argv,-1,obj->self != NULL);
 	PyObject *ret = PyObject_CallObject(obj->func,args);
 	Py_XDECREF(ret);
 
@@ -17,35 +18,26 @@ void pyext::py_proxy::px_method(py_proxy *obj,const t_symbol *s,int argc,t_atom 
 
 PyObject *pyext::py_bind(PyObject *,PyObject *args)
 {
-    PyObject *o1,*o2,*o3 = NULL;
-    if(!PyArg_ParseTuple(args, "OO|O:py_bind", &o1,&o2,&o3)) {
-        // handle error
-		error("py/pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
-    }
-
-	BL ok = false;
-	PyObject *self = NULL;
-	if(o3 && PyInstance_Check(o1) && PyString_Check(o2) && PyMethod_Check(o3)) {
-		// class method
-		self = o1,o1 = o2,o2 = o3;
-		ok = true;
-	}
-	else if(!o3 && PyString_Check(o1) && PyFunction_Check(o2)) {
-		// function
-		ok = true;
-	}
-
-	if(!ok) {
+    PyObject *self,*meth;
+	C *name;
+    if(!PyArg_ParseTuple(args, "OsO:pyext_bind", &self,&name,&meth))
 		post("py/pyext - Wrong arguments!");
-	}
+	else if(!PyInstance_Check(self) || !(PyMethod_Check(meth) || PyFunction_Check(meth))) {
+		post("py/pyext - Wrong argument types!");
+    }
 	else {
-		t_symbol *recv = gensym(PyString_AsString(o1));
+		t_symbol *recv = gensym(name);
 		if(GetBound(recv))
 			post("py/pyext - Symbol \"%s\" is already hooked",GetString(recv));
 		else {
 			// make a proxy object
 		    py_proxy *px = (py_proxy *)object_new(px_class);
-			px->init(self,o2);  // proxy for 2nd inlet messages 
+			if(PyMethod_Check(meth)) {
+				PyObject *no = PyObject_GetAttrString(meth,"__name__");
+				meth  = PyObject_GetAttr(self,no); 
+				Py_DECREF(no);
+			}
+			px->init(recv,self,meth);  
 
 			// add it to the list
 			if(px_tail) px_tail->nxt = px;
@@ -54,6 +46,8 @@ PyObject *pyext::py_bind(PyObject *,PyObject *args)
 
 			// Do bind
 			pd_bind(&px->obj.ob_pd,recv);  
+
+		    Py_INCREF(self); // self is borrowed reference
 		}
 	}
 
@@ -63,48 +57,72 @@ PyObject *pyext::py_bind(PyObject *,PyObject *args)
 
 PyObject *pyext::py_unbind(PyObject *,PyObject *args)
 {
-    PyObject *o1,*o2,*o3 = NULL;
-    if(!PyArg_ParseTuple(args, "OO|O:py_bind", &o1,&o2,&o3)) {
-        // handle error
-		error("py/pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
-    }
-
-	BL ok = false;
-	PyObject *self = NULL;
-	if(o3 && PyInstance_Check(o1) && PyString_Check(o2) && PyMethod_Check(o3)) {
-		// class method
-		self = o1,o1 = o2,o2 = o3;
-		ok = true;
-	}
-	else if(!o3 && PyString_Check(o1) && PyFunction_Check(o2)) {
-		// function
-		ok = true;
-	}
-
-	if(!ok) {
+    PyObject *self,*meth;
+	C *name;
+    if(!PyArg_ParseTuple(args, "OsO:pyext_bind", &self,&name,&meth))
 		post("py/pyext - Wrong arguments!");
-	}
+	else if(!PyInstance_Check(self) || !(PyMethod_Check(meth) || PyFunction_Check(meth))) {
+		post("py/pyext - Wrong argument types!");
+    }
 	else {
-		t_symbol *recv = gensym(PyString_AsString(o1));
+		t_symbol *recv = gensym(name);
+		if(PyMethod_Check(meth)) {
+			PyObject *no = PyObject_GetAttrString(meth,"__name__");
+			meth  = PyObject_GetAttr(self,no); // meth is given a new reference!
+			Py_DECREF(no);
+		}
 
 		// search proxy object
 		py_proxy *pp = NULL,*px = px_head;
 		while(px) {
-			if(px->cmp(self,o2)) {
-				py_proxy *pn = px->nxt;
-				object_free(px->obj);
-				px = pn;
+			py_proxy *pn = px->nxt;
+			if(recv == px->name && self == px->self && meth == px->func) {
+				if(pp)
+					pp->nxt = pn;
+				else
+					px_head = pn;
+				if(!pn) px_tail = NULL;
+				break;
 			}
-			else 
-				pp = px,px = px->nxt;
+			else pp = px;
+			px = pn;
 		}
 
 		// do unbind
 		if(px) {
 			pd_unbind(&px->obj.ob_pd,recv);  
+			object_free(px->obj);
+
+			Py_DECREF(self);
+			if(PyMethod_Check(meth)) Py_DECREF(meth);
 		}
 	}
 
     Py_INCREF(Py_None);
     return Py_None;
+}
+
+
+V pyext::ClearBinding()
+{
+	// search proxy object
+	py_proxy *pp = NULL,*px = px_head;
+	while(px) {
+		py_proxy *pn = px->nxt;
+		if(px->self == pyobj) {
+			if(pp)
+				pp->nxt = pn;
+			else
+				px_head = pn;
+			if(!pn) px_tail = NULL;
+
+			Py_DECREF(px->self);
+			if(PyMethod_Check(px->func)) Py_DECREF(px->func);
+
+			pd_unbind(&px->obj.ob_pd,px->name);  
+			object_free(px->obj);
+		}
+		else pp = px;	
+		px = pn;
+	}
 }

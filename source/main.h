@@ -26,7 +26,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #define PY__VERSION "0.1.0pre"
 
 #define PYEXT_MODULE "pyext" // name for module
-#define PYEXT_CLASS "base"  // name for base class
+#define PYEXT_CLASS "_class"  // name for base class
 
 #define I int
 #define C char
@@ -48,6 +48,9 @@ public:
 	~py();
 	static V lib_setup();
 
+	static PyObject *MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet = -1,BL withself = false);
+	static t_atom *GetPyArgs(int &argc,PyObject *pValue,PyObject **self = NULL);
+
 protected:
 
 	PyObject *module;
@@ -60,9 +63,6 @@ protected:
 	V ImportModule(const C *name);
 	V ReloadModule();
 
-	static PyObject *MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet = -1,BL withself = false);
-	static t_atom *GetPyArgs(int &argc,PyObject *pValue,PyObject **self = NULL);
-
 	static BL IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 
 	enum retval { nothing,atom,tuple,list };
@@ -73,6 +73,7 @@ protected:
 	static PyMethodDef func_tbl[];
 
 	static PyObject *py_send(PyObject *self,PyObject *args);
+
 	static PyObject *py_samplerate(PyObject *self,PyObject *args);
 	static PyObject *py_blocksize(PyObject *self,PyObject *args);
 	static PyObject *py_inchannels(PyObject *self,PyObject *args);
@@ -90,6 +91,7 @@ protected:
 
 	static V tick(py *obj);
 
+public:
 	static PyInterpreterState *pystate;
 	PyThreadState *pythrmain;
 
@@ -102,6 +104,7 @@ protected:
 	V Unlock() {}
 #endif
 
+protected:
 	// callbacks
 
 	FLEXT_CALLBACK_B(m_detach)

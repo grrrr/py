@@ -2,7 +2,7 @@ import time,random
 import pyext
 
 # derive class from pyext.pyext
-class testcl1(pyext.base): 
+class testcl1(pyext._class): 
 	  
 # how many inlets and outlets?
 	_inlets = 2
@@ -30,10 +30,28 @@ class testcl1(pyext.base):
 	def _hula_(self,ix,arg):
 		self._outlet(ix,"hula",arg)
 
+def recv2(arg):
+	print "RECV2",arg
 
-class testcl2(pyext.base):
+
+class testcl2(pyext._class):
 	_inlets=3
 	_outlets=2
+
+	recvname=""
+
+	def recv1(self,arg):
+		print "RECV1",arg
+
+	def __init__(self,name):
+		print "__INIT__"
+		self.recvname = name
+		self._bind("recv1",self.recv1)
+		self._bind("recv2",recv2)
+
+	def __del__(self):
+		print "__DEL__"
+#		self._unbind(self.recvname,testcl2.recv1)
 
 	def _anything_1(self,arg):
 		for i in range(1,40):
@@ -44,6 +62,8 @@ class testcl2(pyext.base):
 	def _anything_2(self,arg):
 		self._outlet(1,pyext._samplerate())
 		self._outlet(2,pyext._blocksize())
+		print "CLASS:",dir(self)
+		print "MODULE:",dir(pyext)
 
 	def _anything_3(self,arg):
-		pyext._send("send1",("hey",1,2))
+		self._send("send1",("hey",1,2))

@@ -183,6 +183,14 @@ SOURCE=.\readme.txt
 # End Group
 # Begin Source File
 
+SOURCE=.\bound.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\clmeth.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\main.cpp
 # End Source File
 # Begin Source File
@@ -196,6 +204,10 @@ SOURCE=.\py.cpp
 # Begin Source File
 
 SOURCE=.\pyext.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\pyext.h
 # End Source File
 # End Target
 # End Project

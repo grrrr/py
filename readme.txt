@@ -79,7 +79,6 @@ general:
 
 features:
 - enable multiple interpreters?
-- implement send and receive
 - make a pygui object where Tkinter draws to PD canvas...
 - stop individual threads
 
