@@ -36,13 +36,13 @@ TARGET=$(TARGDIR)/$(NAME).pd_linux
 # default target
 all: $(TARGDIR) $(TARGET)
 
-$(SRCS): $(HDRS) $(FLEXTLIB)
+$(patsubst %,source/%,$(SRCS)): $(patsubst %,source/%,$(HDRS)) $(FLEXTLIB)
 	touch $@
 
 $(TARGDIR):
 	mkdir $(TARGDIR)
 
-$(TARGDIR)/%.o : %.cpp
+$(TARGDIR)/%.o : source/%.cpp
 	$(CXX) -c $(CFLAGS) $(FLAGS) $(patsubst %,-I%,$(INCLUDES) $(FLEXTPATH)) $< -o $@
 
 $(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS)) $(FLEXTLIB) 

@@ -69,7 +69,10 @@ pyext::pyext(I argc,t_atom *argv):
 			Py_DECREF(method);
 		}
 
+#if PY_HEXVERSION >= 0x02020000
+		// not absolutely necessary, existent in python 2.2
 		PyDict_Merge(class_dict,module_dict,0);
+#endif
 
 		PyDict_SetItemString(class_dict,"__doc__",PyString_FromString(pyext_doc));
  	}
