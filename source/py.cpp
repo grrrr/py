@@ -328,7 +328,7 @@ void pyobj::Reload()
 
 bool pyobj::callpy(PyObject *fun,PyObject *args)
 {
-    PyObject *ret = PyObject_Call(fun,args,NULL); 
+    PyObject *ret = PyObject_CallObject(fun,args); 
     if(ret == NULL) {
         // function not found resp. arguments not matching
         PyErr_Print();

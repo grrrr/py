@@ -127,9 +127,7 @@ bool pydsp::CbDsp()
         NewBuffers(true);
 
         if(dspfun) {
-//            Py_INCREF(emptytuple);
-            PyObject *ret = PyObject_Call(dspfun,emptytuple,NULL);
-//            Py_DECREF(emptytuple);
+            PyObject *ret = PyObject_CallObject(dspfun,NULL);
             if(ret)
                 Py_DECREF(ret);
             else {
@@ -152,9 +150,7 @@ void pydsp::CbSignal()
 {
     if(sigfun) {
       	PyThreadState *state = PyLockSys();
-//        Py_INCREF(emptytuple);
-        PyObject *ret = PyObject_Call(sigfun,emptytuple,NULL);
-//        Py_DECREF(emptytuple);
+        PyObject *ret = PyObject_CallObject(sigfun,NULL);
 
         if(ret) 
             Py_DECREF(ret);

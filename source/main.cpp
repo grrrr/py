@@ -62,8 +62,6 @@ void pybase::FreeThreadState()
 PyObject *pybase::module_obj = NULL;
 PyObject *pybase::module_dict = NULL;
 
-PyObject *pybase::emptytuple = NULL;
-
 
 void initsymbol();
 void initsamplebuffer();
@@ -142,8 +140,6 @@ void pybase::lib_setup()
     // add samplebuffer type
     initsamplebuffer();
     PyModule_AddObject(module_obj,"Buffer",(PyObject *)&pySamplebuffer_Type);
-
-    emptytuple = PyTuple_New(0);
 
 	// -------------------------------------------------------------
 
@@ -575,9 +571,7 @@ short pybase::patcher_myvol(t_patcher *x)
 bool pybase::collect()
 {
     if(gcollect) {
-        Py_INCREF(emptytuple);
-        PyObject *ret = PyObject_Call(gcollect,emptytuple,NULL);
-        Py_DECREF(emptytuple);
+        PyObject *ret = PyObject_CallObject(gcollect,NULL);
         if(ret) {
 #ifdef FLEXT_DEBUG
             int refs = PyInt_AsLong(ret);

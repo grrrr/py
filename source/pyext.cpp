@@ -259,15 +259,13 @@ void pyext::DoExit()
         // try to run del to clean up the class instance
         PyObject *objdel = PyObject_GetAttrString(pyobj,"_del");
         if(objdel) {
-            Py_INCREF(emptytuple);
-            PyObject *ret = PyObject_Call(objdel,emptytuple,NULL);
+            PyObject *ret = PyObject_CallObject(objdel,NULL);
             if(ret)
                 Py_DECREF(ret);
 #ifdef FLEXT_DEBUG
             else 
                 post("%s - Could not call _del method",thisName());
 #endif
-            Py_DECREF(emptytuple);
             Py_DECREF(objdel);
         }
         else
@@ -506,7 +504,7 @@ void pyext::m_help()
 
 bool pyext::callpy(PyObject *fun,PyObject *args)
 {
-    PyObject *ret = PyObject_Call(fun,args,NULL);
+    PyObject *ret = PyObject_CallObject(fun,args);
     if(ret == NULL) {
         // function not found resp. arguments not matching
         PyErr_Print();

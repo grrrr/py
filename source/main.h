@@ -92,8 +92,6 @@ protected:
 
 	enum retval { nothing,atom,sequ };
 
-    static PyObject *emptytuple;
-
 	// --- module stuff -----
 
 	static PyObject *module_obj,*module_dict;
