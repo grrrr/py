@@ -140,7 +140,7 @@ protected:
 	FLEXT_ATTRVAR_B(detach)
 	FLEXT_CALLBACK_V(m_stop)
 	FLEXT_CALLBACK(m_dir)
-	FLEXT_ATTRGET_V(mg_dir)
+	FLEXT_CALLGET_V(mg_dir)
 	FLEXT_CALLBACK(m_doc)
     FLEXT_CALLBACK_T(tick)
 };

@@ -112,7 +112,6 @@ private:
 	FLEXT_CALLBACK(m_dir_)
 	FLEXT_CALLGET_V(mg_dir_)
 	FLEXT_CALLBACK(m_doc_)
-	FLEXT_CALLGET_V(mg_doc_)
 
     FLEXT_ATTRGET_V(args)
     FLEXT_CALLSET_V(ms_args)
