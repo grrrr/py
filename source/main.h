@@ -25,8 +25,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #define PYEXT_MODULE "pyext" // name for module
 #define PYEXT_CLASS "_class"  // name for base class
 
-#define PY_STOP_WAIT 1000  // ms
-#define PY_STOP_TICK 10  // ms
+#define PY_STOP_WAIT 100  // ms
+#define PY_STOP_TICK 1  // ms
 
 
 
@@ -49,6 +49,8 @@ public:
 	py();
 	~py();
 	static void lib_setup();
+
+    virtual void Exit();
 
 	static PyObject *MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet = -1,bool withself = false);
 	static AtomList *GetPyArgs(PyObject *pValue,PyObject **self = NULL);
@@ -109,14 +111,18 @@ protected:
 
 	virtual void m_stop(int argc,const t_atom *argv);
 
-	bool shouldexit,respond;
+	bool respond;
+#ifdef FLEXT_THREADS
+    bool shouldexit;
 	int thrcount;
 	int stoptick;
     Timer stoptmr;
-    int detach;
 
 	void tick(void *);
-    
+#endif
+
+    int detach;
+
     bool gencall(PyObject *fun,PyObject *args);
     virtual bool callpy(PyObject *fun,PyObject *args) = 0;
 
@@ -190,9 +196,9 @@ protected:
 	FLEXT_CALLBACK(m_dir)
 	FLEXT_CALLGET_V(mg_dir)
 	FLEXT_CALLBACK(m_doc)
-    FLEXT_CALLBACK_T(tick)
 
 #ifdef FLEXT_THREADS
+    FLEXT_CALLBACK_T(tick)
     FLEXT_THREAD(threadworker)
 #endif
 };

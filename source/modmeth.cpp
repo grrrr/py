@@ -45,7 +45,7 @@ const char *py::py_doc =
 ;
 
 
-
+#ifdef FLEXT_THREADS
 void py::tick(void *)
 {
 	Lock();
@@ -68,9 +68,11 @@ void py::tick(void *)
 
 	Unlock();
 }
+#endif
 
 void py::m_stop(int argc,const t_atom *argv)
 {
+#ifdef FLEXT_THREADS
 	if(thrcount) {
 		Lock();
 
@@ -89,7 +91,7 @@ void py::m_stop(int argc,const t_atom *argv)
 
 		Unlock();
 	}
-		
+#endif		
 }
 
 PyObject *py::py_samplerate(PyObject *self,PyObject *args)

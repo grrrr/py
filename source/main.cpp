@@ -157,18 +157,19 @@ void py::Setup(t_classid c)
 #endif
 }
 
-py::py(): 
-	module(NULL),
-	detach(0),shouldexit(false),thrcount(0),
-	stoptick(0)
+py::py()
+    : module(NULL),detach(0)
+#ifdef FLEXT_THREADS
+    , shouldexit(false),thrcount(0),stoptick(0)
+#endif
 {
     PyThreadState *state = PyLock();
 	Py_INCREF(module_obj);
     PyUnlock(state);
 
+#ifdef FLEXT_THREADS
     FLEXT_ADDTIMER(stoptmr,tick);
 
-#ifdef FLEXT_THREADS
     // launch thread worker
     FLEXT_CALLMETHOD(threadworker);
 #endif
@@ -176,26 +177,28 @@ py::py():
 
 py::~py()
 {
-    shouldexit = true;
-
-#ifdef FLEXT_THREADS
-    qucond.Signal();
-    
-    if(thrcount) {
-		// Wait for a certain time
-		for(int i = 0; i < (PY_STOP_WAIT/PY_STOP_TICK) && thrcount; ++i) Sleep((float)(PY_STOP_TICK/1000.));
-
-		// Wait forever
-		post("%s - Waiting for thread termination!",thisName());
-		while(thrcount) Sleep(0.01f);
-		post("%s - Okay, all threads have terminated",thisName());
-	}
-#endif
     PyThreadState *state = PyLock();
    	Py_XDECREF(module_obj);
     PyUnlock(state);
 }
 
+void py::Exit()
+{
+#ifdef FLEXT_THREADS
+    shouldexit = true;
+    qucond.Signal();
+    if(thrcount) {
+		// Wait for a certain time
+		for(int i = 0; i < (PY_STOP_WAIT/PY_STOP_TICK) && thrcount; ++i) Sleep(PY_STOP_TICK/1000.f);
+
+		// Wait forever
+		post("%s - Waiting for thread termination!",thisName());
+		while(thrcount) Sleep(PY_STOP_TICK/1000.f);
+		post("%s - Okay, all threads have terminated",thisName());
+	}
+#endif
+    flext_base::Exit();
+}
 
 void py::GetDir(PyObject *obj,AtomList &lst)
 {
@@ -493,7 +496,9 @@ void py::work_wrapper(void *data)
 {
     FLEXT_ASSERT(data);
 
+#ifdef FLEXT_THREADS
 	++thrcount;
+#endif
 
     PyThreadState *state = PyLock();
 
@@ -504,7 +509,9 @@ void py::work_wrapper(void *data)
 
     PyUnlock(state);
 
+#ifdef FLEXT_THREADS
     --thrcount;
+#endif
 }
 
 #ifdef FLEXT_THREADS
@@ -523,7 +530,7 @@ void py::threadworker()
     PyThreadState *state;
 
    	++thrcount;
-    while(!shouldexit) {
+    for(;;) {
         while(el = qufifo.Get()) {
         	++thrcount;
             state = PyLock();
@@ -534,7 +541,10 @@ void py::threadworker()
             qufifo.Free(el);
             --thrcount;
         }
-        qucond.Wait();
+        if(shouldexit) 
+            break;
+        else
+            qucond.Wait();
     }
 
     state = PyLock();

@@ -113,6 +113,7 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
 		ERRINTERNAL();
     }
 
+#ifdef FLEXT_THREADS
     if(PyString_Check(name)) {
 	    char* sname = PyString_AS_STRING(name);
 		if(sname) {
@@ -124,6 +125,7 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
 //			post("pyext::getattr %s",sname);
 		}
 	}
+#endif
 
 	if(!ret) { 
 #if PY_VERSION_HEX >= 0x02020000
