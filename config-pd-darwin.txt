@@ -7,7 +7,7 @@
 # where are the PD header files?
 # leave it blank if it is a system directory (like /usr/local/include), 
 # 	since gcc 3.2 complains about it
-PDPATH=/usr/local/lib/pd/src
+PDPATH=../../../pd/src
 
 # where is the PD executable?
 PD=/usr/local/bin/pd
@@ -22,4 +22,7 @@ TARGDIR=./pd-darwin
 INSTPATH=/usr/local/lib/pd/extra
 
 # user flags
-# UFLAGS=-O2 -faltivec -maltivec
+UFLAGS=-malign-power -faltivec -maltivec
+
+# use shared flext library
+#FLEXT_SHARED=1

@@ -1,3 +1,5 @@
+NAME=py
+
 # all the source files from the package
 SRCDIR=source
 

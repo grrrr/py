@@ -12,21 +12,36 @@ CONFIG=config-pd-darwin.txt
 
 include ${CONFIG}
 
-FLEXTLIB=${FLEXTPATH}/flext_t.a
-
 # compiler+linker stuff	
 INCLUDES=${PDPATH} ${FLEXTPATH} 
-FLAGS=-DFLEXT_SYS=2 -DFLEXT_THREADS
+FLAGS=-DFLEXT_SYS=2 
 CFLAGS=$(UFLAGS) -Wno-long-double -Wno-unused -Wno-parentheses -Wno-switch -Wstrict-prototypes
-#CFLAGS=-g
 LIBS=m 
-LDFLAGS=-bundle -bundle_loader ${PD} -framework Python -framework Carbon
+FRAMEWORKS=Python Carbon
+LDFLAGS=-bundle -bundle_loader ${PD}
+
+ifndef DEBUG
+CFLAGS+=-O2
+else
+CFLAGS+=-g
+endif
+
+ifdef FLEXT_SHARED
+
+CFLAGS+=-dynamic -DFLEXT_SHARED
+LDFLAGS+=-dynamic -L$(FLEXTPATH)
+FLEXTLIB=-lflext
+
+else
+
+CFLAGS+=-DFLEXT_THREADS
+FLEXTLIB=$(FLEXTPATH)/libflext_t.a
+
+endif
 
 # ---------------------------------------------
 # the rest can stay untouched
 # ----------------------------------------------
-NAME=py
-
 # all the source files from the package
 include make-files.txt
 
@@ -37,21 +52,21 @@ MAKEFILE=makefile.pd-darwin
 # default target
 all: $(TARGDIR) $(TARGET)
 
-$(patsubst %,$(SRCDIR)/%,$(SRCS)): $(patsubst %,$(SRCDIR)/%,$(HDRS)) $(FLEXTLIB) $(MAKEFILE) $(CONFIG)
+$(patsubst %,$(SRCDIR)/%,$(SRCS)): $(patsubst %,$(SRCDIR)/%,$(HDRS)) $(MAKEFILE) $(CONFIG)
 	touch $@
 
 $(TARGDIR):
-	mkdir $(TARGDIR)
+	-mkdir $(TARGDIR)
 
 $(TARGDIR)/%.o : $(SRCDIR)/%.cpp
 	$(CXX) -c $(CFLAGS) $(FLAGS) $(patsubst %,-I%,$(INCLUDES)) $< -o $@
 
-$(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS)) $(FLEXTLIB) 
-	$(CXX) $(LDFLAGS) $^ $(patsubst %,-L%,$(LIBPATH)) $(patsubst %,-l%,$(LIBS)) -o $@ 
+$(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS))  
+	$(CXX) $(LDFLAGS) $^ $(FLEXTLIB) $(patsubst %,-framework %,$(FRAMEWORKS)) $(patsubst %,-L%,$(LIBPATH)) $(patsubst %,-l%,$(LIBS)) -o $@ 
 	chmod 755 $@
 
 $(INSTPATH):
-	mkdir $(INSTPATH)
+	-mkdir $(INSTPATH)
 
 install:: $(INSTPATH)
 
