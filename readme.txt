@@ -82,6 +82,9 @@ o GCC: edit "config-pd-darwin.txt" & run "sh build-pd-darwin.sh"
 
 Version history:
 
+0.1.3:
+- FIX: class variables are now set atomic if parameter list has only 1 element
+
 0.1.2:
 - CHANGE: updates for flext 0.4.1 - method registering within class scope
 - FIX: bugs in bound.cpp (object_free calls)
@@ -123,6 +126,7 @@ TODO list:
 
 general:
 - Documentation and better example patches
+- better error reporting for runtime errors
 
 features:
 - enable multiple interpreters?

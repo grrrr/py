@@ -10,60 +10,72 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+static PyObject *MakePyAtom(const t_atom &at)
+{
+    if(flext::IsFloat(at)) return PyFloat_FromDouble((D)flext::GetFloat(at));
+	else if(flext::IsInt(at)) return PyInt_FromLong(flext::GetInt(at));
+	else if(flext::IsSymbol(at)) return PyString_FromString(flext::GetString(at));
+//	else if(flext::IsPointer(at)) return NULL; // not handled
+    else return NULL;
+}
 
 PyObject *py::MakePyArgs(const t_symbol *s,const AtomList &args,I inlet,BL withself)
 {
 	PyObject *pArgs;
 
-	BL any = IsAnything(s);
-	pArgs = PyTuple_New(args.Count()+(any?1:0)+(inlet >= 0?1:0));
+/*
+    if(!s && args.Count() == 1) {
+        pArgs = MakePyAtom(args[0]);
+        if(!pArgs)
+			post("py/pyext: cannot convert argument(s)");
+    }
+    else 
+*/
+    {
+	    BL any = IsAnything(s);
+	    pArgs = PyTuple_New(args.Count()+(any?1:0)+(inlet >= 0?1:0));
 
-	I pix = 0;
+	    I pix = 0;
 
-	if(inlet >= 0) {
-		PyObject *pValue = PyInt_FromLong(inlet); 
-		
-		// reference stolen:
-		PyTuple_SetItem(pArgs, pix++, pValue); 
-	}
+	    if(inlet >= 0) {
+		    PyObject *pValue = PyInt_FromLong(inlet); 
+    		
+		    // reference stolen:
+		    PyTuple_SetItem(pArgs, pix++, pValue); 
+	    }
 
-	I ix;
-	PyObject *tmp;
-	if(!withself || args.Count() < (any?1:2)) tmp = pArgs,ix = pix;
-	else tmp = PyTuple_New(args.Count()+(any?1:0)),ix = 0;
+	    I ix;
+	    PyObject *tmp;
+	    if(!withself || args.Count() < (any?1:2)) tmp = pArgs,ix = pix;
+	    else tmp = PyTuple_New(args.Count()+(any?1:0)),ix = 0;
 
-	if(any) {
-		PyObject *pValue = PyString_FromString(GetString(s));
+	    if(any) {
+		    PyObject *pValue = PyString_FromString(GetString(s));
 
-		// reference stolen here: 
-		PyTuple_SetItem(tmp, ix++, pValue); 
-	}
+		    // reference stolen here: 
+		    PyTuple_SetItem(tmp, ix++, pValue); 
+	    }
 
-	for(I i = 0; i < args.Count(); ++i) {
-		PyObject *pValue = NULL;
-		
-		if(IsFloat(args[i])) pValue = PyFloat_FromDouble((D)GetFloat(args[i]));
-		else if(IsInt(args[i])) pValue = PyInt_FromLong(GetInt(args[i]));
-		else if(IsSymbol(args[i])) pValue = PyString_FromString(GetString(args[i]));
-		else if(IsPointer(args[i])) pValue = NULL; // not handled
+	    for(I i = 0; i < args.Count(); ++i) {
+		    PyObject *pValue = MakePyAtom(args[i]);
+		    if(!pValue) {
+			    post("py/pyext: cannot convert argument %i",any?i+1:i);
+			    continue;
+		    }
 
-		if(!pValue) {
-			post("py/pyext: cannot convert argument %i",any?i+1:i);
-			continue;
-		}
+		    /* pValue reference stolen here: */
+		    PyTuple_SetItem(tmp, ix++, pValue); 
+	    }
 
-		/* pValue reference stolen here: */
-		PyTuple_SetItem(tmp, ix++, pValue); 
-	}
-
-	if(tmp != pArgs) {
-		PyTuple_SetItem(pArgs, pix++, tmp); 
-#if PY_VERSION_HEX >= 0x02020000
-		_PyTuple_Resize(&pArgs,pix);
-#else
-		_PyTuple_Resize(&pArgs,pix,0);
-#endif
-	}
+	    if(tmp != pArgs) {
+		    PyTuple_SetItem(pArgs, pix++, tmp); 
+    #if PY_VERSION_HEX >= 0x02020000
+		    _PyTuple_Resize(&pArgs,pix);
+    #else
+		    _PyTuple_Resize(&pArgs,pix,0);
+    #endif
+	    }
+    }
 
 	return pArgs;
 }

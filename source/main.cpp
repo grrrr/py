@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c) 2002-2003 Thomas Grill (xovo@gmx.net)
+Copyright (c) 2002-2004 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -13,7 +13,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 V py::lib_setup()
 {
 	post("");
-	post("py/pyext %s - python script objects, (C)2002,2003 Thomas Grill",PY__VERSION);
+	post("py/pyext %s - python script objects, (C)2002-2004 Thomas Grill",PY__VERSION);
 	post("");
 
 	FLEXT_SETUP(pyobj);

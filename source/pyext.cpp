@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and MaxMSP
 
-Copyright (c) 2002-2003 Thomas Grill (xovo@gmx.net)
+Copyright (c) 2002-2004 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -339,10 +339,19 @@ void pyext::m_set(int argc,const t_atom *argv)
             post("%s - set: Python variable %s not found",thisName(),ch);
 	    }
 	    else {
-		    PyObject *pval = MakePyArgs(sym_list,AtomList(argc-1,argv+1),-1,false);
-		    if(!pval)
+            PyObject *pval = MakePyArgs(NULL,AtomList(argc-1,argv+1),-1,false);
+
+            if(!pval)
 			    PyErr_Print();
 		    else {
+                if(PySequence_Size(pval) == 1) {
+                    // reduce lists of one element to element itself
+
+                    PyObject *val1 = PySequence_GetItem(pval,0);
+                    Py_DECREF(pval);
+                    pval = val1;
+                }
+
                 PyObject_SetAttrString(pyobj,ch,pval);
                 Py_DECREF(pval);
             }
