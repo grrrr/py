@@ -1,9 +1,8 @@
 NAME=py
 
 THREADED=1
-HAVECONFIG=1
-HAVEMAKE=1
 
+BUILDDIR=build
 SRCDIR=source
 
 SRCS= main.cpp py.cpp pyext.cpp modmeth.cpp clmeth.cpp register.cpp pyargs.cpp bound.cpp
