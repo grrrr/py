@@ -85,16 +85,17 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="c:\programme\audio\pd\src;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
+				AdditionalIncludeDirectories="c:\programme\audio\pd\src;c:\data\prog\max\flext\source;&quot;C:\data\prog\packs\Python-2.4\include&quot;;&quot;C:\data\prog\packs\Python-2.4\PC&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_THREADS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="2"
-				BrowseInformation="1"
+				PrecompiledHeaderThrough=""
+				BrowseInformation="0"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
@@ -104,10 +105,11 @@
 				OutputFile="$(outdir)/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="c:/programme/audio/pd/bin;&quot;..\flext\pd-msvc&quot;;&quot;f:\prog\packs\Python-2.3.4\PCbuild&quot;"
+				AdditionalLibraryDirectories="c:/programme/audio/pd/bin;&quot;c:\data\prog\packs\Python-2.4\PCbuild&quot;"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\pd-msvc\td/py.pdb"
-				ImportLibrary=".\pd-msvc\td/py.lib"
+				ProgramDatabaseFile="$(outdir)/py.pdb"
+				SubSystem="2"
+				ImportLibrary="$(outdir)/py.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -148,9 +150,8 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="c:\programme\audio\pd\src,f:\prog\max\flext\source,C:\Programme\prog\Python23\include"
+				Optimization="0"
+				AdditionalIncludeDirectories="c:\programme\audio\pd\src;c:\data\prog\max\flext\source;C:\Programme\prog\Python24\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_THREADS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -159,6 +160,7 @@
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
@@ -168,9 +170,10 @@
 				OutputFile="pd-msvc\py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="c:/programme/audio/pd/bin;&quot;..\flext\pd-msvc&quot;;C:\Programme\prog\Python23\libs"
-				ProgramDatabaseFile=".\pd-msvc\tr/py.pdb"
-				ImportLibrary=".\pd-msvc\tr/py.lib"
+				AdditionalLibraryDirectories="c:/programme/audio/pd/bin;&quot;..\flext\pd-msvc&quot;;C:\Programme\prog\Python24\libs"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(outdir)/py.pdb"
+				ImportLibrary="$(outdir)/py.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -274,7 +277,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;f:\prog\pd\pd-cvs\src&quot;;f:\prog\packs\pthreads;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
+				AdditionalIncludeDirectories="&quot;c:\data\prog\pd\pd-cvs\src&quot;;c:\data\prog\packs\pthreads;c:\data\prog\max\flext\source;&quot;C:\data\prog\packs\Python-2.4\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_SHARED"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -342,7 +345,7 @@
 				InlineFunctionExpansion="2"
 				OmitFramePointers="TRUE"
 				OptimizeForProcessor="3"
-				AdditionalIncludeDirectories="&quot;f:\prog\pd\pd-cvs\src&quot;;f:\prog\packs\pthreads;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
+				AdditionalIncludeDirectories="&quot;c:\data\prog\pd\pd-cvs\src&quot;;c:\data\prog\packs\pthreads;..\flext\source;C:\Programme\prog\Python24\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_SHARED"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -360,7 +363,7 @@
 				OutputFile="$(outdir)\py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="f:\prog\max\flext\pd-msvc;&quot;f:\prog\pd\pd-cvs/bin&quot;;f:\prog\packs\pthreads;C:\Programme\prog\Python23\libs"
+				AdditionalLibraryDirectories="&quot;..\flext\pd-msvc&quot;;&quot;c:\data\prog\pd\pd-cvs/bin&quot;;c:\data\prog\packs\pthreads;C:\Programme\prog\Python24\libs"
 				ProgramDatabaseFile=".\pd-msvc\tr/py.pdb"
 				ImportLibrary="$(outdir)/py.lib"
 				TargetMachine="1"/>
@@ -469,7 +472,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;F:\prog\audio\MaxWinSDK\c74support\msp-includes&quot;;&quot;F:\prog\audio\MaxWinSDK\c74support\max-includes&quot;;f:\prog\packs\pthreads;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
+				AdditionalIncludeDirectories="&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\msp-includes&quot;;&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\max-includes&quot;;..\flext\source;C:\Programme\prog\Python24\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=1;FLEXT_THREADS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -485,11 +488,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="maxapi.lib maxext.lib maxaudio.lib pthreadVC.lib"
+				AdditionalDependencies="maxapi.lib maxaudio.lib pthreadVC.lib"
 				OutputFile="$(outdir)/py.mxe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="&quot;F:\prog\audio\MaxWinSDK\c74support\msp-includes\win-includes\debug&quot;;&quot;F:\prog\audio\MaxWinSDK\c74support\max-includes\win-includes\debug&quot;;f:\prog\packs\pthreads;&quot;f:\prog\packs\Python-2.3.2\PCbuild&quot;"
+				AdditionalLibraryDirectories="&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\msp-includes&quot;;&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\max-includes&quot;;&quot;c:\data\prog\packs\Python-2.4\PCbuild&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(intdir)/py.pdb"
 				ImportLibrary="$(intdir)/py.lib"
@@ -538,7 +541,7 @@
 				Optimization="3"
 				GlobalOptimizations="FALSE"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="&quot;F:\prog\audio\MaxWinSDK\c74support\msp-includes&quot;;&quot;F:\prog\audio\MaxWinSDK\c74support\max-includes&quot;;f:\prog\packs\pthreads;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
+				AdditionalIncludeDirectories="&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\msp-includes&quot;;&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\max-includes&quot;;..\flext\source;C:\Programme\prog\Python24\include"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;FLEXT_SYS=1;FLEXT_THREADS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="0"
@@ -555,11 +558,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="maxapi.lib maxext.lib maxaudio.lib pthreadVC.lib"
+				AdditionalDependencies="maxapi.lib maxaudio.lib pthreadVC.lib"
 				OutputFile="./max-msvc/py.mxe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="&quot;F:\prog\audio\MaxWinSDK\c74support\msp-includes\win-includes\release&quot;;&quot;F:\prog\audio\MaxWinSDK\c74support\max-includes\win-includes\release&quot;;f:\prog\packs\pthreads;C:\Programme\prog\Python23\libs"
+				AdditionalLibraryDirectories="&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\msp-includes&quot;;&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\max-includes&quot;;C:\Programme\prog\Python24\libs"
 				GenerateDebugInformation="FALSE"
 				ProgramDatabaseFile="$(intdir)/py.pdb"
 				ImportLibrary="$(intdir)/py.lib"

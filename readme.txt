@@ -82,8 +82,9 @@ o GCC: edit "config-pd-darwin.txt" & run "sh build-pd-darwin.sh"
 
 Version history:
 
-0.1.5:
+0.2.0:
 - ADD: handling of Python threads
+- FIX: output of single atoms instead of 1-element lists
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)
