@@ -167,13 +167,27 @@ pyext::pyext(I argc,const t_atom *argv):
 	if(methname) {
 		MakeInstance();
 
-        if(inlets < 0 && outlets < 0) {
-		    // now get number of inlets and outlets
-		    inlets = 1,outlets = 1;
+        if(pyobj) {
+            if(inlets >= 0) {
+                // set number of inlets
+			    PyObject *res = PyInt_FromLong(inlets);
+                int ret = PyObject_SetAttrString(pyobj,"_inlets",res);
+                FLEXT_ASSERT(!ret);
+            }
+            if(outlets >= 0) {
+                // set number of outlets
+			    PyObject *res = PyInt_FromLong(outlets);
+			    int ret = PyObject_SetAttrString(pyobj,"_outlets",res);
+                FLEXT_ASSERT(!ret);
+            }
 
-		    if(pyobj) {
-			    PyObject *res;
-			    res = PyObject_GetAttrString(pyobj,"_inlets"); // get ref
+            DoInit(); // call __init__ constructor
+            // __init__ can override the number of inlets and outlets
+
+            if(inlets < 0) {
+		        // get number of inlets
+		        inlets = 1;
+			    PyObject *res = PyObject_GetAttrString(pyobj,"_inlets"); // get ref
 			    if(res) {
 				    if(PyCallable_Check(res)) {
 					    PyObject *fres = PyEval_CallObject(res,NULL);
@@ -186,8 +200,11 @@ pyext::pyext(I argc,const t_atom *argv):
 			    }
 			    else 
 				    PyErr_Clear();
-
-			    res = PyObject_GetAttrString(pyobj,"_outlets"); // get ref
+            }
+            if(outlets < 0) {
+                // get number of outlets
+                outlets = 1;
+			    PyObject *res = PyObject_GetAttrString(pyobj,"_outlets"); // get ref
 			    if(res) {
 				    if(PyCallable_Check(res)) {
 					    PyObject *fres = PyEval_CallObject(res,NULL);
@@ -200,13 +217,16 @@ pyext::pyext(I argc,const t_atom *argv):
 			    }
 			    else
 				    PyErr_Clear();
-		    }
+            }
         }
 	}
-    else inlets = outlets = 0;
+    else 
+        inlets = outlets = 0;
 
 	PY_UNLOCK
 	
+    FLEXT_ASSERT(inlets >= 0 && outlets >= 0);
+
 	AddInAnything(1+inlets);  
 	AddOutAnything(outlets);  
 
@@ -227,6 +247,33 @@ pyext::~pyext()
 	PY_UNLOCK
 }
 
+BL pyext::DoInit()
+{
+	// remember the this pointer
+	PyObject *th = PyLong_FromVoidPtr(this); 
+	int ret = PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
+
+	// call init now, after _this has been set, which is
+	// important for eventual callbacks from __init__ to c
+	PyObject *pargs = MakePyArgs(NULL,args.Count(),args.Atoms(),-1,true);
+	if(!pargs) PyErr_Print();
+
+	PyObject *init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
+    if(init) {
+        if(PyCallable_Check(init)) {
+			PyObject *res = PyEval_CallObject(init,pargs);
+			if(!res)
+				PyErr_Print();
+			else
+				Py_DECREF(res);
+        }
+        Py_DECREF(init);
+	}
+    
+	Py_XDECREF(pargs);
+    return true;
+}
+
 BL pyext::MakeInstance()
 {
 	// pyobj should already have been decref'd / cleared before getting here!!
@@ -240,34 +287,7 @@ BL pyext::MakeInstance()
 			    // make instance, but don't call __init__ 
 			    pyobj = PyInstance_NewRaw(pref,NULL);
 
-			    if(pyobj == NULL) 
-				    PyErr_Print();
-			    else {
-				    // remember the this pointer
-				    PyObject *th = PyLong_FromVoidPtr(this); 
-				    int ret = PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
-
-				    // call init now, after _this has been set, which is
-				    // important for eventual callbacks from __init__ to c
-				    PyObject *pargs = MakePyArgs(NULL,args.Count(),args.Atoms(),-1,true);
-				    if (pargs == NULL) 
-						PyErr_Print();
-
-				    PyObject *init;
-				    init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
-                    if(init) {
-                        if(PyCallable_Check(init)) {
-					        PyObject *res = PyEval_CallObject(init,pargs);
-					        if(!res)
-						        PyErr_Print();
-					        else
-						        Py_DECREF(res);
-                        }
-                        Py_DECREF(init);
-				    }
-    				
-				    Py_XDECREF(pargs);
-			    }
+			    if(!pyobj) PyErr_Print();
             }
             else
 			    post("%s - Type of \"%s\" is unhandled!",thisName(),GetString(methname));

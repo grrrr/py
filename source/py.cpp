@@ -127,9 +127,12 @@ pyobj::pyobj(I argc,const t_atom *argv):
 			// add current dir to path
 			AddToPath(GetString(canvas_getcurrentdir()));
 #elif FLEXT_SYS == FLEXT_SYS_MAX 
+#if FLEXT_OS == FLEXT_OS_WIN
+#else
 			short path = patcher_myvol(thisCanvas());
 			path_topathname(path,NULL,dir); 
 			AddToPath(dir);       
+#endif
 #else 
 	        #pragma message("Adding current dir to path is not implemented")
 #endif

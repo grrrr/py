@@ -67,6 +67,7 @@ private:
 	static pyext *GetThis(PyObject *self);
 	V ClearBinding();
 	BL MakeInstance();
+	BL DoInit();
 
 	AtomList args;
 
