@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c) 2002-2004 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -47,7 +47,7 @@ bool pyext::boundmeth(flext_base *,t_symbol *sym,int argc,t_atom *argv,void *dat
 PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 {
     PyObject *self,*meth;
-	C *name;
+	char *name;
     if(!PyArg_ParseTuple(args, "OsO:pyext_bind", &self,&name,&meth))
 		post("py/pyext - Wrong arguments!");
 	else if(!PyInstance_Check(self) || !(PyMethod_Check(meth) || PyFunction_Check(meth))) {
@@ -91,7 +91,7 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 {
     PyObject *self,*meth;
-	C *name;
+	char *name;
     if(!PyArg_ParseTuple(args, "OsO:pyext_bind", &self,&name,&meth))
 		post("py/pyext - Wrong arguments!");
 	else if(!PyInstance_Check(self) || !(PyMethod_Check(meth) || PyFunction_Check(meth))) {
@@ -127,7 +127,7 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 }
 
 
-V pyext::ClearBinding()
+void pyext::ClearBinding()
 {
     // in case the object couldn't be constructed...
     if(!pyobj) return;

@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -13,9 +13,14 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 FLEXT_LIB_V("pyext pyext. pyx pyx.",pyext)
 
-V pyext::Setup(t_classid c)
+
+static const t_symbol *sym_get;
+
+void pyext::Setup(t_classid c)
 {
-	FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
+    sym_get = flext::MakeSymbol("get");
+    
+    FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
 	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
 	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
 	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
@@ -34,7 +39,6 @@ V pyext::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
-
 
 	// ----------------------------------------------------
 
@@ -112,7 +116,7 @@ static short patcher_myvol(t_patcher *x)
 PyObject *pyext::class_obj = NULL;
 PyObject *pyext::class_dict = NULL;
 
-pyext::pyext(I argc,const t_atom *argv):
+pyext::pyext(int argc,const t_atom *argv):
 	pyobj(NULL),pythr(NULL),
 	inlets(-1),outlets(-1),
 	methname(NULL)
@@ -268,7 +272,7 @@ pyext::~pyext()
 	PY_UNLOCK
 }
 
-BL pyext::DoInit()
+bool pyext::DoInit()
 {
     SetThis();
 
@@ -293,12 +297,12 @@ BL pyext::DoInit()
     return true;
 }
 
-BL pyext::MakeInstance()
+bool pyext::MakeInstance()
 {
 	// pyobj should already have been decref'd / cleared before getting here!!
 	
 	if(module && methname) {
-		PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(methname)));  
+		PyObject *pref = PyObject_GetAttrString(module,const_cast<char *>(GetString(methname)));  
 		if(!pref) 
 			PyErr_Print();
         else {
@@ -319,7 +323,7 @@ BL pyext::MakeInstance()
 		return false;
 }
 
-V pyext::Reload()
+void pyext::Reload()
 {
 	ClearBinding();
 	Py_XDECREF(pyobj);
@@ -333,7 +337,7 @@ V pyext::Reload()
 }
 
 
-V pyext::m_reload()
+void pyext::m_reload()
 {
 	PY_LOCK
 
@@ -349,7 +353,7 @@ V pyext::m_reload()
 	PY_UNLOCK
 }
 
-V pyext::m_reload_(I argc,const t_atom *argv)
+void pyext::m_reload_(int argc,const t_atom *argv)
 {
 	args(argc,argv);
 	m_reload();
@@ -368,7 +372,7 @@ void pyext::m_get(const t_symbol *s)
         AtomList *lst = GetPyArgs(pvar);
         if(lst) {
             // dump value to attribute outlet
-            AtomAnything out("get",lst->Count()+1);
+            AtomAnything out(sym_get,lst->Count()+1);
             SetSymbol(out[0],s);
             out.Set(lst->Count(),lst->Atoms(),1);
             delete lst;
@@ -421,9 +425,9 @@ void pyext::m_set(int argc,const t_atom *argv)
 }
 
 
-BL pyext::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
+bool pyext::m_method_(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
-    BL ret = false;
+    bool ret = false;
 	if(pyobj && n >= 1)
 		ret = work(n,s,argc,argv);
     else
@@ -432,7 +436,7 @@ BL pyext::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
 }
 
 
-V pyext::m_help()
+void pyext::m_help()
 {
 	post("");
 	post("%s %s - python class object, (C)2002-2005 Thomas Grill",thisName(),PY__VERSION);
@@ -476,7 +480,7 @@ bool pyext::callpy(PyObject *fun,PyObject *args)
 } 
 
 
-bool pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *argv) 
+bool pyext::call(const char *meth,int inlet,const t_symbol *s,int argc,const t_atom *argv) 
 {
 	bool ret = false;
 
@@ -496,13 +500,14 @@ bool pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *ar
 	return ret;
 }
 
-bool pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
+bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
 	bool ret = false;
 
     PY_LOCK
 
-	char *str = new char[strlen(GetString(s))+10];
+    // should be enough...
+	char str[256];
 
 	{
 		// try tag/inlet
@@ -528,21 +533,19 @@ bool pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
 	}
 	if(!ret) {
 		// try anything at any inlet
-		strcpy(str,"_anything_");
+		const char *str1 = "_anything_";
 		if(s == sym_bang && !argc) {
 			t_atom argv;
 			SetSymbol(argv,sym__);
-			ret = call(str,n,s,1,&argv);
+			ret = call(str1,n,s,1,&argv);
 		}
 		else
-			ret = call(str,n,s,argc,argv);
+			ret = call(str1,n,s,argc,argv);
 	}
 
 	if(!ret) 
 		// no matching python method found
 		post("%s - no matching method found for '%s' into inlet %i",thisName(),GetString(s),n);
-
-	if(str) delete[] str;
 
 	PY_UNLOCK
 

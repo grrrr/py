@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -17,38 +17,38 @@ class pyobj:
 	FLEXT_HEADER_S(pyobj,py,Setup)
 
 public:
-	pyobj(I argc,const t_atom *argv);
+	pyobj(int argc,const t_atom *argv);
 	~pyobj();
 
 protected:
-	BL m_method_(I n,const t_symbol *s,I argc,const t_atom *argv);
+	bool m_method_(int n,const t_symbol *s,int argc,const t_atom *argv);
 
-	BL work(const t_symbol *s,I argc,const t_atom *argv); 
+	bool work(const t_symbol *s,int argc,const t_atom *argv); 
 
-	V m_bang() { callwork(sym_bang,0,NULL); }
-	V m_reload();
-	V m_reload_(I argc,const t_atom *argv);
-	V m_set(I argc,const t_atom *argv);
-    V m_dir_() { m__dir(function); }
-    V m_doc_() { m__doc(function); }
+	void m_bang() { callwork(sym_bang,0,NULL); }
+	void m_reload();
+	void m_reload_(int argc,const t_atom *argv);
+	void m_set(int argc,const t_atom *argv);
+    void m_dir_() { m__dir(function); }
+    void m_doc_() { m__doc(function); }
 
-	virtual V m_help();
+	virtual void m_help();
 
 	// methods for python arguments
-	V callwork(const t_symbol *s,I argc,const t_atom *argv);
+	void callwork(const t_symbol *s,int argc,const t_atom *argv);
 	
-	V m_py_list(I argc,const t_atom *argv) { callwork(sym_list,argc,argv); }
-	V m_py_float(I argc,const t_atom *argv) { callwork(sym_float,argc,argv); }
-	V m_py_int(I argc,const t_atom *argv) { callwork(sym_int,argc,argv); }
-	V m_py_any(const t_symbol *s,I argc,const t_atom *argv) { callwork(s,argc,argv); }
+	void m_py_list(int argc,const t_atom *argv) { callwork(sym_list,argc,argv); }
+	void m_py_float(int argc,const t_atom *argv) { callwork(sym_float,argc,argv); }
+	void m_py_int(int argc,const t_atom *argv) { callwork(sym_int,argc,argv); }
+	void m_py_any(const t_symbol *s,int argc,const t_atom *argv) { callwork(s,argc,argv); }
 
 	const t_symbol *funname;
 	PyObject *function;
 
-	virtual V Reload();
+	virtual void Reload();
 
-	V SetFunction(const C *func);
-	V ResetFunction();
+	void SetFunction(const char *func);
+	void ResetFunction();
 
 private:
 
@@ -101,7 +101,7 @@ void pyobj::Setup(t_classid c)
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
 }
 
-pyobj::pyobj(I argc,const t_atom *argv):
+pyobj::pyobj(int argc,const t_atom *argv):
 	function(NULL),funname(NULL)
 { 
 	PY_LOCK
@@ -119,7 +119,7 @@ pyobj::pyobj(I argc,const t_atom *argv):
 		if(!IsString(argv[0])) 
 			post("%s - script name argument is invalid",thisName());
         else {
-		    C dir[1024];
+		    char dir[1024];
 		    GetModulePath(GetString(argv[0]),dir,sizeof(dir));
 		    // set script path
 		    AddToPath(dir);
@@ -168,14 +168,14 @@ pyobj::~pyobj()
 
 
 
-BL pyobj::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
+bool pyobj::m_method_(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
 	if(n == 1)
 		post("%s - no method for type %s",thisName(),GetString(s));
 	return false;
 }
 
-V pyobj::m_reload()
+void pyobj::m_reload()
 {
 	PY_LOCK
 
@@ -189,7 +189,7 @@ V pyobj::m_reload()
 	PY_UNLOCK
 }
 
-V pyobj::m_reload_(I argc,const t_atom *argv)
+void pyobj::m_reload_(int argc,const t_atom *argv)
 {
 	PY_LOCK
 	SetArgs(argc,argv);
@@ -198,17 +198,17 @@ V pyobj::m_reload_(I argc,const t_atom *argv)
 	m_reload();
 }
 
-V pyobj::m_set(I argc,const t_atom *argv)
+void pyobj::m_set(int argc,const t_atom *argv)
 {
 	PY_LOCK
 
-	I ix = 0;
+	int ix = 0;
 	if(argc >= 2) {
 		if(!IsString(argv[ix])) {
 			post("%s - script name is not valid",thisName());
 			return;
 		}
-		const C *sn = GetString(argv[ix]);
+		const char *sn = GetString(argv[ix]);
 
 		if(!module || !strcmp(sn,PyModule_GetName(module))) {
 			ImportModule(sn);
@@ -226,7 +226,7 @@ V pyobj::m_set(I argc,const t_atom *argv)
 	PY_UNLOCK
 }
 
-V pyobj::m_help()
+void pyobj::m_help()
 {
 	post("");
 	post("%s %s - python script object, (C)2002-2005 Thomas Grill",thisName(),PY__VERSION);
@@ -256,7 +256,7 @@ V pyobj::m_help()
 	post("");
 }
 
-V pyobj::ResetFunction()
+void pyobj::ResetFunction()
 {
 	if(!module || !dict) 
 	{ 
@@ -265,7 +265,7 @@ V pyobj::ResetFunction()
 		return; 
 	}
 
-	function = funname?PyDict_GetItemString(dict,(C *)GetString(funname)):NULL; // borrowed!!!
+	function = funname?PyDict_GetItemString(dict,(char *)GetString(funname)):NULL; // borrowed!!!
 	if(!function) {
 		PyErr_Clear();
 		if(funname) post("%s - Function %s could not be found",thisName(),GetString(funname));
@@ -276,7 +276,7 @@ V pyobj::ResetFunction()
 	}
 }
 
-V pyobj::SetFunction(const C *func)
+void pyobj::SetFunction(const char *func)
 {
 	if(func) {
 		funname = MakeSymbol(func);
@@ -287,7 +287,7 @@ V pyobj::SetFunction(const C *func)
 }
 
 
-V pyobj::Reload()
+void pyobj::Reload()
 {
 	ResetFunction();
 }

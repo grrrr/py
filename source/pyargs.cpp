@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -21,13 +21,13 @@ static PyObject *MakePyAtom(const t_atom &at)
         return (double)ival == fval?PyInt_FromLong(ival):PyFloat_FromDouble(fval);
     }
     // these following should never happen
-    else if(flext::IsFloat(at)) return PyFloat_FromDouble((D)flext::GetFloat(at));
+    else if(flext::IsFloat(at)) return PyFloat_FromDouble((double)flext::GetFloat(at));
 	else if(flext::IsInt(at)) return PyInt_FromLong(flext::GetInt(at));
   
     return NULL;
 }
 
-PyObject *py::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,I inlet,BL withself)
+PyObject *py::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet,bool withself)
 {
 	PyObject *pArgs;
 
@@ -40,10 +40,10 @@ PyObject *py::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,I inlet,B
     else 
 */
     {
-	    BL any = IsAnything(s);
+	    bool any = IsAnything(s);
 	    pArgs = PyTuple_New(argc+(any?1:0)+(inlet >= 0?1:0));
 
-	    I pix = 0;
+	    int pix = 0;
 
 	    if(inlet >= 0) {
 		    PyObject *pValue = PyInt_FromLong(inlet); 
@@ -52,7 +52,7 @@ PyObject *py::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,I inlet,B
 		    PyTuple_SetItem(pArgs, pix++, pValue); 
 	    }
 
-	    I ix;
+	    int ix;
 	    PyObject *tmp;
 	    if(!withself || argc < (any?1:2)) tmp = pArgs,ix = pix;
 	    else tmp = PyTuple_New(argc+(any?1:0)),ix = 0;
@@ -64,7 +64,7 @@ PyObject *py::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,I inlet,B
 		    PyTuple_SetItem(tmp, ix++, pValue); 
 	    }
 
-	    for(I i = 0; i < argc; ++i) {
+	    for(int i = 0; i < argc; ++i) {
 		    PyObject *pValue = MakePyAtom(argv[i]);
 		    if(!pValue) {
 			    post("py/pyext: cannot convert argument %i",any?i+1:i);
@@ -95,8 +95,8 @@ flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 
 	// analyze return value or tuple
 
-	I rargc = 0;
-	BL ok = true;
+	int rargc = 0;
+	bool ok = true;
 	retval tp = nothing;
 
 	if(PyString_Check(pValue)) {
@@ -116,7 +116,7 @@ flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 
 	ret = new AtomList(rargc);
 
-	for(I ix = 0; ix < rargc; ++ix) {
+	for(int ix = 0; ix < rargc; ++ix) {
 		PyObject *arg;
 		if(tp == sequ)
             arg = PySequence_GetItem(pValue,ix); // new reference
@@ -125,7 +125,7 @@ flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 
 		if(PyInt_Check(arg)) SetInt((*ret)[ix],PyInt_AsLong(arg));
 		else if(PyLong_Check(arg)) SetInt((*ret)[ix],PyLong_AsLong(arg));
-		else if(PyFloat_Check(arg)) SetFloat((*ret)[ix],(F)PyFloat_AsDouble(arg));
+		else if(PyFloat_Check(arg)) SetFloat((*ret)[ix],(float)PyFloat_AsDouble(arg));
 		else if(PyString_Check(arg)) SetString((*ret)[ix],PyString_AsString(arg));
 		else if(ix == 0 && self && PyInstance_Check(arg)) {
 			// assumed to be self ... that should be checked _somehow_ !!!
@@ -135,7 +135,7 @@ flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 		else {
 			PyObject *tp = PyObject_Type(arg);
 			PyObject *stp = tp?PyObject_Str(tp):NULL;
-			C *tmp = "";
+			char *tmp = "";
 			if(stp) tmp = PyString_AsString(stp);
 			post("py/pyext: Could not convert argument %s",tmp);
 			Py_XDECREF(stp);

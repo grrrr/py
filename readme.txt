@@ -10,7 +10,7 @@ Visit https://www.paypal.com/xclick/business=gr%40grrrr.org&item_name=pyext&no_n
 ----------------------------------------------------------------------------
 
 You will need the flext C++ layer for PD and Max/MSP externals to compile this.
-see http://grrrr.org/ext
+see http://grrrr.org/ext/flext
 
 ----------------------------------------------------------------------------
 

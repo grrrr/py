@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and Max/MSP
 
-Copyright (c) 2002-2004 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -39,8 +39,8 @@ PyMethodDef pyext::attr_tbl[] =
 };
 
 
-const C *pyext::pyext_doc =
-	"py/pyext - python external object for PD and Max/MSP, (C)2002-2004 Thomas Grill\n"
+const char *pyext::pyext_doc =
+	"py/pyext - python external object for PD and Max/MSP, (C)2002-2005 Thomas Grill\n"
 	"\n"
 	"This is the pyext base class. Available methods:\n"
 	"_outlet(self,ix,args...): Send a message to an indexed outlet\n"
@@ -81,7 +81,7 @@ PyObject* pyext::pyext_setattr(PyObject *,PyObject *args)
 		return NULL;
     }
 
-	BL handled = false;
+	bool handled = false;
     if(PyString_Check(name)) {
 	    char* sname = PyString_AsString(name);
 		if (sname) {
@@ -136,7 +136,7 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
 //! Send message to outlet
 PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 {
-	BL ok = false;
+	bool ok = false;
 
     // should always be a tuple!
     FLEXT_ASSERT(PyTuple_Check(args));
@@ -150,10 +150,10 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 	) {
 		pyext *ext = GetThis(self);
 
-		I sz = PyTuple_Size(args);
+		int sz = PyTuple_Size(args);
 		PyObject *val;
         
-        BL tp = 
+        bool tp = 
             sz == 3 && 
             PySequence_Check(
                 val = PyTuple_GetItem(args,2) // borrow reference
@@ -164,7 +164,7 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 
 		AtomList *lst = GetPyArgs(val);
 		if(lst) {
-			I o = PyInt_AsLong(outl);
+			int o = PyInt_AsLong(outl);
 			if(o >= 1 && o <= ext->Outlets()) {
 				// by using the queue there is no immediate call of the next object
 				// deadlock would occur if this was another py/pyext object!
@@ -225,7 +225,7 @@ PyObject *pyext::pyext_stop(PyObject *,PyObject *args)
     }
 	else {
 		pyext *ext = GetThis(self);
-		I cnt = 0;
+		int cnt = 0;
 		t_atom at;
 		if(val >= 0) flext::SetInt(at,val);
 		ext->m_stop(cnt,&at);
@@ -255,15 +255,15 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 {
     FLEXT_ASSERT(PyTuple_Check(args));
 
-	BL ok = false;
+	bool ok = false;
 	PyObject *self = PyTuple_GetItem(args,0); // borrowed ref
 	if(self && PyInstance_Check(self)) {
 		pyext *ext = GetThis(self);
 
-		I sz = PySequence_Size(args);
+		int sz = PySequence_Size(args);
 		PyObject *val;
 
-        BL tp = 
+        bool tp = 
             sz == 2 && 
             PySequence_Check(
                 val = PyTuple_GetItem(args,1) // borrowed ref

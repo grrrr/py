@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and Max/MSP
 
-Copyright (c) 2002-2004 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -32,8 +32,8 @@ PyMethodDef py::func_tbl[] =
 	{NULL, NULL, 0, NULL} // sentinel
 };
 
-const C *py::py_doc =
-	"py/pyext - python external object for PD and Max/MSP, (C)2002-2004 Thomas Grill\n"
+const char *py::py_doc =
+	"py/pyext - python external object for PD and Max/MSP, (C)2002-2005 Thomas Grill\n"
 	"\n"
 	"This is the pyext module. Available function:\n"
 	"_send(args...): Send a message to a send symbol\n"
@@ -52,7 +52,7 @@ const C *py::py_doc =
 
 
 
-V py::tick(V *)
+void py::tick(void *)
 {
 	Lock();
 
@@ -75,15 +75,15 @@ V py::tick(V *)
 	Unlock();
 }
 
-V py::m_stop(int argc,const t_atom *argv)
+void py::m_stop(int argc,const t_atom *argv)
 {
 	if(thrcount) {
 		Lock();
 
-		I wait = PY_STOP_WAIT;
+		int wait = PY_STOP_WAIT;
 		if(argc >= 1 && CanbeInt(argv[0])) wait = GetAInt(argv[0]);
 
-		I ticks = wait/PY_STOP_TICK;
+		int ticks = wait/PY_STOP_TICK;
 		if(stoptick) {
 			// already stopping
 			if(ticks < stoptick) stoptick = ticks;
@@ -111,9 +111,9 @@ PyObject *py::py_blocksize(PyObject *self,PyObject *args)
 PyObject *py::py_inchannels(PyObject *self,PyObject *args)
 {
 #if FLEXT_SYS == FLEXT_SYS_PD
-	I ch = sys_get_inchannels();
+	int ch = sys_get_inchannels();
 #elif FLEXT_SYS == FLEXT_SYS_MAX
-	I ch = sys_getch(); // not working
+	int ch = sys_getch(); // not working
 #else
 #pragma message("Not implemented!")
 	ch = 0;
@@ -124,9 +124,9 @@ PyObject *py::py_inchannels(PyObject *self,PyObject *args)
 PyObject *py::py_outchannels(PyObject *self,PyObject *args)
 {
 #if FLEXT_SYS == FLEXT_SYS_PD
-	I ch = sys_get_outchannels();
+	int ch = sys_get_outchannels();
 #elif FLEXT_SYS == FLEXT_SYS_MAX
-	I ch = sys_getch(); // not working
+	int ch = sys_getch(); // not working
 #else
 #pragma message("Not implemented!")
 	ch = 0;

@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and MaxMSP
 
-Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -38,15 +38,6 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #define PY_STOP_TICK 10  // ms
 
 
-
-#define I int
-#define C char
-#define V void
-#define BL bool
-#define F float
-#define D double
-
-
 class Fifo
 {
 protected:
@@ -75,41 +66,41 @@ class py:
 public:
 	py();
 	~py();
-	static V lib_setup();
+	static void lib_setup();
 
-	static PyObject *MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,I inlet = -1,BL withself = false);
+	static PyObject *MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet = -1,bool withself = false);
 	static AtomList *GetPyArgs(PyObject *pValue,PyObject **self = NULL);
 
 protected:
 
-    V m__dir(PyObject *obj);
-	V m__doc(PyObject *obj);
+    void m__dir(PyObject *obj);
+	void m__doc(PyObject *obj);
 
-    V m_dir() { m__dir(module); }
-    V mg_dir(AtomList &lst) { m__dir(module); }
-    V m_doc() { m__doc(dict); }
+    void m_dir() { m__dir(module); }
+    void mg_dir(AtomList &lst) { m__dir(module); }
+    void m_doc() { m__doc(dict); }
 
 	PyObject *module,*dict; // inherited user class module and associated dictionary
 
-	static const C *py_doc;
+	static const char *py_doc;
 
-    V GetDir(PyObject *obj,AtomList &lst);
+    void GetDir(PyObject *obj,AtomList &lst);
 
-	V GetModulePath(const C *mod,C *dir,I len);
-	V AddToPath(const C *dir);
-	V SetArgs(I argc,const t_atom *argv);
-	V ImportModule(const C *name);
-	V UnimportModule();
-	V ReloadModule();
+	void GetModulePath(const char *mod,char *dir,int len);
+	void AddToPath(const char *dir);
+	void SetArgs(int argc,const t_atom *argv);
+	void ImportModule(const char *name);
+	void UnimportModule();
+	void ReloadModule();
 
-	V Register(const C *reg);
-	V Unregister(const C *reg);
-	V Reregister(const C *reg);
-	virtual V Reload() = 0;
+	void Register(const char *reg);
+	void Unregister(const char *reg);
+	void Reregister(const char *reg);
+	virtual void Reload() = 0;
 
-    V Respond(BL b);
+    void Respond(bool b);
 
-	static BL IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
+	static bool IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 
 	enum retval { nothing,atom,sequ /*,tuple,list*/ };
 
@@ -137,15 +128,15 @@ protected:
 
 	// ----thread stuff ------------
 
-	virtual V m_stop(int argc,const t_atom *argv);
+	virtual void m_stop(int argc,const t_atom *argv);
 
-	BL shouldexit,respond;
-	I thrcount;
-	I stoptick;
+	bool shouldexit,respond;
+	int thrcount;
+	int stoptick;
     Timer stoptmr;
-    I detach;
+    int detach;
 
-	V tick(V *);
+	void tick(void *);
     
     bool gencall(PyObject *fun,PyObject *args);
     virtual bool callpy(PyObject *fun,PyObject *args) = 0;
@@ -156,7 +147,7 @@ private:
     Fifo qufifo;
     ThrCond qucond;
 
-	V work_wrapper(void *data); 
+	void work_wrapper(void *data); 
 
 #ifdef FLEXT_THREADS
 	FLEXT_THREAD_X(work_wrapper)
@@ -168,11 +159,11 @@ public:
 
 #ifdef FLEXT_THREADS
 	ThrMutex mutex;
-	inline V Lock() { mutex.Unlock(); }
-	inline V Unlock() { mutex.Unlock(); }
+	inline void Lock() { mutex.Unlock(); }
+	inline void Unlock() { mutex.Unlock(); }
 #else
-	inline V Lock() {}
-	inline V Unlock() {}
+	inline void Lock() {}
+	inline void Unlock() {}
 #endif
 
 	static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);
