@@ -44,6 +44,7 @@ Goals/features of the package:
 Description:
 
 - you can load python modules and execute the functions therein
+- the python scripts are searched within the pd path (specified with -path option)
 - different py objects can share the same modules, hence creation arguments only apply upon (re)load of the first instance
 - list, float, symbol messages to the script are transmitted without the header (only the message element(s))
 - multi-element results (tuple, list) from the python script are prepended by list
