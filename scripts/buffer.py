@@ -31,7 +31,7 @@ def mul(*args):
     a = pyext.Buffer(args[1])
     b = pyext.Buffer(args[2])
 
-    # fastest method: slicing causes numarrays (mapped to buffers) to be created
+    # slicing causes numarrays (mapped to buffers) to be created
     # note the c[:] - to assign contents you must assign to a slice of the buffer
     c[:] = a[:]*b[:]  
 
@@ -46,7 +46,15 @@ def add(*args):
     # as above or not
     c[:] = a+b  
 
-def fadein(*args):
-    a = pyext.Buffer(args[0])
+def fadein(target):
+    a = pyext.Buffer(target)
     # in place operations are ok
     a *= arange(len(a),type=Float32)/len(a)
+
+def neg(target):
+    a = pyext.Buffer(target)
+    # in place transformation (see numarray ufuncs)
+    negative(a[:],a[:])
+    # must mark buffer content as dirty to update graph
+    # (no explicit assignment occurred)
+    a.dirty() 
