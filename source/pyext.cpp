@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -13,9 +13,14 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 FLEXT_LIB_V("pyext pyext. pyx pyx.",pyext)
 
-V pyext::Setup(t_classid c)
+
+static const t_symbol *sym_get;
+
+void pyext::Setup(t_classid c)
 {
-	FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
+    sym_get = flext::MakeSymbol("get");
+    
+    FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
 	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
 	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
 	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
@@ -34,7 +39,6 @@ V pyext::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
-
 
 	// ----------------------------------------------------
 
@@ -112,7 +116,7 @@ static short patcher_myvol(t_patcher *x)
 PyObject *pyext::class_obj = NULL;
 PyObject *pyext::class_dict = NULL;
 
-pyext::pyext(I argc,const t_atom *argv):
+pyext::pyext(int argc,const t_atom *argv):
 	pyobj(NULL),pythr(NULL),
 	inlets(-1),outlets(-1),
 	methname(NULL)
@@ -268,7 +272,7 @@ pyext::~pyext()
 	PY_UNLOCK
 }
 
-BL pyext::DoInit()
+bool pyext::DoInit()
 {
     SetThis();
 
@@ -293,12 +297,12 @@ BL pyext::DoInit()
     return true;
 }
 
-BL pyext::MakeInstance()
+bool pyext::MakeInstance()
 {
 	// pyobj should already have been decref'd / cleared before getting here!!
 	
 	if(module && methname) {
-		PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(methname)));  
+		PyObject *pref = PyObject_GetAttrString(module,const_cast<char *>(GetString(methname)));  
 		if(!pref) 
 			PyErr_Print();
         else {
@@ -319,7 +323,7 @@ BL pyext::MakeInstance()
 		return false;
 }
 
-V pyext::Reload()
+void pyext::Reload()
 {
 	ClearBinding();
 	Py_XDECREF(pyobj);
@@ -333,7 +337,7 @@ V pyext::Reload()
 }
 
 
-V pyext::m_reload()
+void pyext::m_reload()
 {
 	PY_LOCK
 
@@ -349,7 +353,7 @@ V pyext::m_reload()
 	PY_UNLOCK
 }
 
-V pyext::m_reload_(I argc,const t_atom *argv)
+void pyext::m_reload_(int argc,const t_atom *argv)
 {
 	args(argc,argv);
 	m_reload();
@@ -368,7 +372,7 @@ void pyext::m_get(const t_symbol *s)
         AtomList *lst = GetPyArgs(pvar);
         if(lst) {
             // dump value to attribute outlet
-            AtomAnything out("get",lst->Count()+1);
+            AtomAnything out(sym_get,lst->Count()+1);
             SetSymbol(out[0],s);
             out.Set(lst->Count(),lst->Atoms(),1);
             delete lst;
@@ -421,21 +425,21 @@ void pyext::m_set(int argc,const t_atom *argv)
 }
 
 
-BL pyext::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
+bool pyext::m_method_(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
-    BL ret = false;
+    bool ret = false;
 	if(pyobj && n >= 1)
-		ret = callwork(n,s,argc,argv);
+		ret = work(n,s,argc,argv);
     else
 		post("%s - no method for type '%s' into inlet %i",thisName(),GetString(s),n);
     return ret;
 }
 
 
-V pyext::m_help()
+void pyext::m_help()
 {
 	post("");
-	post("%s %s - python class object, (C)2002-2004 Thomas Grill",thisName(),PY__VERSION);
+	post("%s %s - python class object, (C)2002-2005 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
 	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
@@ -460,97 +464,50 @@ V pyext::m_help()
 	post("");
 }
 
-PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *argv) 
+bool pyext::callpy(PyObject *fun,PyObject *args)
 {
-	PyObject *ret = NULL;
+    PyObject *ret = PyObject_Call(fun,args,NULL);
+    if(ret == NULL) {
+        // function not found resp. arguments not matching
+        PyErr_Print();
+        return false;
+    }
+    else {
+		if(!PyObject_Not(ret)) post("pyext - returned value is ignored");
+		Py_DECREF(ret);
+        return true;
+    }
+} 
 
-	PyObject *pmeth  = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
+
+bool pyext::call(const char *meth,int inlet,const t_symbol *s,int argc,const t_atom *argv) 
+{
+	bool ret = false;
+
+	PyObject *pmeth = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
 	if(pmeth == NULL) {
 		PyErr_Clear(); // no method found
 	}
 	else {
 		PyObject *pargs = MakePyArgs(s,argc,argv,inlet?inlet:-1,true);
-		if(!pargs)
+        if(!pargs) {
 			PyErr_Print();
-		else {
-			ret = PyEval_CallObject(pmeth, pargs); 
-			if (ret == NULL) // function not found resp. arguments not matching
-				PyErr_Print();
-
-			Py_DECREF(pargs);
-		}
-		Py_DECREF(pmeth);
+    		Py_DECREF(pmeth);
+        }
+		else 
+            ret = gencall(pmeth,pargs);
 	}
-
 	return ret;
 }
 
-V pyext::work_wrapper(V *data)
+bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
-	++thrcount;
-#ifdef FLEXT_DEBUG
-	if(!data) 
-		post("%s - no data!",thisName());
-	else
-#endif
-	{
-#ifdef FLEXT_THREADS
-        // --- make new Python thread ---
-        // get the global lock
-        PyEval_AcquireLock();
-        // create a thread state object for this thread
-        PyThreadState *newthr = FindThreadState();
-        // free the lock
-        PyEval_ReleaseLock();
-#endif
-        {
-            // call worker
-		    work_data *w = (work_data *)data;
-		    work(w->n,w->Header(),w->Count(),w->Atoms());
-		    delete w;
-        }
+	bool ret = false;
 
-#ifdef FLEXT_THREADS
-        // --- delete Python thread ---
-        // grab the lock
-        PyEval_AcquireLock();
-        // swap my thread state out of the interpreter
-        PyThreadState_Swap(NULL);
-        // delete mapped thread state
-        FreeThreadState();
-        // release the lock
-        PyEval_ReleaseLock();
-        // -----------------------------
-#endif
-	}
-	--thrcount;
-}
+    PY_LOCK
 
-BL pyext::callwork(I n,const t_symbol *s,I argc,const t_atom *argv)
-{
-    BL ret = true,ok = false;
-    if(detach) {
-		if(shouldexit)
-			post("%s - Stopping.... new threads can't be launched now!",thisName());
-		else {
-			ret = FLEXT_CALLMETHOD_X(work_wrapper,new work_data(n,s,argc,argv));
-			if(!ret) post("%s - Failed to launch thread!",thisName());
-		}
-	}
-    else
-		ret = ok = work(n,s,argc,argv);
-    Respond(ok);
-    return ret;
-}
-
-BL pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
-{
-	BL retv = false;
-
-	PY_LOCK
-
-	PyObject *ret = NULL;
-	char *str = new char[strlen(GetString(s))+10];
+    // should be enough...
+	char str[256];
 
 	{
 		// try tag/inlet
@@ -563,7 +520,7 @@ BL pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
 		sprintf(str,"_anything_%i",n);
 		if(s == sym_bang && !argc) {
 			t_atom argv;
-			SetString(argv,"");
+			SetSymbol(argv,sym__);
 			ret = call(str,0,s,1,&argv);
 		}
 		else
@@ -576,29 +533,22 @@ BL pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
 	}
 	if(!ret) {
 		// try anything at any inlet
-		strcpy(str,"_anything_");
+		const char *str1 = "_anything_";
 		if(s == sym_bang && !argc) {
 			t_atom argv;
-			SetString(argv,"");
-			ret = call(str,n,s,1,&argv);
+			SetSymbol(argv,sym__);
+			ret = call(str1,n,s,1,&argv);
 		}
 		else
-			ret = call(str,n,s,argc,argv);
+			ret = call(str1,n,s,argc,argv);
 	}
 
 	if(!ret) 
 		// no matching python method found
 		post("%s - no matching method found for '%s' into inlet %i",thisName(),GetString(s),n);
 
-	if(str) delete[] str;
-
-	if(ret) {
-		if(!PyObject_Not(ret)) post("%s - returned value is ignored",thisName());
-		Py_DECREF(ret);
-		retv = true;
-	}
-
 	PY_UNLOCK
 
-	return retv;
+    Respond(ret);
+	return ret;
 }

@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -55,13 +55,18 @@ void FreeThreadState()
 #endif
 
 
-V py::lib_setup()
+void py::lib_setup()
 {
 	post("");
-	post("py/pyext %s - python script objects, (C)2002-2004 Thomas Grill",PY__VERSION);
+	post("--------------------------------------");
+	post("py/pyext %s - python script objects",PY__VERSION);
+	post("      (C)2002-2005 Thomas Grill");
+    post("         http://grrrr.org/ext");
 #ifdef FLEXT_DEBUG
+    post("");
 	post("DEBUG version compiled on %s %s",__DATE__,__TIME__);
 #endif
+	post("--------------------------------------");
     post("");
 
 	// -------------------------------------------------------------
@@ -90,11 +95,14 @@ V py::lib_setup()
 	module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
 	module_dict = PyModule_GetDict(module_obj); // borrowed reference
 
-	PyModule_AddStringConstant(module_obj,"__doc__",(C *)py_doc);
+	PyModule_AddStringConstant(module_obj,"__doc__",(char *)py_doc);
 
 	// redirect stdout
-	PyObject* py_out = Py_InitModule("stdout", StdOut_Methods);
+	PyObject* py_out;
+    py_out = Py_InitModule("stdout", StdOut_Methods);
 	PySys_SetObject("stdout", py_out);
+    py_out = Py_InitModule("stderr", StdOut_Methods);
+	PySys_SetObject("stderr", py_out);
 
 #ifdef FLEXT_THREADS
     // release global lock
@@ -116,7 +124,7 @@ PyObject *py::module_dict = NULL;
 
 py::py(): 
 	module(NULL),
-	detach(false),shouldexit(false),thrcount(0),
+	detach(0),shouldexit(false),thrcount(0),
 	stoptick(0)
 {
 	PY_LOCK
@@ -124,15 +132,19 @@ py::py():
 	PY_UNLOCK
 
     FLEXT_ADDTIMER(stoptmr,tick);
+
+    // launch thread worker
+    FLEXT_CALLMETHOD(threadworker);
 }
 
 py::~py()
 {
-	if(thrcount) {
-		shouldexit = true;
-
+    shouldexit = true;
+    qucond.Signal();
+    
+    if(thrcount) {
 		// Wait for a certain time
-		for(int i = 0; i < (PY_STOP_WAIT/PY_STOP_TICK) && thrcount; ++i) Sleep((F)(PY_STOP_TICK/1000.));
+		for(int i = 0; i < (PY_STOP_WAIT/PY_STOP_TICK) && thrcount; ++i) Sleep((float)(PY_STOP_TICK/1000.));
 
 		// Wait forever
 		post("%s - Waiting for thread termination!",thisName());
@@ -174,7 +186,7 @@ void py::m__dir(PyObject *obj)
     ToOutAnything(GetOutAttr(),thisTag(),lst.Count(),lst.Atoms());
 }
 
-V py::m__doc(PyObject *obj)
+void py::m__doc(PyObject *obj)
 {
     if(obj) {
         PY_LOCK
@@ -211,12 +223,12 @@ V py::m__doc(PyObject *obj)
 }
 
 
-V py::SetArgs(I argc,const t_atom *argv)
+void py::SetArgs(int argc,const t_atom *argv)
 {
 	// script arguments
-	C **sargv = new C *[argc+1];
+	char **sargv = new char *[argc+1];
 	for(int i = 0; i <= argc; ++i) {
-		sargv[i] = new C[256];
+		sargv[i] = new char[256];
 		if(!i) 
 			strcpy(sargv[i],thisName());
 		else
@@ -230,11 +242,11 @@ V py::SetArgs(I argc,const t_atom *argv)
 	delete[] sargv;
 }
 
-V py::ImportModule(const C *name)
+void py::ImportModule(const char *name)
 {
 	if(!name) return;
 
-	module = PyImport_ImportModule((C *)name);  // increases module_obj ref count by one
+	module = PyImport_ImportModule((char *)name);  // increases module_obj ref count by one
 	if (!module) {
 
 		PyErr_Print();
@@ -244,7 +256,7 @@ V py::ImportModule(const C *name)
 		dict = PyModule_GetDict(module);
 }
 
-V py::UnimportModule()
+void py::UnimportModule()
 {
 	if(!module) return;
 
@@ -260,7 +272,7 @@ V py::UnimportModule()
 	dict = NULL;
 }
 
-V py::ReloadModule()
+void py::ReloadModule()
 {
 	if(module) {
 		PyObject *newmod = PyImport_ReloadModule(module);
@@ -279,13 +291,13 @@ V py::ReloadModule()
 		post("%s - No module to reload",thisName());
 }
 
-V py::GetModulePath(const C *mod,C *dir,I len)
+void py::GetModulePath(const char *mod,char *dir,int len)
 {
 #if FLEXT_SYS == FLEXT_SYS_PD
 	// uarghh... pd doesn't show its path for extra modules
 
-	C *name;
-	I fd = open_via_path("",mod,".py",dir,&name,len,0);
+	char *name;
+	int fd = open_via_path("",mod,".py",dir,&name,len,0);
 	if(fd > 0) close(fd);
 	else name = NULL;
 
@@ -295,10 +307,25 @@ V py::GetModulePath(const C *mod,C *dir,I len)
 	// how do i get the path in Max/MSP?
     short path;
     long type;
-    char smod[256];
+    char smod[1024];
     strcat(strcpy(smod,mod),".py");
-    if(!locatefile_extended(smod,&path,&type,&type,-1))
+    if(!locatefile_extended(smod,&path,&type,&type,-1)) {
+#if FLEXT_OS == FLEXT_OS_WIN
         path_topathname(path,NULL,dir);
+#else
+        // convert pathname to unix style
+        path_topathname(path,NULL,smod);
+        char *colon = strchr(smod,':');
+        if(colon) {
+            *colon = 0;
+            strcpy(dir,"/Volumes/");
+            strcat(dir,smod);
+            strcat(dir,colon+1);
+        }
+        else
+            strcpy(dir,smod);
+#endif
+    }
     else 
         // not found
         *dir = 0;
@@ -307,7 +334,7 @@ V py::GetModulePath(const C *mod,C *dir,I len)
 #endif
 }
 
-V py::AddToPath(const C *dir)
+void py::AddToPath(const char *dir)
 {
 	if(dir && *dir) {
 		PyObject *pobj = PySys_GetObject("path");
@@ -325,6 +352,19 @@ V py::AddToPath(const C *dir)
 		PySys_SetObject("path",pobj);
 	}
 }
+
+static const t_symbol *sym_response = flext::MakeSymbol("response");
+
+void py::Respond(bool b) 
+{ 
+    if(respond) { 
+        t_atom a; 
+        SetBool(a,b); 
+        ToOutAnything(GetOutAttr(),sym_response,1,&a); 
+    } 
+}
+
+
 
 static PyObject *output = NULL;
 
@@ -367,4 +407,130 @@ PyObject* py::StdOut_Write(PyObject* self, PyObject* args)
 
     Py_INCREF(Py_None);
     return Py_None;
+}
+
+
+class work_data
+{
+public:
+    work_data(PyObject *f,PyObject *a): fun(f),args(a) {}
+    ~work_data() { Py_DECREF(fun); Py_DECREF(args); }
+
+    PyObject *fun,*args;
+};
+
+bool py::gencall(PyObject *pmeth,PyObject *pargs)
+{
+	bool ret = false;
+
+    // Now call method
+    switch(detach) {
+        case 0:
+            ret = callpy(pmeth,pargs);
+        	Py_DECREF(pargs);
+        	Py_DECREF(pmeth);
+            break;
+        case 1:
+            // put call into queue
+            ret = qucall(pmeth,pargs);
+            break;
+        case 2:
+            // each call a new thread
+            if(!shouldexit) {
+			    ret = FLEXT_CALLMETHOD_X(work_wrapper,new work_data(pmeth,pargs));
+			    if(!ret) post("%s - Failed to launch thread!",thisName());
+		    }
+            break;
+        default:
+            FLEXT_ASSERT(false);
+    }
+    return ret;
+}
+
+void py::work_wrapper(void *data)
+{
+	++thrcount;
+#ifdef FLEXT_DEBUG
+	if(!data) 
+		post("%s - no data!",thisName());
+	else
+#endif
+
+    PY_LOCK
+
+    // call worker
+	work_data *w = (work_data *)data;
+	callpy(w->fun,w->args);
+	delete w;
+
+    PY_UNLOCK
+
+    --thrcount;
+}
+
+bool py::qucall(PyObject *fun,PyObject *args)
+{
+    if(qufifo.Push(fun,args)) {
+        qucond.Signal();
+        return true;
+    }
+    else
+        return false;
+}
+
+void py::threadworker()
+{
+    PyObject *fun,*args;
+
+    while(!shouldexit) {
+        PY_LOCK
+        while(qufifo.Pop(fun,args)) {
+            callpy(fun,args);
+            Py_XDECREF(fun);
+            Py_XDECREF(args);
+        }
+        PY_UNLOCK
+        qucond.Wait();
+    }
+
+    PY_LOCK
+    // unref remaining Python objects
+    while(qufifo.Pop(fun,args)) {
+        Py_XDECREF(fun);
+        Py_XDECREF(args);
+    }
+    PY_UNLOCK
+}
+
+Fifo::~Fifo()
+{
+    FifoEl *el = head;
+    while(el) {
+        FifoEl *n = el->nxt;
+        delete el;
+        el = n;
+    }
+}
+
+bool Fifo::Push(PyObject *f,PyObject *a)
+{
+    FifoEl *el = new FifoEl;
+    el->fun = f;
+    el->args = a;
+    if(tail) tail->nxt = el;
+    else head = el;
+    tail = el;
+    return true;
+}
+
+bool Fifo::Pop(PyObject *&f,PyObject *&a)
+{
+    if(!head) return false;
+    FifoEl *el = head;
+    head = el->nxt;
+    f = el->fun;
+    a = el->args;
+    if(tail == el) tail = NULL;
+    delete el;
+    return true;
 }

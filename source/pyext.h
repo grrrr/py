@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -19,7 +19,7 @@ class pyext:
 	FLEXT_HEADER_S(pyext,py,Setup)
 
 public:
-	pyext(I argc,const t_atom *argv);
+	pyext(int argc,const t_atom *argv);
 	~pyext();
 
 	static PyObject *pyext__doc__(PyObject *,PyObject *args);
@@ -38,46 +38,46 @@ public:
 	static PyObject *pyext_stop(PyObject *,PyObject *args);
 	static PyObject *pyext_isthreaded(PyObject *,PyObject *);
 
-	I Inlets() const { return inlets; }
-	I Outlets() const { return outlets; }
+	int Inlets() const { return inlets; }
+	int Outlets() const { return outlets; }
 
 protected:
-	virtual BL m_method_(I n,const t_symbol *s,I argc,const t_atom *argv);
+	virtual bool m_method_(int n,const t_symbol *s,int argc,const t_atom *argv);
 
-	BL work(I n,const t_symbol *s,I argc,const t_atom *argv); 
+	bool work(int n,const t_symbol *s,int argc,const t_atom *argv); 
 
-	V m_reload();
-	V m_reload_(I argc,const t_atom *argv);
-    V ms_args(const AtomList &a) { m_reload_(a.Count(),a.Atoms()); }
-    V m_dir_() { m__dir(pyobj); }
-    V mg_dir_(AtomList &lst) { GetDir(pyobj,lst); }
-    V m_doc_() { m__doc(((PyInstanceObject *)pyobj)->in_class->cl_dict); }
-	virtual V m_help();
+	void m_reload();
+	void m_reload_(int argc,const t_atom *argv);
+    void ms_args(const AtomList &a) { m_reload_(a.Count(),a.Atoms()); }
+    void m_dir_() { m__dir(pyobj); }
+    void mg_dir_(AtomList &lst) { GetDir(pyobj,lst); }
+    void m_doc_() { m__doc(((PyInstanceObject *)pyobj)->in_class->cl_dict); }
+	virtual void m_help();
 
-	V m_get(const t_symbol *s);
-	V m_set(I argc,const t_atom *argv);
+	void m_get(const t_symbol *s);
+	void m_set(int argc,const t_atom *argv);
 
 	const t_symbol *methname;
 	PyObject *pyobj;
-	I inlets,outlets;
+	int inlets,outlets;
 
 private:
-	static V Setup(t_classid);
+	static void Setup(t_classid);
 
 	static pyext *GetThis(PyObject *self);
 	void SetThis();
 
-	V ClearBinding();
-	BL MakeInstance();
-	BL DoInit();
+	void ClearBinding();
+	bool MakeInstance();
+	bool DoInit();
 
 	AtomList args;
 
-	virtual V Reload();
+	virtual void Reload();
 
 	static PyObject *class_obj,*class_dict;
 	static PyMethodDef attr_tbl[],meth_tbl[];
-	static const C *pyext_doc;
+	static const char *pyext_doc;
 
 	// -------- bind stuff ------------------
 	static PyObject *pyext_bind(PyObject *,PyObject *args);
@@ -85,24 +85,10 @@ private:
 
 	// ---------------------------
 
-	PyObject *call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *argv);
+	bool call(const char *meth,int inlet,const t_symbol *s,int argc,const t_atom *argv);
 
-	V work_wrapper(void *data); 
-	BL callwork(I n,const t_symbol *s,I argc,const t_atom *argv); 
-
-	class work_data:
-		public flext::AtomAnything
-	{
-	public:
-		work_data(I _n,const t_symbol *_s,I _argc,const t_atom *_argv): n(_n),AtomAnything(_s,_argc,_argv) {}
-		I n;
-	};
-
-#ifdef FLEXT_THREADS
-	FLEXT_THREAD_X(work_wrapper)
-#else
-	FLEXT_CALLBACK_X(work_wrapper)
-#endif
+    virtual bool callpy(PyObject *fun,PyObject *args);
+    static bool stcallpy(PyObject *fun,PyObject *args);
 
 	PyThreadState *pythr;
 

@@ -85,7 +85,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="c:\programme\audio\pd\src;c:\data\pdmax\flext\source;&quot;C:\data\prog\packs\Python-2.4\include&quot;;&quot;C:\data\prog\packs\Python-2.4\PC&quot;"
+				AdditionalIncludeDirectories="c:\data\prog\pd\pd-cvs\src;c:\data\pdmax\flext\source;&quot;C:\data\prog\packs\Python-2.4\include&quot;;&quot;C:\data\prog\packs\Python-2.4\PC&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_THREADS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
