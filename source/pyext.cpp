@@ -440,8 +440,9 @@ V pyext::work_wrapper(V *data)
         // -----------------------------
 
         // store new thread state
+#ifdef FLEXT_THREADS
         pythrmap[GetThreadId()] = newthr;
-
+#endif
         {
             // call worker
 		    work_data *w = (work_data *)data;
@@ -449,8 +450,10 @@ V pyext::work_wrapper(V *data)
 		    delete w;
         }
 
+#ifdef FLEXT_THREADS
         // delete mapped thread state
         pythrmap.erase(GetThreadId());
+#endif
 
         // --- delete Python thread ---
         // grab the lock

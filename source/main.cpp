@@ -25,7 +25,10 @@ V py::lib_setup()
 FLEXT_LIB_SETUP(py,py::lib_setup)
 
 PyInterpreterState *py::pystate = NULL;
+
+#ifdef FLEXT_THREADS
 std::map<flext::thrid_t,PyThreadState *> py::pythrmap;
+#endif
 
 I py::pyref = 0;
 PyObject *py::module_obj = NULL;
@@ -101,15 +104,20 @@ py::~py()
 		Py_XDECREF(module);
 
         PyEval_AcquireLock();
+
+#ifdef FLEXT_THREADS
 		PyThreadState_Swap(pythrmap[GetThreadId()]);
+#endif
 
 #ifdef FLEXT_DEBUG
         // need not necessarily do that....
 		Py_Finalize();
 #endif
 
+#ifdef FLEXT_THREADS
         // reset thread state map
         pythrmap.clear();
+#endif
 	}
     else {
     	Py_DECREF(module_obj);

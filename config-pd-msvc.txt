@@ -9,7 +9,8 @@ PDPATH=c:\programme\audio\pd
 FLEXTPATH=$(PDPATH)\flext
 
 # where is MS VC++?
-MSVCPATH=C:\Programme\Microsoft Visual Studio .NET 2003\Vc7
+# (not necessary if the build is run with the compiler environment)
+# MSVCPATH=C:\Programme\Microsoft Visual Studio .NET 2003\Vc7
 
 # which version of Python?
 PYTHONVER=python23

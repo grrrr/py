@@ -116,9 +116,9 @@ protected:
 
 public:
 	static PyInterpreterState *pystate;
-    static std::map<flext::thrid_t,PyThreadState *> pythrmap;
 
 #ifdef FLEXT_THREADS
+    static std::map<flext::thrid_t,PyThreadState *> pythrmap;
 	ThrMutex mutex;
 	V Lock() { mutex.Unlock(); }
 	V Unlock() { mutex.Unlock(); }
