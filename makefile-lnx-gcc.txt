@@ -1,0 +1,9 @@
+# usage:
+# to build run "sh build-mac-max-gcc.sh" or "sh build-mac-pd-gcc.sh"
+#
+
+INCPATH += -I$(PYTHONPREFIX)/include/python$(PYTHONVERSION)
+LIBS += -lpython$(PYTHONVERSION)
+
+# multi-threaded build
+THREADED=1
