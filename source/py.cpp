@@ -85,6 +85,9 @@ pyobj::pyobj(I argc,t_atom *argv):
 		I fd = open_via_path("",GetString(argv[0]),".py",dir,&name,sizeof(dir),0);
 		if(fd > 0) close(fd);
 		else name = NULL;
+
+		// if dir is current working directory... name points to dir
+		if(dir == name) strcpy(dir,".");
 #elif defined(MAXMSP)
 		*dir = 0;
 #endif
