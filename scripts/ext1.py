@@ -1,4 +1,4 @@
-import pyext,thread
+import pyext
 
 # derive class from pyext.base
 

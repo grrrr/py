@@ -12,6 +12,10 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+//#ifdef _DEBUG
+#include <windows.h>
+//#endif
+
 class pyext:
 	public py
 {
@@ -164,6 +168,12 @@ pyext::pyext(I argc,t_atom *argv):
 
 		// set script path
 		PySys_SetPath(dir);
+//#ifdef _DEBUG
+		post("Script path: %s",dir);
+
+		GetCurrentDirectory(sizeof(dir),dir);
+		post("Current working path: %s",dir);
+//#endif
 
 		if(!IsString(argv[0])) 
 			post("%s - script name argument is invalid",thisName());
@@ -189,16 +199,12 @@ pyext::pyext(I argc,t_atom *argv):
 		if(pmod) {
 			PyObject *pclass = PyObject_GetAttrString(pmod,const_cast<C *>(GetString(sobj)));   /* fetch module.class */
 			Py_DECREF(pmod);
-			if (pclass == NULL) 
+			if (!pclass) 
 				PyErr_Print();
-				//error("Can't instantiate class");
+			else {
+				PyObject *pargs = MakePyArgs(NULL,argc-2,argv+2);
+				if (pargs == NULL) PyErr_Print();
 
-			PyObject *pargs = MakePyArgs(NULL,argc-2,argv+2);
-			if (pargs == NULL) 
-				PyErr_Print();
-	//			error("Can't build arguments list");
-
-			if(pclass) {
 				pyobj = PyEval_CallObject(pclass, pargs);         /* call class() */
 				Py_DECREF(pclass);
 				if(pargs) Py_DECREF(pargs);
