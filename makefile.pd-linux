@@ -9,6 +9,7 @@
 #
 
 CONFIG=config-pd-linux.txt
+MAKEFILE=makefile.pd-linux
 
 include $(CONFIG)
 
@@ -18,7 +19,7 @@ INCLUDES=$(PDPATH) $(PYTHONINCLUDE)
 LIBPATH=$(PYTHONLIB)
 FLAGS=-DFLEXT_SYS=2 -DFLEXT_THREADS
 CFLAGS=-O2 $(UFLAGS)
-LIBS=stdc++ python$(PYTHONVER)  
+LIBS=util python$(PYTHONVER)  
 
 
 ifdef FLEXT_SHARED

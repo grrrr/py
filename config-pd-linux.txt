@@ -14,11 +14,11 @@ PDPATH=
 FLEXTPATH=/usr/local/lib/pd/flext
 
 # what is the python version?
-PYTHONVER=2.2
+PYTHONVER=2.3
 # where are the python header files?
-PYTHONINCLUDE=/usr/include/python${PYTHONVER}
+PYTHONINCLUDE=/usr/local/include/python${PYTHONVER}
 # where is the python library file?
-PYTHONLIB=/usr/lib/python${PYTHONVER}/config
+PYTHONLIB=/usr/local/lib/python${PYTHONVER}/config
 
 # where should flext libraries be built?
 TARGDIR=./pd-linux
