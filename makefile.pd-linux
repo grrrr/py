@@ -1,4 +1,4 @@
-# py - python script object for PD and Max/MSP
+# py/pyext - python script object for PD and Max/MSP
 # Copyright (C) 2002 Thomas Grill (xovo@gmx.net)
 #
 # Makefile for gcc @ linux
@@ -26,7 +26,7 @@ INSTDIR=/usr/lib/pd/extra
 
 ###############################################
 
-FLEXTLIB=$(FLEXTPATH)/flext.a
+FLEXTLIB=$(FLEXTPATH)/flext_t.a
 
 # where to build (temporary)
 TARGDIR=./pd-linux
@@ -34,9 +34,9 @@ TARGDIR=./pd-linux
 # compiler+linker stuff	
 INCLUDES=$(PDPATH) $(PYTHONINCLUDE)
 LIBPATH=$(PYTHONLIB)
-FLAGS=-DPD
-CFLAGS=-O6 -mcpu=pentium  
-LIBS=m util python2.2 # static linking with python
+FLAGS=-DPD -DFLEXT_THREADS
+CFLAGS=-O6 -mcpu=pentiumpro
+LIBS=m util python$(PYTHONVER)  
 
 
 # ---------------------------------------------

@@ -297,6 +297,22 @@ pyext::pyext(I argc,t_atom *argv):
 					int ret = PyObject_SetAttrString(pyobj,"thisptr",th);
 
 					PyObject *res;
+					res = PyObject_GetAttrString(pyobj,"_inlets"); 
+					if(res && PyInt_Check(res)) {
+						inlets = PyInt_AsLong(res);
+						Py_DECREF(res);
+					}
+					else inlets = 1;
+
+					res = PyObject_GetAttrString(pyobj,"_outlets"); 
+					if(res && PyInt_Check(res)) {
+						outlets = PyInt_AsLong(res);
+						Py_DECREF(res);
+					}
+					else outlets = 1;
+					
+/*
+					PyObject *res;
 					res = call("_inlets");
 					if(res) {
 						inlets = PyInt_AsLong(res);
@@ -309,6 +325,7 @@ pyext::pyext(I argc,t_atom *argv):
 						Py_DECREF(res);
 					}
 					else outlets = 1;
+*/
 				}
 			}
 		}

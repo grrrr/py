@@ -4,14 +4,10 @@ from pyext import *
 # derive class from pyext.pyext
 class testcl1(pyext): 
 	  
-# how many inlets?
-	def _inlets(self):
-		return 2
+# how many inlets and outlets?
+	_inlets = 2
+	_outlets = 2
 	
-# how many outlets?
-	def _outlets(self):
-		return 2
-
 # method for bang into inlet 1
 	def _bang_1(self):
 		print "Hello"
@@ -36,7 +32,6 @@ class testcl1(pyext):
 
 
 class testcl2(pyext):
-
 	def _anything_(self,ix,arg):
 		for i in range(1,40):
 			print i
