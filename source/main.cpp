@@ -83,6 +83,8 @@ protected:
 	V SetFunction(const C *name);
 	PyObject *GetFunction();
 
+	static C *strdup(const C *s);
+
 private:
 	enum retval { nothing,atom,tuple,list };
 
@@ -142,7 +144,8 @@ V py::setup(t_class *)
 FLEXT_NEW_G("py",py)
 
 
-static C *strdup(const C *s) {
+C *py::strdup(const C *s) 
+{
 	if(!s) return NULL;
 	I len = strlen(s);
 	C *ret = new C[len+1];
@@ -192,7 +195,8 @@ V py::ImportModule(const C *name)
 
 V py::SetModule(I hname,PyObject *module)
 {
-	for(lookup *l = modules; l && l->modhash != hname; l = l->nxt);
+	lookup *l;
+	for(l = modules; l && l->modhash != hname; l = l->nxt);
 
 	if(l) 
 		l->Set(module);
@@ -205,7 +209,8 @@ V py::SetModule(I hname,PyObject *module)
 
 V py::ResetModule()
 {
-	for(lookup *l = modules; l && l->modhash != hName; l = l->nxt);
+	lookup *l;
+	for(l = modules; l && l->modhash != hName; l = l->nxt);
 	if(l && l->module) {
 		PyObject *newmod = PyImport_ReloadModule(l->module);
 		if(!newmod) 
@@ -218,7 +223,8 @@ V py::ResetModule()
 
 PyObject *py::GetModule()
 {
-	for(lookup *l = modules; l && l->modhash != hName; l = l->nxt);
+	lookup *l;
+	for(l = modules; l && l->modhash != hName; l = l->nxt);
 	return l?l->module:NULL;
 }
 
@@ -230,7 +236,8 @@ V py::SetFunction(const C *name)
 
 PyObject *py::GetFunction()
 {
-	for(lookup *l = modules; l && l->modhash != hName; l = l->nxt);
+	lookup *l;
+	for(l = modules; l && l->modhash != hName; l = l->nxt);
 	return l?PyDict_GetItemString(l->dict,sFunc):NULL;
 }
 
@@ -396,11 +403,11 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 		if (pValue != NULL) {
 			// analyze return value or tuple
 
-			int rargc = 0;
+			I rargc = 0;
+			BL ok = true;
 			retval tp = nothing;
 
-			if(PyObject_Not(pValue)) rargc = 0;
-			else {
+			if(!PyObject_Not(pValue)) {
 				if(PyTuple_Check(pValue)) {
 					rargc = PyTuple_Size(pValue);
 					tp = tuple;
@@ -417,7 +424,7 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 
 			t_atom *ret = new t_atom[rargc];
 
-			for(int ix = 0; ix < rargc; ++ix) {
+			for(I ix = 0; ix < rargc; ++ix) {
 				PyObject *arg;
 				switch(tp) {
 					case tuple: arg = PyTuple_GetItem(pValue,ix); break;
@@ -430,14 +437,14 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 				else if(PyString_Check(arg)) SetString(ret[ix],PyString_AsString(arg));
 				else {
 					post("%s: Could not convert return argument",thisName());
-					SetString(ret[ix],"???");
+					ok = false;
 				}
 				// No DECREF for arg -> borrowed from pValue!
 			}
 
 			Py_DECREF(pValue);
 
-			if(rargc) ToOutList(0,rargc,ret);
+			if(rargc && ok) ToOutList(0,rargc,ret);
 			delete[] ret;
 		}
 		else {
