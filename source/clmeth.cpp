@@ -114,10 +114,11 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
 	}
 
 	if(!ret) { 
-#if PY_HEXVERSION >= 0x02020000
+#if 0 //PY_VERSION_HEX >= 0x02020000
 		ret = PyObject_GenericGetAttr(self,name);
 #else
-		ret = PyInstance_Check(self)?PyDict_GetItem(((PyInstanceObject *)self)->in_dict,name):NULL;	
+		if(PyInstance_Check(self))
+			ret = PyDict_GetItem(((PyInstanceObject *)self)->in_dict,name);	
 #endif
 	}
 	return ret;

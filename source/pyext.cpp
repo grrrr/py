@@ -69,8 +69,9 @@ pyext::pyext(I argc,t_atom *argv):
 			Py_DECREF(method);
 		}
 
-#if PY_HEXVERSION >= 0x02020000
-		// not absolutely necessary, existent in python 2.2
+#if PY_VERSION_HEX >= 0x02020000
+		// not absolutely necessary, existent in python 2.2 upwards
+		// make pyext functions available in class scope
 		PyDict_Merge(class_dict,module_dict,0);
 #endif
 
@@ -340,7 +341,7 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *arg
 		else {
 			ret = PyEval_CallObject(pmeth, pargs); 
 			if (ret == NULL) // function not found resp. arguments not matching
-#if 1 //def _DEBUG
+#ifdef _DEBUG
 				PyErr_Print();
 #else
 				PyErr_Clear();  

@@ -57,7 +57,11 @@ PyObject *py::MakePyArgs(const t_symbol *s,const AtomList &args,I inlet,BL withs
 
 	if(tmp != pArgs) {
 		PyTuple_SetItem(pArgs, pix++, tmp); 
+#if PY_VERSION_HEX >= 0x02020000
+		_PyTuple_Resize(&pArgs,pix);
+#else
 		_PyTuple_Resize(&pArgs,pix,0);
+#endif
 	}
 
 	return pArgs;

@@ -54,12 +54,12 @@ class ex1(pyext._class):
 		self._send(self.sendname,arg)
 
 
-	def __init__(self,rname,sname):
+	def __init__(self,args):
 		"""Class constructor"""
 
 		# store sender/receiver names
-		self.recvname = rname
-		self.sendname = sname
+		if len(args) >= 1: self.recvname = args[0]
+		if len(args) >= 2: self.sendname = args[1]
 
 		# bind functions to receiver names
 		# both are called upon message 
