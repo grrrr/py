@@ -295,7 +295,7 @@ V py::AddToPath(const C *dir)
 			int i,n = PyList_Size(pobj);
 			for(i = 0; i < n; ++i) {
 				PyObject *pt = PyList_GetItem(pobj,i);
-				if(PyString_Check(pt) && !strcmp(dir,PyString_AsString(pt))) break;
+				if(PyString_Check(pt) && !strcmp(dir,PyString_AS_STRING(pt))) break;
 			}
 			if(i == n) { // string is not yet existent in path
 				PyObject *ps = PyString_FromString(dir);
@@ -306,23 +306,38 @@ V py::AddToPath(const C *dir)
 	}
 }
 
+static PyObject *output = NULL;
+
 // post to the console
 PyObject* py::StdOut_Write(PyObject* self, PyObject* args)
 {
     if(PySequence_Check(args)) {
 		int sz = PySequence_Size(args);
-		PyObject *output = NULL;
 		for(int i = 0; i < sz; ++i) {
 			PyObject *val = PySequence_GetItem(args,i); // borrowed
 			PyObject *str = PyObject_Str(val);
-			if(output)
-				PyString_ConcatAndDel(&output,str);
-			else
-				output = str;
-		}
-		if(output) {
-			print(PyString_AsString(output));
-			Py_DECREF(output);
+			char *cstr = PyString_AS_STRING(str);
+			char *lf = strchr(cstr,'\n');
+
+			// line feed in string
+			if(!lf) {
+				// no -> just append
+				if(output)
+					PyString_ConcatAndDel(&output,str);
+				else
+					output = str;
+			}
+			else {
+				// yes -> append up to line feed, reset output buffer to string remainder
+				PyObject *part = PyString_FromStringAndSize(cstr,lf-cstr);
+				if(output)
+					PyString_ConcatAndDel(&output,part);			
+				else
+					output = part;
+				post(PyString_AS_STRING(output));
+				Py_DECREF(output);
+				output = PyString_FromString(lf+1);
+			}
 		}
 	}
 
