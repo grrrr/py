@@ -25,8 +25,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <unistd.h>
 #endif
 
-#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 405)
-#error You need at least flext version 0.4.5
+#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 406)
+#error You need at least flext version 0.4.6
 #endif
 
 #define PY__VERSION "0.1.3pre"
@@ -135,6 +135,8 @@ public:
 	V Lock() {}
 	V Unlock() {}
 #endif
+
+	static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);
 
 protected:
 	// callbacks

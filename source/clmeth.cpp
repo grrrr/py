@@ -131,7 +131,6 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
 	return ret;
 }
 
-
 //! Send message to outlet
 PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 {

@@ -35,6 +35,13 @@ PyObject *py::module_obj = NULL;
 PyObject *py::module_dict = NULL;
 
 
+static PyMethodDef StdOut_Methods[] =
+{
+	{ "write", py::StdOut_Write, 1 },
+	{ NULL,    NULL,           }  
+};
+
+
 py::py(): 
 	module(NULL),
 	detach(false),shouldexit(false),thrcount(0),
@@ -66,6 +73,10 @@ py::py():
 		module_dict = PyModule_GetDict(module_obj);
 
 		PyModule_AddStringConstant(module_obj,"__doc__",(C *)py_doc);
+
+		// redirect stdout
+		PyObject* py_out = Py_InitModule("stdout", StdOut_Methods);
+		PySys_SetObject("stdout", py_out);
 	}
 	else {
 		PY_LOCK
@@ -293,4 +304,28 @@ V py::AddToPath(const C *dir)
 		}
 		PySys_SetObject("path",pobj);
 	}
+}
+
+// post to the console
+PyObject* py::StdOut_Write(PyObject* self, PyObject* args)
+{
+    if(PySequence_Check(args)) {
+		int sz = PySequence_Size(args);
+		PyObject *output = NULL;
+		for(int i = 0; i < sz; ++i) {
+			PyObject *val = PySequence_GetItem(args,i); // borrowed
+			PyObject *str = PyObject_Str(val);
+			if(output)
+				PyString_ConcatAndDel(&output,str);
+			else
+				output = str;
+		}
+		if(output) {
+			print(PyString_AsString(output));
+			Py_DECREF(output);
+		}
+	}
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }

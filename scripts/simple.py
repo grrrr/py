@@ -84,10 +84,10 @@ class ex1(pyext._class):
 		print "Bang into first inlet"
 
 	def float_1(self,f):
-		print "Float ",f," into first inlet"
+		print "Float",f,"into first inlet"
 
 	def list_1(self,s):
-		print "List ",s," into first inlet"
+		print "List",s,"into first inlet"
 
 
 	# methods for second inlet
