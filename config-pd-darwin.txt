@@ -28,4 +28,5 @@ TARGDIR=./pd-darwin
 # (leave blank to omit installation)
 INSTPATH=/usr/local/pd/extra
 
-
+# user flags
+# UFLAGS=-O6 -maltivec

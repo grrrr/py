@@ -18,7 +18,7 @@ FLEXTLIB=${FLEXTPATH}/flext_t.a
 INCLUDES=${PDPATH} ${FLEXTPATH} ${PYTHONINCLUDE}
 LIBPATH= ${PYTHONLIB}
 FLAGS=-DFLEXT_SYS=2 -DFLEXT_THREADS
-CFLAGS=-O6 -Wno-unused -Wno-parentheses -Wno-switch -Wstrict-prototypes # -maltivec
+CFLAGS=$(UFLAGS) -Wno-unused -Wno-parentheses -Wno-switch -Wstrict-prototypes
 #CFLAGS=-g
 LIBS=m python${PYTHONVER}
 LDFLAGS=-bundle -bundle_loader ${PD}
