@@ -109,9 +109,9 @@ py::~py()
 		PyThreadState_Swap(pythrmap[GetThreadId()]);
 #endif
 
-#ifdef FLEXT_DEBUG
+#if 0 //def FLEXT_DEBUG
         // need not necessarily do that....
-		Py_Finalize();
+        Py_Finalize();
 #endif
 
 #ifdef FLEXT_THREADS
