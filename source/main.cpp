@@ -13,6 +13,15 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <flext.h>
 #include <Python.h>
 
+#define I int
+#define L long
+#define F float
+#define D double
+#define C char
+#define V void
+#define BL bool
+
+
 #if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 200)
 #error You need at least flext version 0.2.0 
 #endif
@@ -70,9 +79,9 @@ FLEXT_GIMME("py",py)
 py::py(I argc,t_atom *argv):
 	pName(NULL),pModule(NULL),pDict(NULL),pFunc(NULL)
 { 
-	add_in_anything();  
-	add_out_anything();  
-	setup_inout();  // set up inlets and outlets
+	AddInAnything();  
+	AddOutAnything();  
+	SetupInOut();  // set up inlets and outlets
 
 //	FLEXT_ADDBANG(0,m_bang);
 	FLEXT_ADDMETHOD_(0,"float",m_float);
@@ -84,11 +93,11 @@ py::py(I argc,t_atom *argv):
 
     if(!(pyref++)) Py_Initialize();
 
-    if (argc < 2 || !is_symbol(argv[0]) || !is_symbol(argv[1])) {
+    if (argc < 2 || !IsSymbol(argv[0]) || !IsSymbol(argv[1])) {
         post("%s: Syntax: %s pythonfile function",thisName(),thisName());
     }
 	else {
-		const C *scrname = get_string(argv[0]);
+		const C *scrname = GetString(argv[0]);
 
 /*
 		// script arguments
@@ -96,7 +105,7 @@ py::py(I argc,t_atom *argv):
 		C **margv = new C *[margc];
 		for(i = 0; i < margc; ++i) {
 			margv[i] = new C[256];
-			geta_string(argv[i+2],margv[i],255);
+			GetAString(argv[i+2],margv[i],255);
 		}
 
 		PySys_SetArgv(margc,margv);
@@ -133,7 +142,7 @@ py::py(I argc,t_atom *argv):
 			pDict = PyModule_GetDict(pModule);
 			/* pDict is a borrowed reference */
 
-			pFunc = PyDict_GetItemString(pDict,(C *)get_string(argv[1]));
+			pFunc = PyDict_GetItemString(pDict,(C *)GetString(argv[1]));
 			/* pFun: Borrowed reference */
 		}
 
@@ -152,7 +161,7 @@ py::~py()
 
 V py::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 {
-	post("%s - no method for type %s",thisName(),get_string(s));
+	post("%s - no method for type %s",thisName(),GetString(s));
 }
 
 /*
@@ -160,7 +169,7 @@ V py::m_any(const t_symbol *s,I argc,t_atom *argv)
 {
 	if(argc == 0) {
 		t_atom a;
-		set_symbol(a,s);
+		SetSymbol(a,s);
 		work(s,1,&a);
 	}
 	else
@@ -194,9 +203,9 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 		for(I i = 0; i < argc; ++i) {
 			pValue = NULL;
 			
-			if(is_float(argv[i])) pValue = PyFloat_FromDouble((D)get_float(argv[i]));
-			else if(is_int(argv[i])) pValue = PyInt_FromLong(get_int(argv[i]));
-			else if(is_symbol(argv[i])) pValue = PyString_FromString(get_string(argv[i]));
+			if(IsFloat(argv[i])) pValue = PyFloat_FromDouble((D)GetFloat(argv[i]));
+			else if(IsInt(argv[i])) pValue = PyInt_FromLong(GetInt(argv[i]));
+			else if(IsSymbol(argv[i])) pValue = PyString_FromString(GetString(argv[i]));
 			else if(is_pointer(argv[i])) pValue = NULL; // not handled
 
 			if(!pValue) {
@@ -227,19 +236,19 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 			for(int ix = 0; ix < rargc; ++ix) {
 				PyObject *arg = tpl?PyTuple_GetItem(pValue,ix):pValue;
 
-				if(PyInt_CheckExact(arg)) set_flint(ret[ix],PyInt_AsLong(arg));
-				else if(PyFloat_Check(arg)) set_float(ret[ix],(F)PyFloat_AsDouble(arg));
-				else if(PyString_Check(arg)) set_string(ret[ix],PyString_AsString(arg));
+				if(PyInt_CheckExact(arg)) SetFlint(ret[ix],PyInt_AsLong(arg));
+				else if(PyFloat_Check(arg)) SetFloat(ret[ix],PyFloat_AsDouble(arg));
+				else if(PyString_Check(arg)) SetString(ret[ix],PyString_AsString(arg));
 				else {
 					post("%s: Could not convert return argument",thisName());
-					set_string(ret[ix],"???");
+					SetString(ret[ix],"???");
 				}
 				// No DECREF for arg -> borrowed from pValue!
 			}
 
 			Py_DECREF(pValue);
 
-			if(rargc) to_out_list(0,rargc,ret);
+			if(rargc) ToOutList(0,rargc,ret);
 			delete[] ret;
 		}
 		else {
