@@ -85,24 +85,10 @@ private:
 
 	// ---------------------------
 
-	PyObject *call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *argv);
+	bool call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *argv);
 
-	V work_wrapper(void *data); 
-	BL callwork(I n,const t_symbol *s,I argc,const t_atom *argv); 
-
-	class work_data:
-		public flext::AtomAnything
-	{
-	public:
-		work_data(I _n,const t_symbol *_s,I _argc,const t_atom *_argv): n(_n),AtomAnything(_s,_argc,_argv) {}
-		I n;
-	};
-
-#ifdef FLEXT_THREADS
-	FLEXT_THREAD_X(work_wrapper)
-#else
-	FLEXT_CALLBACK_X(work_wrapper)
-#endif
+    virtual bool callpy(PyObject *fun,PyObject *args);
+    static bool stcallpy(PyObject *fun,PyObject *args);
 
 	PyThreadState *pythr;
 

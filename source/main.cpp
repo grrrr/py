@@ -58,10 +58,15 @@ void FreeThreadState()
 V py::lib_setup()
 {
 	post("");
-	post("py/pyext %s - python script objects, (C)2002-2004 Thomas Grill",PY__VERSION);
+	post("--------------------------------------");
+	post("py/pyext %s - python script objects",PY__VERSION);
+	post("      (C)2002-2005 Thomas Grill");
+    post("         http://grrrr.org/ext");
 #ifdef FLEXT_DEBUG
+    post("");
 	post("DEBUG version compiled on %s %s",__DATE__,__TIME__);
 #endif
+	post("--------------------------------------");
     post("");
 
 	// -------------------------------------------------------------
@@ -127,13 +132,17 @@ py::py():
 	PY_UNLOCK
 
     FLEXT_ADDTIMER(stoptmr,tick);
+
+    // launch thread worker
+    FLEXT_CALLMETHOD(threadworker);
 }
 
 py::~py()
 {
-	if(thrcount) {
-		shouldexit = true;
-
+    shouldexit = true;
+    qucond.Signal();
+    
+    if(thrcount) {
 		// Wait for a certain time
 		for(int i = 0; i < (PY_STOP_WAIT/PY_STOP_TICK) && thrcount; ++i) Sleep((F)(PY_STOP_TICK/1000.));
 
@@ -344,7 +353,7 @@ V py::AddToPath(const C *dir)
 	}
 }
 
-static const t_symbol *sym_respond = flext::MakeSymbol("response");
+static const t_symbol *sym_response = flext::MakeSymbol("response");
 
 V py::Respond(BL b) 
 { 
@@ -400,15 +409,99 @@ PyObject* py::StdOut_Write(PyObject* self, PyObject* args)
     return Py_None;
 }
 
+
+class work_data
+{
+public:
+    work_data(PyObject *f,PyObject *a): fun(f),args(a) {}
+    ~work_data() { Py_DECREF(fun); Py_DECREF(args); }
+
+    PyObject *fun,*args;
+};
+
+bool py::gencall(PyObject *pmeth,PyObject *pargs)
+{
+	bool ret = false;
+
+    // Now call method
+    switch(detach) {
+        case 0:
+            ret = callpy(pmeth,pargs);
+        	Py_DECREF(pargs);
+        	Py_DECREF(pmeth);
+            break;
+        case 1:
+            // put call into queue
+            ret = qucall(pmeth,pargs);
+            break;
+        case 2:
+            // each call a new thread
+		    if(ShouldExit())
+			    post("%s - Stopping.... new threads can't be launched now!",thisName());
+		    else {
+			    ret = FLEXT_CALLMETHOD_X(work_wrapper,new work_data(pmeth,pargs));
+			    if(!ret) post("%s - Failed to launch thread!",thisName());
+		    }
+            break;
+        default:
+            FLEXT_ASSERT(false);
+    }
+    return ret;
+}
+
+V py::work_wrapper(V *data)
+{
+	++thrcount;
+#ifdef FLEXT_DEBUG
+	if(!data) 
+		post("%s - no data!",thisName());
+	else
+#endif
+
+    PY_LOCK
+
+    // call worker
+	work_data *w = (work_data *)data;
+	callpy(w->fun,w->args);
+	delete w;
+
+    PY_UNLOCK
+
+    --thrcount;
+}
+
+bool py::qucall(PyObject *fun,PyObject *args)
+{
+    if(qufifo.Push(fun,args)) {
+        qucond.Signal();
+        return true;
+    }
+    else
+        return false;
+}
+
 void py::threadworker()
 {
+    PyObject *fun,*args;
+
     while(!ShouldExit()) {
-        PyObject *fun,*args;
-        while(fifo.pop(fun,args)) {
+        PY_LOCK
+        while(qufifo.Pop(fun,args)) {
+            callpy(fun,args);
+            Py_XDECREF(fun);
+            Py_XDECREF(args);
         }
-        
-        cond.Wait();
+        PY_UNLOCK
+        qucond.Wait();
     }
+
+    PY_LOCK
+    // unref remaining Python objects
+    while(qufifo.Pop(fun,args)) {
+        Py_XDECREF(fun);
+        Py_XDECREF(args);
+    }
+    PY_UNLOCK
 }
 
 Fifo::~Fifo()
@@ -421,13 +514,15 @@ Fifo::~Fifo()
     }
 }
 
-void Fifo::Push(PyObject *f,PyObject *a)
+bool Fifo::Push(PyObject *f,PyObject *a)
 {
     FifoEl *el = new FifoEl;
     el->fun = f;
     el->args = a;
-    tail = tail->nxt = el;
-    if(!head) head = el;
+    if(tail) tail->nxt = el;
+    else head = el;
+    tail = el;
+    return true;
 }
 
 bool Fifo::Pop(PyObject *&f,PyObject *&a)

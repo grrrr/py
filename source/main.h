@@ -147,8 +147,22 @@ protected:
 
 	V tick(V *);
     
+    bool gencall(PyObject *fun,PyObject *args);
+    virtual bool callpy(PyObject *fun,PyObject *args) = 0;
+
+private:
+    bool qucall(PyObject *fun,PyObject *args);
     void threadworker();
-    ThrCond cond;
+    Fifo qufifo;
+    ThrCond qucond;
+
+	V work_wrapper(void *data); 
+
+#ifdef FLEXT_THREADS
+	FLEXT_THREAD_X(work_wrapper)
+#else
+	FLEXT_CALLBACK_X(work_wrapper)
+#endif
 
 public:
 
@@ -173,6 +187,8 @@ protected:
 	FLEXT_CALLGET_V(mg_dir)
 	FLEXT_CALLBACK(m_doc)
     FLEXT_CALLBACK_T(tick)
+
+    FLEXT_THREAD(threadworker)
 };
 
 #ifdef FLEXT_THREADS
@@ -190,24 +206,6 @@ void FreeThreadState();
     PyThreadState_Swap(__oldst); \
     PyEval_ReleaseLock(); \
     }
-
-class PyLock
-{
-public:
-    PyLock() 
-    {
-        PyEval_AcquireLock();
-        state = PyThreadState_Swap(FindThreadState());
-    }
-    
-    ~PyLock()
-    {
-        PyThreadState_Swap(state);
-        PyEval_ReleaseLock();
-    }
-protected:
-    PyThreadState state;
-};
 
 #else
 

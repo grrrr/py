@@ -51,6 +51,9 @@ protected:
 	V ResetFunction();
 
 private:
+
+    virtual bool callpy(PyObject *fun,PyObject *args);
+
 	static void Setup(t_classid c);
 
 	FLEXT_CALLBACK(m_bang)
@@ -226,7 +229,7 @@ V pyobj::m_set(I argc,const t_atom *argv)
 V pyobj::m_help()
 {
 	post("");
-	post("%s %s - python script object, (C)2002-2004 Thomas Grill",thisName(),PY__VERSION);
+	post("%s %s - python script object, (C)2002-2005 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
 	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
@@ -289,15 +292,31 @@ V pyobj::Reload()
 	ResetFunction();
 }
 
-PyObject *py::callpy(PyObject *fun,PyObject *args)
+bool pyobj::callpy(PyObject *fun,PyObject *args)
 {
     PyObject *ret = PyEval_CallObject(fun,args); 
-    if(ret == NULL) // function not found resp. arguments not matching
+    if(ret == NULL) {
+        // function not found resp. arguments not matching
         PyErr_Print();
-    return ret;
+        return false;
+    }
+    else {
+        AtomList *rargs = GetPyArgs(ret);
+		if(!rargs) 
+            PyErr_Print();
+        else {
+            // call to outlet _outside_ the Mutex lock!
+            // otherwise (if not detached) deadlock will occur
+            if(rargs->Count()) ToOutList(0,*rargs);
+            delete rargs;
+        }
+        Py_DECREF(ret);
+        return true;
+    }
 } 
 
-BL pyobj::work(const t_symbol *s,I argc,const t_atom *argv)
+/*
+bool pyobj::work(const t_symbol *s,I argc,const t_atom *argv)
 {
 	AtomList *rargs = NULL;
     BL ret;
@@ -334,7 +353,7 @@ BL pyobj::work(const t_symbol *s,I argc,const t_atom *argv)
     return ret;
 }
 
-V pyobj::callwork(const t_symbol *s,I argc,const t_atom *argv)
+void pyobj::callwork(const t_symbol *s,I argc,const t_atom *argv)
 {
     BL ret = false;
 	if(detach) {
@@ -349,5 +368,21 @@ V pyobj::callwork(const t_symbol *s,I argc,const t_atom *argv)
 		ret = work(s,argc,argv);
     Respond(ret);
 }
+*/
 
+void pyobj::callwork(const t_symbol *s,int argc,const t_atom *argv)
+{
+    bool ret = false;
+ 
+	if(function) {
+		PyObject *pargs = MakePyArgs(s,argc,argv);
+        Py_INCREF(function);
+        ret = gencall(function,pargs);
+	}
+	else {
+		post("%s: no function defined",thisName());
+        ret = false;
+	}
 
+    Respond(ret);
+}

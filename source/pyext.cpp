@@ -425,7 +425,7 @@ BL pyext::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
 {
     BL ret = false;
 	if(pyobj && n >= 1)
-		ret = callwork(n,s,argc,argv);
+		ret = work(n,s,argc,argv);
     else
 		post("%s - no method for type '%s' into inlet %i",thisName(),GetString(s),n);
     return ret;
@@ -435,7 +435,7 @@ BL pyext::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
 V pyext::m_help()
 {
 	post("");
-	post("%s %s - python class object, (C)2002-2004 Thomas Grill",thisName(),PY__VERSION);
+	post("%s %s - python class object, (C)2002-2005 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
 	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
@@ -460,29 +460,25 @@ V pyext::m_help()
 	post("");
 }
 
-PyObject *pyext::callpy(PyObject *fun,PyObject *args)
+bool pyext::callpy(PyObject *fun,PyObject *args)
 {
     PyObject *ret = PyEval_CallObject(fun,args); 
-    if(ret == NULL) // function not found resp. arguments not matching
+    if(ret == NULL) {
+        // function not found resp. arguments not matching
         PyErr_Print();
-    else {
-        AtomList *rargs = GetPyArgs(ret);
-		if(!rargs) 
-            PyErr_Print();
-        else {
-            // call to outlet _outside_ the Mutex lock!
-            // otherwise (if not detached) deadlock will occur
-            if(rargs->Count()) ToOutList(0,*rargs);
-            delete rargs;
-        }
-        Py_DECREF(ret);
+        return false;
     }
-    return ret;
+    else {
+		if(!PyObject_Not(ret)) post("pyext - returned value is ignored");
+		Py_DECREF(ret);
+        return true;
+    }
 } 
 
-PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *argv) 
+
+bool pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *argv) 
 {
-	PyObject *ret = NULL;
+	bool ret = false;
 
 	PyObject *pmeth  = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
 	if(pmeth == NULL) {
@@ -490,83 +486,22 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_ato
 	}
 	else {
 		PyObject *pargs = MakePyArgs(s,argc,argv,inlet?inlet:-1,true);
-		if(!pargs)
+        if(!pargs) {
 			PyErr_Print();
-		else {
-            ret = callpy(pmeth,pargs);
-			Py_DECREF(pargs);
-		}
-		Py_DECREF(pmeth);
+    		Py_DECREF(pmeth);
+        }
+		else 
+            gencall(pmeth,pargs);
 	}
-
 	return ret;
 }
 
-V pyext::work_wrapper(V *data)
+bool pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
 {
-	++thrcount;
-#ifdef FLEXT_DEBUG
-	if(!data) 
-		post("%s - no data!",thisName());
-	else
-#endif
-	{
-#ifdef FLEXT_THREADS
-        // --- make new Python thread ---
-        // get the global lock
-        PyEval_AcquireLock();
-        // create a thread state object for this thread
-        PyThreadState *newthr = FindThreadState();
-        // free the lock
-        PyEval_ReleaseLock();
-#endif
-        {
-            // call worker
-		    work_data *w = (work_data *)data;
-		    work(w->n,w->Header(),w->Count(),w->Atoms());
-		    delete w;
-        }
+	bool ret = false;
 
-#ifdef FLEXT_THREADS
-        // --- delete Python thread ---
-        // grab the lock
-        PyEval_AcquireLock();
-        // swap my thread state out of the interpreter
-        PyThreadState_Swap(NULL);
-        // delete mapped thread state
-        FreeThreadState();
-        // release the lock
-        PyEval_ReleaseLock();
-        // -----------------------------
-#endif
-	}
-	--thrcount;
-}
+    PY_LOCK
 
-BL pyext::callwork(I n,const t_symbol *s,I argc,const t_atom *argv)
-{
-    BL ret = true,ok = false;
-    if(detach) {
-		if(shouldexit)
-			post("%s - Stopping.... new threads can't be launched now!",thisName());
-		else {
-			ret = FLEXT_CALLMETHOD_X(work_wrapper,new work_data(n,s,argc,argv));
-			if(!ret) post("%s - Failed to launch thread!",thisName());
-		}
-	}
-    else
-		ret = ok = work(n,s,argc,argv);
-    Respond(ok);
-    return ret;
-}
-
-BL pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
-{
-	BL retv = false;
-
-	PY_LOCK
-
-	PyObject *ret = NULL;
 	char *str = new char[strlen(GetString(s))+10];
 
 	{
@@ -580,7 +515,7 @@ BL pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
 		sprintf(str,"_anything_%i",n);
 		if(s == sym_bang && !argc) {
 			t_atom argv;
-			SetString(argv,"");
+			SetSymbol(argv,sym__);
 			ret = call(str,0,s,1,&argv);
 		}
 		else
@@ -596,7 +531,7 @@ BL pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
 		strcpy(str,"_anything_");
 		if(s == sym_bang && !argc) {
 			t_atom argv;
-			SetString(argv,"");
+			SetSymbol(argv,sym__);
 			ret = call(str,n,s,1,&argv);
 		}
 		else
@@ -607,15 +542,10 @@ BL pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
 		// no matching python method found
 		post("%s - no matching method found for '%s' into inlet %i",thisName(),GetString(s),n);
 
+    Respond(ret);
+
 	if(str) delete[] str;
 
-	if(ret) {
-		if(!PyObject_Not(ret)) post("%s - returned value is ignored",thisName());
-		Py_DECREF(ret);
-		retv = true;
-	}
-
 	PY_UNLOCK
-
-	return retv;
+	return ret;
 }
