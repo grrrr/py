@@ -1,8 +1,11 @@
 NAME=py
 
-THREADED=1
+BUILDCLASS=ext
+BUILDMODE=release
+BUILDTYPE=multi
 
 BUILDDIR=build
+
 SRCDIR=source
 
 SRCS= main.cpp py.cpp pyext.cpp modmeth.cpp clmeth.cpp register.cpp pyargs.cpp bound.cpp
