@@ -1,5 +1,5 @@
 py - python script object for PD and MaxMSP
-version 0.0.1
+version 0.0.2
 
 Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -31,7 +31,7 @@ o GCC for linux: edit & run "make -f makefile.pd-linux"
 
 - Max/MSP - MacOS:
 The source compiles and links but Max dies on first call of the Python API
-o CodeWarrior Pro: 
+o CodeWarrior Pro: edit "py.cw" project file 
 o MPW-PR and GUSI: #undef HAVE_USABLE_WCHAR_T and HAVE_WCHAR_H in pyconfig.h
 
 ----------------------------------------------------------------------------
@@ -52,6 +52,9 @@ Description:
 ----------------------------------------------------------------------------
 
 Version history:
+
+0.0.2:
+- fixed bug when calling script with no function defined (thanks to Ben Saylor)
 
 0.0.1:
 - using flext 0.2.1

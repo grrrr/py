@@ -20,7 +20,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.2.1 
 #endif
 
-#define PY__VERSION "0.0.1"
+#define PY__VERSION "0.0.2"
 
 
 #define I int
@@ -239,6 +239,7 @@ V py::SetFunction(const C *name)
 
 PyObject *py::GetFunction()
 {
+	if(!sFunc) return NULL;
 	lookup *l;
 	for(l = modules; l && l->modhash != hName; l = l->nxt);
 	return l?PyDict_GetItemString(l->dict,sFunc):NULL;
@@ -308,7 +309,8 @@ py::~py()
 
 V py::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 {
-	post("%s - no method for type %s",thisName(),GetString(s));
+	if(n == 1)
+		post("%s - no method for type %s",thisName(),GetString(s));
 }
 
 V py::m_reload(I argc,t_atom *argv)
