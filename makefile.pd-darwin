@@ -20,8 +20,8 @@ LIBPATH= ${PYTHONLIB}
 FLAGS=-DFLEXT_SYS=2 -DFLEXT_THREADS
 CFLAGS=$(UFLAGS) -Wno-unused -Wno-parentheses -Wno-switch -Wstrict-prototypes
 #CFLAGS=-g
-LIBS=m python${PYTHONVER}
-LDFLAGS=-bundle -bundle_loader ${PD}
+LIBS=m # python${PYTHONVER}
+LDFLAGS=-bundle -bundle_loader ${PD} -framework Python -framework Carbon
 
 # ---------------------------------------------
 # the rest can stay untouched

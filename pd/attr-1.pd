@@ -1,6 +1,6 @@
-#N canvas 114 127 683 413 12;
+#N canvas 114 127 687 417 12;
 #X obj 224 370 pyext simple ex3;
-#X obj 365 370 print A;
+#X obj 392 371 print A;
 #X msg 252 180 get tmp;
 #X msg 369 210 get _inlets;
 #X msg 253 204 set tmp 3;

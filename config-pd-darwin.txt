@@ -7,26 +7,26 @@
 # where are the PD header files?
 # leave it blank if it is a system directory (like /usr/local/include), 
 # 	since gcc 3.2 complains about it
-PDPATH=/usr/local/pd/src
+PDPATH=/usr/local/lib/pd/src
 
 # where is the PD executable?
-PD=/usr/local/pd/bin/pd
+PD=/usr/local/bin/pd
 
 # where do the flext libraries reside?
-FLEXTPATH=/usr/local/pd/flext
+FLEXTPATH=/usr/local/lib/pd/flext
 
 # what is the python version?
-PYTHONVER=2.2
+PYTHONVER=2.3
 # where are the python header files?
-PYTHONINCLUDE=/usr/include/python${PYTHONVER}
+PYTHONINCLUDE=/Library/Frameworks/Python.Framework/Versions/$(PYTHONVER)/include/python$(PYTHONVER)
 # where is the python library file?
-PYTHONLIB=/Volumes/Daten/Prog/packs/Python-2.2.2
+PYTHONLIB=/Library/Frameworks/Python.Framework/Versions/$(PYTHONVER)/bin/python$(PYTHONVER)
 
 # where should flext libraries be built?
 TARGDIR=./pd-darwin
 # where should the external be installed?
 # (leave blank to omit installation)
-INSTPATH=/usr/local/pd/extra
+INSTPATH=/usr/local/lib/pd/extra
 
 # user flags
-# UFLAGS=-O6 -maltivec
+# UFLAGS=-O2 -faltivec -maltivec
