@@ -17,15 +17,26 @@ include $(CONFIG)
 # compiler+linker stuff	
 INCLUDES=$(PDPATH) $(PYTHONINCLUDE)
 LIBPATH=$(PYTHONLIB)
-FLAGS=-DFLEXT_SYS=2 -DFLEXT_THREADS
-CFLAGS=-O2 $(UFLAGS)
+FLAGS=-DFLEXT_SYS=2
+CFLAGS=-pthread $(UFLAGS)
 LIBS=util python$(PYTHONVER)  
 
+ifdef DEBUG
+CFLAGS+=-g -DFLEXT_DEBUG
+else
+CFLAGS+=-O2
+endif
 
 ifdef FLEXT_SHARED
-CFLAGS+=-shared -DFLEXT_SHARED
+CFLAGS+=-shared
+FLAGS+=-DFLEXT_SHARED
 LIBPATH+=$(FLEXTPATH)
+
+ifdef DEBUG
+LIBFLEXT=-lflext_d
+else
 LIBFLEXT=-lflext
+endif
 
 ifeq ($(CXX),icc)
 LDFLAGS+=-i_dynamic
@@ -35,7 +46,12 @@ endif
 
 else
 
+FLAGS+=-DFLEXT_THREADS
+ifdef DEBUG
+LIBFLEXT=$(FLEXTPATH)/libflext_td.a
+else
 LIBFLEXT=$(FLEXTPATH)/libflext_t.a
+endif
 
 endif
 
@@ -65,7 +81,9 @@ $(TARGDIR)/%.o : $(SRCDIR)/%.cpp
 
 $(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS))  
 	$(CXX) -shared $(LDFLAGS) -o $@ $^ $(patsubst %,-L%,$(LIBPATH)) $(LIBFLEXT) $(patsubst %,-l%,$(LIBS)) 
+ifndef DEBUG	
 	strip --strip-unneeded $@ 
+endif	
 	chmod 755 $@
 
 $(INSTPATH):

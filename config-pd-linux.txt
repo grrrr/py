@@ -17,8 +17,9 @@ FLEXTPATH=/usr/local/lib/pd/flext
 PYTHONVER=2.3
 # where are the python header files?
 PYTHONINCLUDE=/usr/local/include/python${PYTHONVER}
-# where is the python library file?
-PYTHONLIB=/usr/local/lib/python${PYTHONVER}/config
+# where is the python library file? 
+# in most cases this need only be specified for static linking
+# PYTHONLIB=/usr/local/lib/python${PYTHONVER}/config
 
 # where should flext libraries be built?
 TARGDIR=./pd-linux
@@ -28,4 +29,4 @@ TARGDIR=./pd-linux
 INSTPATH=/usr/local/lib/pd/extra
 
 # define for shared build
-#FLEXT_SHARED=1
+FLEXT_SHARED=1
