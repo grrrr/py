@@ -161,8 +161,10 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 					// deadlock would occur if this was another py/pyext object!
 					if(lst->Count() && IsSymbol((*lst)[0]))
 						ext->ToQueueAnything(o-1,GetSymbol((*lst)[0]),lst->Count()-1,lst->Atoms()+1);
+//						ext->ToOutAnything(o-1,GetSymbol((*lst)[0]),lst->Count()-1,lst->Atoms()+1);
 					else
 						ext->ToQueueList(o-1,*lst);
+//						ext->ToOutList(o-1,*lst);
 				}
 				else
 					post("pyext: outlet index out of range");
@@ -230,7 +232,7 @@ PyObject *pyext::pyext_stop(PyObject *,PyObject *args)
 //! Query whether threading is enabled
 PyObject *pyext::pyext_isthreaded(PyObject *,PyObject *)
 {
-	return Py_BuildValue("i",
+	return PyInt_FromLong(
 #ifdef FLEXT_THREADED
         1
 #else

@@ -50,6 +50,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+typedef std::map<flext::thrid_t,PyThreadState *> PyThrMap;
+
 class py:
 	public flext_base
 {
@@ -127,7 +129,8 @@ public:
 	static PyInterpreterState *pystate;
 
 #ifdef FLEXT_THREADS
-    static std::map<flext::thrid_t,PyThreadState *> pythrmap;
+	static PyThreadState *pythrmain;
+    static PyThrMap pythrmap;
 	ThrMutex mutex;
 	V Lock() { mutex.Unlock(); }
 	V Unlock() { mutex.Unlock(); }
@@ -152,10 +155,14 @@ protected:
 
 #ifdef FLEXT_THREADS
 
+// if thread is not found in the thread map, the state of the system thread is used
+// we have yet to see if this has bad side-effects
+
 #define PY_LOCK \
 	{ \
     PyEval_AcquireLock(); \
-    PyThreadState *__st = pythrmap[GetThreadId()]; \
+	PyThrMap::iterator it = pythrmap.find(GetThreadId()); \
+	PyThreadState *__st = it != pythrmap.end()?it->second:pythrmain; \
     FLEXT_ASSERT(__st != NULL); \
 	PyThreadState *__oldst = PyThreadState_Swap(__st);
 

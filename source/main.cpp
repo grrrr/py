@@ -27,12 +27,17 @@ V py::lib_setup()
 
 	Py_Initialize();
 
+#if 0 //def FLEXT_DEBUG
+	Py_DebugFlag = 1;
+	Py_VerboseFlag = 1;
+#endif
+
 #ifdef FLEXT_THREADS
     // enable thread support and acquire the global thread lock
 	PyEval_InitThreads();
 
     // get thread state
-    PyThreadState *pythrmain = PyThreadState_Get();
+    pythrmain = PyThreadState_Get();
     // get main interpreter state
 	pystate = pythrmain->interp;
 
@@ -65,7 +70,8 @@ FLEXT_LIB_SETUP(py,py::lib_setup)
 PyInterpreterState *py::pystate = NULL;
 
 #ifdef FLEXT_THREADS
-std::map<flext::thrid_t,PyThreadState *> py::pythrmap;
+PyThreadState *py::pythrmain = NULL;
+PyThrMap py::pythrmap;
 #endif
 
 PyObject *py::module_obj = NULL;
