@@ -8,7 +8,9 @@
 # to install (as root), do "make -f makefile.pd-linux install"
 #
 
-include config-pd-linux.txt
+CONFIG=config-pd-linux.txt
+
+include $(CONFIG)
 
 FLEXTLIB=$(FLEXTPATH)/flext_t.a
 
@@ -36,7 +38,7 @@ TARGET=$(TARGDIR)/$(NAME).pd_linux
 # default target
 all: $(TARGDIR) $(TARGET)
 
-$(patsubst %,source/%,$(SRCS)): $(patsubst %,source/%,$(HDRS)) $(FLEXTLIB)
+$(patsubst %,source/%,$(SRCS)): $(patsubst %,source/%,$(HDRS)) $(FLEXTLIB) $(CONFIG)
 	touch $@
 
 $(TARGDIR):
