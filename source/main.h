@@ -76,8 +76,10 @@ protected:
 	PyObject *GetModule();
 	PyObject *GetDict();
 	PyObject *GetFunction(const C *func);
-	static PyObject *MakePyArgs(const t_symbol *s,I argc,t_atom *argv);
+	static PyObject *MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet = -1);
 	static t_atom *GetPyArgs(int &argc,PyObject *pValue,PyObject **self = NULL);
+
+	static BL IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 
 	static C *strdup(const C *s);
 

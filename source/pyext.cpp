@@ -25,6 +25,9 @@ public:
 	static PyObject *py__init__(PyObject *self,PyObject *args);
 	static PyObject *py_outlet(PyObject *self,PyObject *args);
 
+	I Inlets() const { return inlets; }
+	I Outlets() const { return outlets; }
+
 protected:
 	BL m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
 
@@ -44,8 +47,8 @@ private:
 
 	static V setup(t_class *);
 	
-	PyObject *call(const C *meth,const t_symbol *s,I argc,t_atom *argv);
-	PyObject *call(const C *meth,PyObject *self);
+	PyObject *call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *argv);
+	PyObject *call(const C *meth);
 
 //	FLEXT_CALLBACK(m_bang)
 
@@ -73,23 +76,25 @@ PyObject *pyext::py_outlet(PyObject *sl,PyObject *args)
 	t_atom *rargv = GetPyArgs(rargc,args,&self);
 
 	if(rargv) {
-		py *ext = NULL;
+		pyext *ext = NULL;
 		PyObject *th = PyObject_GetAttrString(self,"thisptr");
 		if(th) {
-			ext = (py *)PyLong_AsVoidPtr(th); 
+			ext = (pyext *)PyLong_AsVoidPtr(th); 
 		}
 		else {
-			post("Attribut nicht gefunden");
+			post("pyext - internal error " __FILE__ "/%i",__LINE__);
 		}
 
 		if(ext && rargv && rargc >= 2) {
 			I o = GetAInt(rargv[1]);
-			if(o >= 1) {
+			if(o >= 1 && o <= ext->Outlets()) {
 				if(rargc >= 3 && IsSymbol(rargv[2]))
 					ext->ToOutAnything(o-1,GetSymbol(rargv[2]),rargc-3,rargv+3);
 				else
 					ext->ToOutList(o-1,rargc-2,rargv+2);
 			}
+			else
+				post("pyext: outlet index out of range");
 		}
 		else {
 //			PyErr_Print();
@@ -204,15 +209,15 @@ pyext::pyext(I argc,t_atom *argv):
 					int ret = PyObject_SetAttrString(pyobj,"thisptr",th);
 
 					PyObject *res;
-					res = call("_inlets",pyobj);
+					res = call("_inlets");
 					if(res) {
-						inlets = PyLong_AsLong(res);
+						inlets = PyInt_AsLong(res);
 						Py_DECREF(res);
 					}
 					else inlets = 1;
-					res = call("_outlets",pyobj);
+					res = call("_outlets");
 					if(res) {
-						outlets = PyLong_AsLong(res);
+						outlets = PyInt_AsLong(res);
 						Py_DECREF(res);
 					}
 					else outlets = 1;
@@ -299,7 +304,7 @@ V pyext::m_help()
 	post("");
 }
 
-PyObject *pyext::call(const C *meth,const t_symbol *s,I argc,t_atom *argv) 
+PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *argv) 
 {
 	PyObject *pmeth  = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
 	if(pmeth == NULL) {
@@ -308,7 +313,7 @@ PyObject *pyext::call(const C *meth,const t_symbol *s,I argc,t_atom *argv)
 	}
 	else {
 		PyObject *pres;
-		PyObject *pargs = MakePyArgs(s,argc,argv);
+		PyObject *pargs = MakePyArgs(s,argc,argv,inlet?inlet:-1);
 		if(!pargs)
 			PyErr_Print();
 		else {
@@ -327,7 +332,7 @@ PyObject *pyext::call(const C *meth,const t_symbol *s,I argc,t_atom *argv)
 	}
 }
 
-PyObject *pyext::call(const C *meth,PyObject *self) 
+PyObject *pyext::call(const C *meth) 
 {
 	PyObject *pmeth  = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
 	if(pmeth == NULL) {
@@ -335,13 +340,17 @@ PyObject *pyext::call(const C *meth,PyObject *self)
 		return NULL;
 	}
 	else {
-		PyObject *pres = PyEval_CallObject(pmeth, self);           /* call method(x,y) */
+//		PyObject *sf = PyTuple_New(0);
+//		PyTuple_SetItem(sf,0,pyobj); 
+
+		PyObject *pres = PyEval_CallObject(pmeth, NULL);           /* call method(x,y) */
 		if (pres == NULL)
 			PyErr_Print();
 		else {
 //			Py_DECREF(pres);
 		}
 		Py_DECREF(pmeth);
+//		Py_DECREF(sf);
 
 		return pres;
 	}
@@ -352,26 +361,40 @@ BL pyext::work(I n,const t_symbol *s,I argc,t_atom *argv)
 	PyObject *ret = NULL;
 	char *str = new char[strlen(GetString(s))+10];
 
-	sprintf(str,"_%s_%i",GetString(s),n);
-	ret = call(str,s,argc,argv);
+	{
+		sprintf(str,"_%s_%i",GetString(s),n);
+		ret = call(str,0,NULL,argc,argv);
+	}
 	if(!ret) {
 		sprintf(str,"_anything_%i",n);
-		ret = call(str,s,argc,argv);
+		if(s == sym_bang && !argc) {
+			t_atom argv;
+			SetString(argv,"");
+			ret = call(str,0,s,1,&argv);
+		}
+		else
+			ret = call(str,0,s,argc,argv);
 	}
 	if(!ret) {
 		sprintf(str,"_%s_",GetString(s));
-		ret = call(str,s,argc,argv);
+		ret = call(str,n,NULL,argc,argv);
 	}
 	if(!ret) {
 		strcpy(str,"_anything_");
-		ret = call(str,s,argc,argv);
+		if(s == sym_bang && !argc) {
+			t_atom argv;
+			SetString(argv,"");
+			ret = call(str,n,s,1,&argv);
+		}
+		else
+			ret = call(str,n,s,argc,argv);
 	}
 	if(!ret) post("%s - no matching method found for '%s' into inlet %i",thisName(),GetString(s),n);
 
 	if(str) delete[] str;
 
 	if(ret) {
-		post("%s - returned value is ignored",thisName());
+		if(!PyObject_Not(ret)) post("%s - returned value is ignored",thisName());
 		Py_DECREF(ret);
 		return true;
 	}

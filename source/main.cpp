@@ -176,22 +176,30 @@ PyObject *py::GetFunction(const C *func)
 	return l?PyDict_GetItemString(l->dict,const_cast<C *>(func)):NULL;
 }
 
-PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv)
+PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet)
 {
-	BL any = s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer;
+	BL any = IsAnything(s);
 
-	PyObject *pArgs = PyTuple_New(any?argc+1:argc);
+	PyObject *pArgs = PyTuple_New(argc+(any?1:0)+(inlet >= 0?1:0));
 
-	I ix = 0;
+	I pix = 0;
+
+	if(inlet >= 0) {
+		PyObject *pValue = PyInt_FromLong(inlet);
+		/* pValue reference stolen here: */
+		PyTuple_SetItem(pArgs, pix++, pValue); 
+	}
+
+	I ix;
+	PyObject *tmp;
+	if(argc < (any?1:2)) tmp = pArgs,ix = pix;
+	else tmp = PyTuple_New(argc+(any?1:0)),ix = 0;
 
 	if(any) {
 		PyObject *pValue = PyString_FromString(GetString(s));
 
-		if(!pValue) 
-			post("py: cannot convert method header");
-
 		/* pValue reference stolen here: */
-		PyTuple_SetItem(pArgs, ix++, pValue); 
+		PyTuple_SetItem(tmp, ix++, pValue); 
 	}
 
 	for(I i = 0; i < argc; ++i) {
@@ -208,7 +216,12 @@ PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv)
 		}
 
 		/* pValue reference stolen here: */
-		PyTuple_SetItem(pArgs, ix++, pValue); 
+		PyTuple_SetItem(tmp, ix++, pValue); 
+	}
+
+	if(tmp != pArgs) {
+		PyTuple_SetItem(pArgs, pix++, tmp); 
+		_PyTuple_Resize(&pArgs,pix);
 	}
 
 	return pArgs;
