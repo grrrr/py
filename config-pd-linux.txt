@@ -23,10 +23,8 @@ PYTHONLIB=/usr/lib/python${PYTHONVER}/config
 # where should flext libraries be built?
 TARGDIR=./pd-linux
 
-# should the flext stuff be installed? (yes/no)
-INSTALL=yes
-
-# where should py/pyext be installed?
+# where should the external be installed?
+# (leave blank to omit installation)
 INSTPATH=/usr/local/lib/pd/extra
 
 
