@@ -21,20 +21,30 @@ Package files:
 
 The package should at least compile (and is tested) with the following compilers:
 
-- pd - Windows:
-o Borland C++ 5.5 (free): edit & run "make -f makefile.bcc" 
-o Microsoft Visual C++ 6: edit "py.dsp" project file 
+pd - Windows:
+-------------
+o Borland C++ 5.5 (free): edit "config-pd-bcc.txt" & run "build-pd-bcc.bat" 
 
-- pd - linux:
+o Microsoft Visual C++ 6: edit "config-pd-msvc.txt" & run "build-pd-msvc.bat" 
+
+o Cygwin: edit "config-pd-cygwin.txt" & run "sh build-pd-cygwin.sh" 
+
+pd - linux:
+-----------
 Python doesn't provide a shared lib by default - static linking produces huge externals
 Ok, debian is an exception...
+
 o GCC: edit "config-pd-linux.txt" & run "sh build-pd-linux.sh" 
 
 ----------------------------------------------------------------------------
 
 Goals/features of the package:
 
-- access the flexibility of the python language in PD/MaxMSP
+Access the flexibility of the python language in PD/MaxMSP
+
+Usage:
+PD - Load it as i library with e.g. "pd -lib py", check out the sample patches and scripts
+Max/MSP - Wait for Windows or MacOSX version. MacOS9 doesn't want it.
 
 Description:
 
