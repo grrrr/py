@@ -1,6 +1,6 @@
 /* 
 
-pyext - python external object for PD and MaxMSP
+py/pyext - python external object for PD and MaxMSP
 
 Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -12,9 +12,6 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
-#define PYEXT_MODULE "pyext"
-#define PYEXT_CLASS "pyext"
-
 class pyext:
 	public py
 {
@@ -24,9 +21,7 @@ public:
 	pyext(I argc,t_atom *argv);
 	~pyext();
 
-	static PyObject *py_new(PyObject *self,PyObject *args);
 	static PyObject *py__init__(PyObject *self,PyObject *args);
-	static PyObject *py__getitem__(PyObject *self,PyObject *args);
 	static PyObject *py_outlet(PyObject *self,PyObject *args);
 	static PyObject *py_setattr(PyObject *self,PyObject *args);
 	static PyObject *py_getattr(PyObject *self,PyObject *args);
@@ -46,14 +41,8 @@ protected:
 	I inlets,outlets;
 
 private:
-	enum retval { nothing,atom,tuple,list };
-
-	static V setup(t_class *);
-
-	static I modref;
-	static PyObject *module_obj,*module_dict,*class_obj,*class_dict;
-
-	static PyMethodDef func_tbl[],attr_tbl[],meth_tbl[];
+	static PyObject *class_obj,*class_dict;
+	static PyMethodDef attr_tbl[],meth_tbl[];
 
 	PyObject *call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *argv);
 
@@ -81,6 +70,7 @@ private:
 };
 
 FLEXT_LIB_V("pyext",pyext)
+
 
 PyObject* pyext::py__init__(PyObject *,PyObject *args)
 {
@@ -189,8 +179,6 @@ PyObject *pyext::py_outlet(PyObject *,PyObject *args)
 }
 
 
-PyMethodDef pyext::func_tbl[] = {{NULL, NULL, 0, NULL}};
-
 PyMethodDef pyext::meth_tbl[] = 
 {
 //    {"__init__", pyext::py__init__, METH_VARARGS, "pyext init"},
@@ -206,9 +194,6 @@ PyMethodDef pyext::attr_tbl[] =
 };
 
 
-I pyext::modref = 0;
-PyObject *pyext::module_obj = NULL;
-PyObject *pyext::module_dict = NULL;
 PyObject *pyext::class_obj = NULL;
 PyObject *pyext::class_dict = NULL;
 
@@ -218,12 +203,8 @@ pyext::pyext(I argc,t_atom *argv):
 { 
 	PY_LOCK
 
-	if(!(modref++)) {
-		// register/initialize pyext module only once!
-
-		module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
-
-		module_dict = PyModule_GetDict(module_obj);
+	if(pyref == 1) {
+		// register/initialize pyext base class along with module
 		class_dict = PyDict_New();
 		PyObject *className = PyString_FromString(PYEXT_CLASS);
 		PyMethodDef *def;
@@ -249,9 +230,7 @@ pyext::pyext(I argc,t_atom *argv):
 		}
  	}
 	else {
-		Py_INCREF(module_obj);
 		Py_INCREF(class_obj);
-		Py_INCREF(module_dict);
 		Py_INCREF(class_dict);
 	}
 
@@ -287,16 +266,16 @@ pyext::pyext(I argc,t_atom *argv):
 		PyObject *pmod = GetModule(); // stolen reference!
 		
 		if(pmod) {
-			PyObject *pclass = PyObject_GetAttrString(pmod,const_cast<C *>(GetString(sobj)));   /* fetch module.class */
-			if (!pclass) 
+			PyObject *pref = PyObject_GetAttrString(pmod,const_cast<C *>(GetString(sobj)));  
+			if (!pref) 
 				PyErr_Print();
-			else {
+			else if(PyClass_Check(pref)) {
 				PyObject *pargs = MakePyArgs(NULL,argc-2,argv+2);
 				if (pargs == NULL) PyErr_Print();
 
 				// call class
-				pyobj = PyInstance_New(pclass, pargs,NULL);
-				Py_DECREF(pclass);
+				pyobj = PyInstance_New(pref, pargs,NULL);
+				Py_DECREF(pref);
 				Py_XDECREF(pargs);
 				if(pyobj == NULL) 
 					PyErr_Print();
@@ -338,6 +317,8 @@ pyext::pyext(I argc,t_atom *argv):
 						PyErr_Clear();
 				}
 			}
+			else 
+				post("%s - Type of \"%s\" is unhandled!",thisName(),GetString(sobj));
 		}
 	}
 
@@ -353,6 +334,9 @@ pyext::pyext(I argc,t_atom *argv):
 	FLEXT_ADDMETHOD_(0,"detach",m_detach);
 	FLEXT_ADDMETHOD_(0,"stop",m_stop);
 #endif
+
+	if(!pyobj)
+		InitProblem();
 }
 
 pyext::~pyext()
@@ -364,15 +348,11 @@ pyext::~pyext()
 /*
 	// Don't unregister
 
-	if(!--modref) {
+	if(pyref == 1) {
 		Py_DECREF(class_obj);
 		class_obj = NULL;
 		Py_DECREF(class_dict);
 		class_dict = NULL;
-		Py_DECREF(module_obj);
-		module_obj = NULL;
-		Py_DECREF(module_dict);
-		module_dict = NULL;
 	}
 */
 	PY_UNLOCK
@@ -414,10 +394,10 @@ V pyext::m_help()
 	post("Outlets: python outlets");	
 	post("Methods:");
 	post("\thelp: shows this help");
-	post("\treload [args...]: reload python script");
+	post("\treload {args...}: reload python script");
 #ifdef FLEXT_THREADS
 	post("\tdetach 0/1: detach threads");
-	post("\tstop [wait time (ms)]: stop threads");
+	post("\tstop {wait time (ms)}: stop threads");
 #endif
 	post("");
 }

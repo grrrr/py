@@ -1,6 +1,6 @@
 /* 
 
-pyobj - python script object for PD and MaxMSP
+py - python script object for PD and MaxMSP
 
 Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -44,8 +44,6 @@ protected:
 
 private:
 
-	static V setup(t_class *);
-	
 	FLEXT_CALLBACK(m_bang)
 	FLEXT_CALLBACK_V(m_reload)
 	FLEXT_CALLBACK_V(m_set)
@@ -173,10 +171,10 @@ V pyobj::m_help()
 	post("\thelp: shows this help");
 	post("\tbang: call script without arguments");
 	post("\tset [script name] [function name]: set (script and) function name");
-	post("\treload [args...]: reload python script");
+	post("\treload {args...}: reload python script");
 #ifdef FLEXT_THREADS
 	post("\tdetach 0/1: detach threads");
-	post("\tstop [wait time (ms)]: stop threads");
+	post("\tstop {wait time (ms)}: stop threads");
 #endif
 	post("");
 }

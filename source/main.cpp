@@ -15,7 +15,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 V lib_setup()
 {
-	post("py %s - py/pyext python script objects, (C)2002 Thomas Grill",PY__VERSION);
+	post("py/pyext %s - python script objects, (C)2002 Thomas Grill",PY__VERSION);
 	post("");
 
 	FLEXT_SETUP(pyobj);
@@ -26,8 +26,22 @@ FLEXT_LIB_SETUP(py,lib_setup)
 
 PyInterpreterState *py::pystate = NULL;
 
+PyMethodDef py::func_tbl[] = 
+{
+	{ "_samplerate", py::py_samplerate, NULL,"get sample rate" },
+	{ "_blocksize", py::py_blocksize, NULL,"get block size" },
+	{ "_inchannels", py::py_inchannels, NULL,"get number of audio in channels" },
+	{ "_outchannels", py::py_outchannels, NULL,"get number of audio out channels" },
+	{NULL, NULL, 0, NULL}
+};
+
+PyObject *py::module_obj = NULL;
+PyObject *py::module_dict = NULL;
+
+
 py::py(): 
 	sName(NULL),hName(0),
+	module(NULL),
 	detach(false),shouldexit(false),thrcount(0),
 	clk(NULL),stoptick(0)
 {
@@ -40,9 +54,20 @@ py::py():
 		PyEval_InitThreads();
 		pythrmain = PyThreadState_Get();
 		pystate = pythrmain->interp;
+#endif
+		// register/initialize pyext module only once!
+		module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
+		module_dict = PyModule_GetDict(module_obj);
 
+#ifdef FLEXT_THREADS
 		PyEval_ReleaseLock();
 #endif
+	}
+	else {
+		PY_LOCK
+		Py_INCREF(module_obj);
+		Py_INCREF(module_dict);
+		PY_UNLOCK
 	}
 
 	Unlock();
@@ -70,6 +95,11 @@ py::~py()
 	Lock();
 
     if(!(--pyref)) {
+		Py_DECREF(module_obj);
+		module_obj = NULL;
+		Py_DECREF(module_dict);
+		module_dict = NULL;
+
 		delete modules; modules = NULL;
 
 		PyEval_AcquireLock();
@@ -86,6 +116,8 @@ py::~py()
 
 
 I py::pyref = 0;
+
+#if 0
 py::lookup *py::modules = NULL;
 
 py::lookup::lookup(I hname,PyObject *mod,py *_th):
@@ -116,25 +148,16 @@ V py::lookup::Add(lookup *l)
 	else nxt = l;
 }
 
+/*
 py *py::lookup::GetThis(PyObject *mod)
 {
     if(module == mod) return th;
 	else
 		return nxt?nxt->GetThis(mod):NULL;
 }
+*/
 
-
-
-
-C *py::strdup(const C *s) 
-{
-	if(!s) return NULL;
-	I len = strlen(s);
-	C *ret = new C[len+1];
-	strcpy(ret,s);
-	return ret;
-}
-
+#endif
 
 V py::SetArgs(I argc,t_atom *argv)
 {
@@ -160,7 +183,7 @@ V py::ImportModule(const C *name)
 	if(!name) return;
 
 	if(sName) delete[] sName;
-	sName = strdup(name);
+	sName = (C *)flext::strdup(name);
 
 	PyObject *pName = PyString_FromString(sName);
 	hName = PyObject_Hash(pName);
@@ -176,6 +199,7 @@ V py::ImportModule(const C *name)
 
 	Py_DECREF(pName);
 }
+
 
 V py::SetModule(I hname,PyObject *module)
 {
@@ -290,7 +314,7 @@ PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet,BL withse
 		else if(IsPointer(argv[i])) pValue = NULL; // not handled
 
 		if(!pValue) {
-			post("py: cannot convert argument %i",any?i+1:i);
+			post("py/pyext: cannot convert argument %i",any?i+1:i);
 			continue;
 		}
 
@@ -342,7 +366,8 @@ t_atom *py::GetPyArgs(int &argc,PyObject *pValue,PyObject **self)
 			default: arg = pValue;
 		}
 
-		if(PyInt_CheckExact(arg)) SetFlint(ret[ix],PyInt_AsLong(arg));
+		if(PyInt_Check(arg)) SetFlint(ret[ix],PyInt_AsLong(arg));
+		else if(PyLong_Check(arg)) SetFlint(ret[ix],PyLong_AsLong(arg));
 		else if(PyFloat_Check(arg)) SetFloat(ret[ix],(F)PyFloat_AsDouble(arg));
 		else if(PyString_Check(arg)) SetString(ret[ix],PyString_AsString(arg));
 		else if(ix == 0 && self && PyInstance_Check(arg)) {
@@ -350,7 +375,13 @@ t_atom *py::GetPyArgs(int &argc,PyObject *pValue,PyObject **self)
 			*self = arg;
 		}
 		else {
-			post("py: Could not convert return argument");
+			PyObject *tp = PyObject_Type(arg);
+			PyObject *stp = tp?PyObject_Str(tp):NULL;
+			C *tmp = "";
+			if(stp) tmp = PyString_AsString(stp);
+			post("py/pyext: Could not convert argument %s",tmp);
+			Py_XDECREF(stp);
+			Py_XDECREF(tp);
 			ok = false;
 		}
 		// No DECREF for arg -> borrowed from pValue!
@@ -442,5 +473,36 @@ V py::m_stop(int argc,t_atom *argv)
 	}
 		
 }
+
+PyObject *py::py_samplerate(PyObject *self,PyObject *args)
+{
+	return PyFloat_FromDouble(sys_getsr());
+}
+
+PyObject *py::py_blocksize(PyObject *self,PyObject *args)
+{
+	return PyLong_FromLong(sys_getblksize());
+}
+
+PyObject *py::py_inchannels(PyObject *self,PyObject *args)
+{
+#ifdef PD
+	I ch = sys_get_inchannels();
+#else // MAXMSP
+	I ch = sys_getch(); // not functioning
+#endif
+	return PyLong_FromLong(ch);
+}
+
+PyObject *py::py_outchannels(PyObject *self,PyObject *args)
+{
+#ifdef PD
+	I ch = sys_get_outchannels();
+#else // MAXMSP
+	I ch = sys_getch(); // not functioning
+#endif
+	return PyLong_FromLong(ch);
+}
+
 
 

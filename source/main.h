@@ -25,6 +25,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #define PY__VERSION "0.1.0pre"
 
+#define PYEXT_MODULE "pyext" // name for module
+#define PYEXT_CLASS "base"  // name for base class
 
 #define I int
 #define C char
@@ -48,7 +50,9 @@ public:
 protected:
 	C *sName;
 	I hName;
+	PyObject *module;
 
+#if 0
 	class lookup {
 	public:
 		lookup(I hash,PyObject *mod,py *_th);
@@ -56,7 +60,7 @@ protected:
 
 		V Set(PyObject *mod,py *_th);
 		V Add(lookup *l);
-		py *GetThis(PyObject *mod);
+//		py *GetThis(PyObject *mod);
 
 		I modhash;
 		PyObject *module,*dict;
@@ -65,9 +69,11 @@ protected:
 	};
 
 	static lookup *modules;
+#endif
+
 	static I pyref;
 
-	static py *GetThis(PyObject *mod) { return modules?modules->GetThis(mod):NULL; }
+//	static py *GetThis(PyObject *mod) { return modules?modules->GetThis(mod):NULL; }
 
 	V GetModulePath(const C *mod,C *dir,I len);
 	V AddToPath(const C *dir);
@@ -83,11 +89,20 @@ protected:
 
 	static BL IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 
-	static C *strdup(const C *s);
 
 	enum retval { nothing,atom,tuple,list };
 
-	// ----------------------------------
+	// --- module stuff -----
+
+	static PyObject *module_obj,*module_dict;
+	static PyMethodDef func_tbl[];
+
+	static PyObject *py_samplerate(PyObject *self,PyObject *args);
+	static PyObject *py_blocksize(PyObject *self,PyObject *args);
+	static PyObject *py_inchannels(PyObject *self,PyObject *args);
+	static PyObject *py_outchannels(PyObject *self,PyObject *args);
+
+	// ----thread stuff ------------
 
 	V m_detach(BL det) { detach = det; }
 	virtual V m_stop(int argc,t_atom *argv);
@@ -110,6 +125,8 @@ protected:
 	V Lock() {}
 	V Unlock() {}
 #endif
+
+	// callbacks
 
 	FLEXT_CALLBACK_B(m_detach)
 	FLEXT_CALLBACK_V(m_stop)
