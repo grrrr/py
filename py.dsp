@@ -150,23 +150,23 @@ LINK32=link.exe
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=".\scripts\ext-tk1.py"
-# End Source File
-# Begin Source File
-
-SOURCE=.\scripts\ext1.py
-# End Source File
-# Begin Source File
-
-SOURCE=.\scripts\scr1.py
-# End Source File
-# Begin Source File
-
-SOURCE=.\scripts\scr2.py
+SOURCE=.\scripts\script.py
 # End Source File
 # Begin Source File
 
 SOURCE=.\scripts\sendrecv.py
+# End Source File
+# Begin Source File
+
+SOURCE=.\scripts\simple.py
+# End Source File
+# Begin Source File
+
+SOURCE=.\scripts\tcltk.py
+# End Source File
+# Begin Source File
+
+SOURCE=.\scripts\threads.py
 # End Source File
 # End Group
 # Begin Group "doc"
@@ -187,43 +187,43 @@ SOURCE=.\readme.txt
 # End Group
 # Begin Source File
 
-SOURCE=.\bound.cpp
+SOURCE=.\source\bound.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\clmeth.cpp
+SOURCE=.\source\clmeth.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\main.cpp
+SOURCE=.\source\main.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\main.h
+SOURCE=.\source\main.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\modmeth.cpp
+SOURCE=.\source\modmeth.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\py.cpp
+SOURCE=.\source\py.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\pyargs.cpp
+SOURCE=.\source\pyargs.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\pyext.cpp
+SOURCE=.\source\pyext.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\pyext.h
+SOURCE=.\source\pyext.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\register.cpp
+SOURCE=.\source\register.cpp
 # End Source File
 # End Target
 # End Project
