@@ -522,10 +522,11 @@ bool pybase::qucall(PyObject *fun,PyObject *args)
 
 void pybase::threadworker()
 {
+   	++thrcount;
+
     FifoEl *el;
     PyThreadState *my = FindThreadState(),*state;
 
-   	++thrcount;
     for(;;) {
         while(el = qufifo.Get()) {
         	++thrcount;
@@ -551,6 +552,7 @@ void pybase::threadworker()
         qufifo.Free(el);
     }
     PyUnlock(state);
+
     --thrcount;
 }
 #endif
