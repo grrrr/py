@@ -31,8 +31,8 @@ V py::lib_setup()
 	Py_Initialize();
 
 #ifdef FLEXT_DEBUG
-	Py_DebugFlag = 1;
-//	Py_VerboseFlag = 1;
+//	Py_DebugFlag = 1;
+	Py_VerboseFlag = 1;
 #endif
 
 #ifdef FLEXT_THREADS

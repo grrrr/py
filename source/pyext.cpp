@@ -240,10 +240,12 @@ pyext::pyext(I argc,const t_atom *argv):
 
 	PY_UNLOCK
 	
-    FLEXT_ASSERT(inlets >= 0 && outlets >= 0);
-
-	AddInAnything(1+inlets);  
-	AddOutAnything(outlets);  
+    if(inlets < 0 || outlets < 0)
+        InitProblem();
+    else {
+    	AddInAnything(1+inlets);  
+	    AddOutAnything(outlets);  
+    }
 
 	if(!pyobj)
 		InitProblem();
