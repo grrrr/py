@@ -1,5 +1,5 @@
 # py/pyext - python script objects for PD and Max/MSP
-# Copyright (c)2002,03 Thomas Grill (xovo@gmx.net)
+# Copyright (c)2002-04 Thomas Grill (xovo@gmx.net)
 #
 
 # where is PD?

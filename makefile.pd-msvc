@@ -1,5 +1,5 @@
 # py/pyext - python script object for PD and Max/MSP
-# Copyright (C)2002,03 Thomas Grill (xovo@gmx.net)
+# Copyright (C)2002-04 Thomas Grill (xovo@gmx.net)
 #
 # Makefile for MSVC++ 6 and 7
 #
@@ -24,7 +24,7 @@ CFLAGS=$(CFLAGS) /EHsc
 LIBS=pd.lib pthreadVC.lib $(PYTHONLIB)
 
 !ifdef FLEXT_SHARED
-LIBS=$(LIBS) flext_t-pdwin.lib
+LIBS=$(LIBS) flext.lib
 DEFS=$(DEFS) /DFLEXT_SHARED
 !else
 LIBS=$(LIBS) flext_t-pdwin.lib

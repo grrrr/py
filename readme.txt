@@ -150,4 +150,5 @@ tests:
 
 bugs:
 - named (keyword) arguments are not supported
+- currently no support for Python threads
 
