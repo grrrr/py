@@ -73,6 +73,9 @@ o GCC: edit "config-pd-darwin.txt" & run "sh build-pd-darwin.sh"
 
 Version history:
 
+0.1.2:
+- CHANGE: updates for flext 0.4.1 - method registering within class scope
+
 0.1.1:
 - CHANGE: updates for flext 0.4.0
 - FIX: crash when module couldn't be loaded

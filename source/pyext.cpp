@@ -14,12 +14,22 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 FLEXT_LIB_V("pyext",pyext)
 
-V pyext::setup(t_class *)
+V pyext::Setup(t_class *c)
 {
 	px_head = px_tail = NULL;
 
 	px_class = class_new(gensym("pyext proxy"),NULL,NULL,sizeof(py_proxy),CLASS_PD|CLASS_NOINLET, A_NULL);
 	::add_anything(px_class,py_proxy::px_method); // for other inlets
+
+	FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
+	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
+	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
+	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
+
+#ifdef FLEXT_THREADS
+	FLEXT_CADDMETHOD_(c,0,"detach",m_detach);
+	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
+#endif
 }
 
 pyext *pyext::GetThis(PyObject *self)
@@ -164,16 +174,6 @@ pyext::pyext(I argc,const t_atom *argv):
 	
 	AddInAnything(1+inlets);  
 	AddOutAnything(outlets);  
-
-	FLEXT_ADDMETHOD_(0,"reload.",m_reload);
-	FLEXT_ADDMETHOD_(0,"reload",m_reload_);
-	FLEXT_ADDMETHOD_(0,"doc",m_doc);
-	FLEXT_ADDMETHOD_(0,"doc+",m_doc_);
-
-#ifdef FLEXT_THREADS
-	FLEXT_ADDMETHOD_(0,"detach",m_detach);
-	FLEXT_ADDMETHOD_(0,"stop",m_stop);
-#endif
 
 	if(!pyobj)
 		InitProblem();

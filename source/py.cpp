@@ -14,7 +14,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 class pyobj:
 	public py
 {
-	FLEXT_HEADER(pyobj,py)
+	FLEXT_HEADER_S(pyobj,py,Setup)
 
 public:
 	pyobj(I argc,const t_atom *argv);
@@ -50,6 +50,7 @@ protected:
 	V ResetFunction();
 
 private:
+	static void Setup(t_class *c);
 
 	FLEXT_CALLBACK(m_bang)
 	FLEXT_CALLBACK(m_reload)
@@ -72,6 +73,25 @@ private:
 FLEXT_LIB_V("py",pyobj)
 
 
+void pyobj::Setup(t_class *c)
+{
+	FLEXT_CADDBANG(c,0,m_bang);
+	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
+	FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
+	FLEXT_CADDMETHOD_(c,0,"set",m_set);
+	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
+	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
+#ifdef FLEXT_THREADS
+	FLEXT_CADDMETHOD_(c,0,"detach",m_detach);
+	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
+#endif
+
+	FLEXT_CADDMETHOD_(c,1,"float",m_py_float);
+	FLEXT_CADDMETHOD_(c,1,"int",m_py_int);
+	FLEXT_CADDMETHOD(c,1,m_py_list);
+	FLEXT_CADDMETHOD(c,1,m_py_any);
+}
+
 pyobj::pyobj(I argc,const t_atom *argv):
 	function(NULL),funname(NULL)
 { 
@@ -79,22 +99,6 @@ pyobj::pyobj(I argc,const t_atom *argv):
 
 	AddInAnything(2);  
 	AddOutAnything();  
-
-	FLEXT_ADDBANG(0,m_bang);
-	FLEXT_ADDMETHOD_(0,"reload",m_reload_);
-	FLEXT_ADDMETHOD_(0,"reload.",m_reload);
-	FLEXT_ADDMETHOD_(0,"set",m_set);
-	FLEXT_ADDMETHOD_(0,"doc",m_doc);
-	FLEXT_ADDMETHOD_(0,"doc+",m_doc_);
-#ifdef FLEXT_THREADS
-	FLEXT_ADDMETHOD_(0,"detach",m_detach);
-	FLEXT_ADDMETHOD_(0,"stop",m_stop);
-#endif
-
-	FLEXT_ADDMETHOD_(1,"float",m_py_float);
-	FLEXT_ADDMETHOD_(1,"int",m_py_int);
-	FLEXT_ADDMETHOD(1,m_py_list);
-	FLEXT_ADDMETHOD(1,m_py_any);
 
 	if(argc > 2) 
 		SetArgs(argc-2,argv+2);

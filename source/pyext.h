@@ -16,7 +16,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 class pyext:
 	public py
 {
-	FLEXT_HEADER_S(pyext,py,setup)
+	FLEXT_HEADER_S(pyext,py,Setup)
 
 public:
 	pyext(I argc,const t_atom *argv);
@@ -53,7 +53,7 @@ protected:
 	I inlets,outlets;
 
 private:
-	static V setup(t_class *);
+	static V Setup(t_class *);
 
 	static pyext *GetThis(PyObject *self);
 	V ClearBinding();
