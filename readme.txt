@@ -44,7 +44,9 @@ You can send messages to named objects or receive (with pyext) with Python metho
 
 
 Known bugs:
-The TCL/TK help patch is not usable under OSX.
+- The TCL/TK help patch is not usable under OSX.
+- With the standard PD distribution, threaded py scripts will cause "Stack overflows" under some circumstances
+	(the devel_0_37 cvs branch of PD contains the relevant fixes to avoid that)
 
 ----------------------------------------------------------------------------
 
@@ -54,18 +56,18 @@ It has been thoroughly tested with version 2.2 and 2.3
 
 The package should at least compile (and is tested) with the following compilers:
 
+
 PD @ Windows:
 -------------
 o Borland C++ 5.5 (free): edit "config-pd-bcc.txt" & run "build-pd-bcc.bat" 
 
 o Microsoft Visual C++ 6: usr "py.dsp" or edit "config-pd-msvc.txt" & run "build-pd-msvc.bat" 
 
+
 PD @ linux:
 -----------
-Python doesn't provide a shared lib by default - static linking produces huge externals
-Ok, debian is an exception... the precompiled binary is for debian, therefore.
-
 o GCC: edit "config-pd-linux.txt" & run "sh build-pd-linux.sh" 
+
 
 PD @ MacOSX:
 ---------------------
@@ -74,6 +76,7 @@ This is the default with Panther - otherwise, all newer Python source distributi
 ( ./configure --enable-framework=/System/Library/Frameworks && make && make installframework )
 
 o GCC: edit "config-pd-darwin.txt" & run "sh build-pd-darwin.sh" 
+
 
 ----------------------------------------------------------------------------
 

@@ -29,7 +29,7 @@ TARGDIR=./pd-linux
 INSTPATH=/usr/local/lib/pd/extra
 
 # define for shared build
-FLEXT_SHARED=1
+#FLEXT_SHARED=1
 
 # additional user flags
 UFLAGS=
