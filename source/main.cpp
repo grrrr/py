@@ -258,9 +258,8 @@ py::py(I argc,t_atom *argv):
 	FLEXT_ADDMETHOD(1,m_py_list);
 	FLEXT_ADDMETHOD(1,m_py_any);
 
-
+	// under Max/MSP: doesn't survive next line.....
     if(!(pyref++)) Py_Initialize();
-
 
 	if(argc > 2) SetArgs(argc-2,argv+2);
 

@@ -29,7 +29,8 @@ o Microsoft Visual C++ 6: edit "py.dsp" project file
 o GCC for linux: edit & run "make -f makefile.pd-linux" 
 
 - Max/MSP - MacOS:
-o MPW-PR and GUSI: #undefine HAVE_WCHAR_H in pyconfig.h
+o CodeWarrior Pro: 
+o MPW-PR and GUSI: #undef HAVE_USABLE_WCHAR_T and HAVE_WCHAR_H in pyconfig.h
 
 ----------------------------------------------------------------------------
 
