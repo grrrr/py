@@ -1,6 +1,3 @@
-#ifndef __PYEXT_H
-#define __PYEXT_H
-
 /* 
 
 py/pyext - python external object for PD and MaxMSP
@@ -9,9 +6,10 @@ Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
--------------------------------------------------------------------------
-
 */
+
+#ifndef __PYEXT_H
+#define __PYEXT_H
 
 #include "main.h"
 
@@ -24,11 +22,17 @@ public:
 	pyext(I argc,t_atom *argv);
 	~pyext();
 
-	static PyObject *py__init__(PyObject *self,PyObject *args);
-	static PyObject *py__del__(PyObject *self,PyObject *args);
-	static PyObject *py_outlet(PyObject *self,PyObject *args);
-	static PyObject *py_setattr(PyObject *self,PyObject *args);
-	static PyObject *py_getattr(PyObject *self,PyObject *args);
+	static PyObject *pyext__doc__(PyObject *,PyObject *args);
+	static PyObject *pyext__init__(PyObject *,PyObject *args);
+	static PyObject *pyext__del__(PyObject *,PyObject *args);
+
+	static PyObject *pyext_name(PyObject *,PyObject *args);
+	static PyObject *pyext_outlet(PyObject *,PyObject *args);
+
+	static PyObject *pyext_setattr(PyObject *,PyObject *args);
+	static PyObject *pyext_getattr(PyObject *,PyObject *args);
+
+	static PyObject *pyext_detach(PyObject *,PyObject *args);
 
 	I Inlets() const { return inlets; }
 	I Outlets() const { return outlets; }
@@ -40,6 +44,7 @@ protected:
 
 	V m_reload();
 	V m_reload_(I argc,t_atom *argv);
+	V m_doc_();
 	virtual V m_help();
 
 	const t_symbol *methname;
@@ -84,8 +89,8 @@ private:
 	};
 	static py_proxy *px_head,*px_tail;
 
-	static PyObject *py_bind(PyObject *self,PyObject *args);
-	static PyObject *py_unbind(PyObject *self,PyObject *args);
+	static PyObject *pyext_bind(PyObject *,PyObject *args);
+	static PyObject *pyext_unbind(PyObject *,PyObject *args);
 
 	// ---------------------------
 
@@ -113,6 +118,7 @@ private:
 private:
 	FLEXT_CALLBACK(m_reload)
 	FLEXT_CALLBACK_V(m_reload_)
+	FLEXT_CALLBACK(m_doc_)
 };
 
 

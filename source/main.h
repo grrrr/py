@@ -1,12 +1,10 @@
 /* 
 
-pyext - python script object for PD and MaxMSP
+py/pyext - python script object for PD and MaxMSP
 
 Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
-
--------------------------------------------------------------------------
 
 */
 
@@ -23,10 +21,16 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.3.2
 #endif
 
-#define PY__VERSION "0.1.0pre3"
+#define PY__VERSION "0.1.0pre4"
+
 
 #define PYEXT_MODULE "pyext" // name for module
 #define PYEXT_CLASS "_class"  // name for base class
+
+#define PY_STOP_WAIT 1000  // ms
+#define PY_STOP_TICK 10  // ms
+
+
 
 #define I int
 #define C char
@@ -48,10 +52,12 @@ public:
 	~py();
 	static V lib_setup();
 
-	static PyObject *MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet = -1,BL withself = false);
-	static t_atom *GetPyArgs(int &argc,PyObject *pValue,PyObject **self = NULL);
+	static PyObject *MakePyArgs(const t_symbol *s,AtomList &args,I inlet = -1,BL withself = false);
+	static AtomList *GetPyArgs(PyObject *pValue,PyObject **self = NULL);
 
 protected:
+
+	V m_doc();
 
 	PyObject *module,*dict; // inherited user class module and associated dictionary
 
@@ -70,22 +76,23 @@ protected:
 
 	static BL IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 
-	enum retval { nothing,atom,tuple,list };
+	enum retval { nothing,atom,sequ /*,tuple,list*/ };
 
 	// --- module stuff -----
 
 	static PyObject *module_obj,*module_dict;
 	static PyMethodDef func_tbl[];
 
-	static PyObject *py_send(PyObject *self,PyObject *args);
+	static PyObject *py__doc__(PyObject *,PyObject *args);
+	static PyObject *py_send(PyObject *,PyObject *args);
 #ifdef FLEXT_THREADS
-	static PyObject *py_priority(PyObject *self,PyObject *args);
+	static PyObject *py_priority(PyObject *,PyObject *args);
 #endif
 
-	static PyObject *py_samplerate(PyObject *self,PyObject *args);
-	static PyObject *py_blocksize(PyObject *self,PyObject *args);
-	static PyObject *py_inchannels(PyObject *self,PyObject *args);
-	static PyObject *py_outchannels(PyObject *self,PyObject *args);
+	static PyObject *py_samplerate(PyObject *,PyObject *args);
+	static PyObject *py_blocksize(PyObject *,PyObject *args);
+	static PyObject *py_inchannels(PyObject *,PyObject *args);
+	static PyObject *py_outchannels(PyObject *,PyObject *args);
 
 	// ----thread stuff ------------
 
@@ -117,36 +124,20 @@ protected:
 
 	FLEXT_CALLBACK_B(m_detach)
 	FLEXT_CALLBACK_V(m_stop)
+	FLEXT_CALLBACK(m_doc)
 };
 
 #ifdef FLEXT_THREADS
-#if 0
-#define PY_LOCK \
-	{ \
-	PyThreadState *thrst = PyThreadState_New(pystate); \
-	PyEval_AcquireLock(); \
-    PyThreadState *new_state = PyThreadState_New(pystate); /* must have lock */ \
-    PyThreadState *prev_state = PyThreadState_Swap(new_state);
-
-#define PY_UNLOCK \
-	new_state = PyThreadState_Swap(prev_state); \
-    PyThreadState_Clear(new_state);        /* must have lock */ \
-    PyEval_ReleaseLock(); \
-    PyThreadState_Delete(new_state);       /* needn't have lock */ \
-	}
-#else
 #define PY_LOCK \
 	{ \
 	PyThreadState *thrst = PyThreadState_New(pystate); \
 	PyEval_AcquireThread(thrst); 
 
 #define PY_UNLOCK \
-	/*PyEval_AcquireThread(thrst);*/ \
     PyThreadState_Clear(thrst);        /* must have lock */ \
     PyEval_ReleaseThread(thrst);  \
     PyThreadState_Delete(thrst);       /* needn't have lock */ \
 	}
-#endif
 #else
 #define PY_LOCK 
 #define PY_UNLOCK 

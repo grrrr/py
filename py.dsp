@@ -199,7 +199,15 @@ SOURCE=.\main.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\modmeth.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\py.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\pyargs.cpp
 # End Source File
 # Begin Source File
 
@@ -208,6 +216,10 @@ SOURCE=.\pyext.cpp
 # Begin Source File
 
 SOURCE=.\pyext.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\register.cpp
 # End Source File
 # End Target
 # End Project

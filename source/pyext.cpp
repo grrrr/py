@@ -1,3 +1,13 @@
+/* 
+
+py/pyext - python script object for PD and MaxMSP
+
+Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
+For information on usage and redistribution, and for a DISCLAIMER OF ALL
+WARRANTIES, see the file, "license.txt," in this distribution.  
+
+*/
+
 #include "pyext.h"
 #include <flinternal.h>
 
@@ -139,6 +149,8 @@ pyext::pyext(I argc,t_atom *argv):
 
 	FLEXT_ADDMETHOD_(0,"reload.",m_reload);
 	FLEXT_ADDMETHOD_(0,"reload",m_reload_);
+	FLEXT_ADDMETHOD_(0,"doc",m_doc);
+	FLEXT_ADDMETHOD_(0,"doc+",m_doc_);
 
 #ifdef FLEXT_THREADS
 	FLEXT_ADDMETHOD_(0,"detach",m_detach);
@@ -157,13 +169,14 @@ pyext::~pyext()
 	Unregister("_pyext");
 	
 	Py_XDECREF(pyobj);
+
+	Py_XDECREF(class_obj);
+	Py_XDECREF(class_dict);
 /*
 	// Don't unregister
 
 	if(!--pyextref) {
-		Py_XDECREF(class_obj);
 		class_obj = NULL;
-		Py_XDECREF(class_dict);
 		class_dict = NULL;
 	}
 */
@@ -179,11 +192,15 @@ BL pyext::SetClssMeth() //I argc,t_atom *argv)
 		if(!pref) 
 			PyErr_Print();
 		else if(PyClass_Check(pref)) {
-			PyObject *pargs = MakePyArgs(NULL,args.Count(),args.Atoms());
+			PyObject *pargs = MakePyArgs(NULL,args);
 			if (pargs == NULL) PyErr_Print();
 
 			// call class
-			pyobj = PyInstance_New(pref, pargs,NULL);
+//			pyobj = PyInstance_New(pref, pargs,NULL);
+			pyobj = PyInstance_NewRaw(pref, pargs,NULL);
+
+#pragma message("!")
+
 			Py_DECREF(pref);
 			Py_XDECREF(pargs);
 			if(pyobj == NULL) 
@@ -235,6 +252,18 @@ V pyext::m_reload_(I argc,t_atom *argv)
 	m_reload();
 }
 
+V pyext::m_doc_()
+{
+	if(pyobj) {
+		PyObject *docf = PyObject_GetAttrString(pyobj,"__doc__"); // borrowed!!!
+		if(docf && PyString_Check(docf)) {
+			post("");
+			post(PyString_AsString(docf));
+		}
+	}
+}
+
+
 
 
 BL pyext::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
@@ -251,12 +280,13 @@ BL pyext::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 
 V pyext::m_help()
 {
+	post("");
 	post("pyext %s - python script object, (C)2002 Thomas Grill",PY__VERSION);
 #ifdef _DEBUG
 	post("compiled on " __DATE__ " " __TIME__);
 #endif
 
-	post("Arguments: %s [script name] [object name] [args...]",thisName());
+	post("Arguments: %s [script name] [class name] {args...}",thisName());
 
 	post("Inlet 1: messages to control the pyext object");
 	post("      2...: python inlets");
@@ -264,6 +294,9 @@ V pyext::m_help()
 	post("Methods:");
 	post("\thelp: shows this help");
 	post("\treload {args...}: reload python script");
+	post("\treload. : reload with former arguments");
+	post("\tdoc: display module doc string");
+	post("\tdoc+: display class doc string");
 #ifdef FLEXT_THREADS
 	post("\tdetach 0/1: detach threads");
 	post("\tstop {wait time (ms)}: stop threads");
@@ -280,7 +313,7 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *arg
 		PyErr_Clear(); // no method found
 	}
 	else {
-		PyObject *pargs = MakePyArgs(s,argc,argv,inlet?inlet:-1,true);
+		PyObject *pargs = MakePyArgs(s,AtomList(argc,argv),inlet?inlet:-1,true);
 		if(!pargs)
 			PyErr_Print();
 		else {

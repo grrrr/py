@@ -1,11 +1,21 @@
+/* 
+
+py/pyext - python external object for PD and MaxMSP
+
+Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
+For information on usage and redistribution, and for a DISCLAIMER OF ALL
+WARRANTIES, see the file, "license.txt," in this distribution.  
+
+*/
+
 #include "main.h"
 
-PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet,BL withself)
+PyObject *py::MakePyArgs(const t_symbol *s,AtomList &args,I inlet,BL withself)
 {
 	PyObject *pArgs;
 
 	BL any = IsAnything(s);
-	pArgs = PyTuple_New(argc+(any?1:0)+(inlet >= 0?1:0));
+	pArgs = PyTuple_New(args.Count()+(any?1:0)+(inlet >= 0?1:0));
 
 	I pix = 0;
 
@@ -18,8 +28,8 @@ PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet,BL withse
 
 	I ix;
 	PyObject *tmp;
-	if(!withself || argc < (any?1:2)) tmp = pArgs,ix = pix;
-	else tmp = PyTuple_New(argc+(any?1:0)),ix = 0;
+	if(!withself || args.Count() < (any?1:2)) tmp = pArgs,ix = pix;
+	else tmp = PyTuple_New(args.Count()+(any?1:0)),ix = 0;
 
 	if(any) {
 		PyObject *pValue = PyString_FromString(GetString(s));
@@ -28,13 +38,13 @@ PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet,BL withse
 		PyTuple_SetItem(tmp, ix++, pValue); 
 	}
 
-	for(I i = 0; i < argc; ++i) {
+	for(I i = 0; i < args.Count(); ++i) {
 		PyObject *pValue = NULL;
 		
-		if(IsFloat(argv[i])) pValue = PyFloat_FromDouble((D)GetFloat(argv[i]));
-		else if(IsInt(argv[i])) pValue = PyInt_FromLong(GetInt(argv[i]));
-		else if(IsSymbol(argv[i])) pValue = PyString_FromString(GetString(argv[i]));
-		else if(IsPointer(argv[i])) pValue = NULL; // not handled
+		if(IsFloat(args[i])) pValue = PyFloat_FromDouble((D)GetFloat(args[i]));
+		else if(IsInt(args[i])) pValue = PyInt_FromLong(GetInt(args[i]));
+		else if(IsSymbol(args[i])) pValue = PyString_FromString(GetString(args[i]));
+		else if(IsPointer(args[i])) pValue = NULL; // not handled
 
 		if(!pValue) {
 			post("py/pyext: cannot convert argument %i",any?i+1:i);
@@ -53,10 +63,10 @@ PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet,BL withse
 	return pArgs;
 }
 
-t_atom *py::GetPyArgs(int &argc,PyObject *pValue,PyObject **self)
+flext_base::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 {
-	if(pValue == NULL) { argc = 0; return NULL; }
-	t_atom *ret = NULL;
+	if(pValue == NULL) return NULL; 
+	AtomList *ret = NULL;
 
 	// analyze return value or tuple
 
@@ -64,35 +74,32 @@ t_atom *py::GetPyArgs(int &argc,PyObject *pValue,PyObject **self)
 	BL ok = true;
 	retval tp = nothing;
 
-	if(!PyObject_Not(pValue)) {
-		if(PyTuple_Check(pValue)) {
-			rargc = PyTuple_Size(pValue);
-			tp = tuple;
-		}
-		else if(PyList_Check(pValue)) {
-			rargc = PyList_Size(pValue);
-			tp = list;
-		}
-		else {
-			rargc = 1;
-			tp = atom;
-		}
+	if(PyString_Check(pValue)) {
+		rargc = 1;
+		tp = atom;
+	}
+	else if(PySequence_Check(pValue)) {
+		rargc = PySequence_Size(pValue);
+		tp = sequ;
+	}
+	else {
+		rargc = 1;
+		tp = atom;
 	}
 
-	ret = new t_atom[rargc];
+	ret = new AtomList(rargc);
 
 	for(I ix = 0; ix < rargc; ++ix) {
 		PyObject *arg;
 		switch(tp) {
-			case tuple: arg = PyTuple_GetItem(pValue,ix); break;
-			case list: arg = PyList_GetItem(pValue,ix); break;
+			case sequ: arg = PySequence_GetItem(pValue,ix); break;
 			default: arg = pValue;
 		}
 
-		if(PyInt_Check(arg)) SetFlint(ret[ix],PyInt_AsLong(arg));
-		else if(PyLong_Check(arg)) SetFlint(ret[ix],PyLong_AsLong(arg));
-		else if(PyFloat_Check(arg)) SetFloat(ret[ix],(F)PyFloat_AsDouble(arg));
-		else if(PyString_Check(arg)) SetString(ret[ix],PyString_AsString(arg));
+		if(PyInt_Check(arg)) SetFlint((*ret)[ix],PyInt_AsLong(arg));
+		else if(PyLong_Check(arg)) SetFlint((*ret)[ix],PyLong_AsLong(arg));
+		else if(PyFloat_Check(arg)) SetFloat((*ret)[ix],(F)PyFloat_AsDouble(arg));
+		else if(PyString_Check(arg)) SetString((*ret)[ix],PyString_AsString(arg));
 		else if(ix == 0 && self && PyInstance_Check(arg)) {
 			// assumed to be self ... that should be checked _somehow_ !!!
 			*self = arg;
@@ -111,13 +118,9 @@ t_atom *py::GetPyArgs(int &argc,PyObject *pValue,PyObject **self)
 	}
 
 	if(!ok) { 
-		delete[] ret; 
-		argc = 0; 
+		delete ret; 
 		ret = NULL; 
 	}
-	else 
-		argc = rargc;
-
 	return ret;
 }
 

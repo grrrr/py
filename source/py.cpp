@@ -1,12 +1,10 @@
 /* 
 
-py - python script object for PD and MaxMSP
+py/pyext - python script object for PD and MaxMSP
 
 Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
-
--------------------------------------------------------------------------
 
 */
 
@@ -28,8 +26,10 @@ protected:
 	V work(const t_symbol *s,I argc,t_atom *argv); 
 
 	V m_bang() { work(sym_bang,0,NULL); }
-	V m_reload(I argc,t_atom *argv);
+	V m_reload();
+	V m_reload_(I argc,t_atom *argv);
 	V m_set(I argc,t_atom *argv);
+	V m_doc_();
 
 	virtual V m_help();
 
@@ -52,8 +52,10 @@ protected:
 private:
 
 	FLEXT_CALLBACK(m_bang)
-	FLEXT_CALLBACK_V(m_reload)
+	FLEXT_CALLBACK(m_reload)
+	FLEXT_CALLBACK_V(m_reload_)
 	FLEXT_CALLBACK_V(m_set)
+	FLEXT_CALLBACK(m_doc_)
 
 	FLEXT_CALLBACK_V(m_py_float)
 	FLEXT_CALLBACK_V(m_py_list)
@@ -80,8 +82,11 @@ pyobj::pyobj(I argc,t_atom *argv):
 	SetupInOut();  // set up inlets and outlets
 
 	FLEXT_ADDBANG(0,m_bang);
-	FLEXT_ADDMETHOD_(0,"reload",m_reload);
+	FLEXT_ADDMETHOD_(0,"reload",m_reload_);
+	FLEXT_ADDMETHOD_(0,"reload.",m_reload);
 	FLEXT_ADDMETHOD_(0,"set",m_set);
+	FLEXT_ADDMETHOD_(0,"doc",m_doc);
+	FLEXT_ADDMETHOD_(0,"doc+",m_doc_);
 #ifdef FLEXT_THREADS
 	FLEXT_ADDMETHOD_(0,"detach",m_detach);
 	FLEXT_ADDMETHOD_(0,"stop",m_stop);
@@ -142,15 +147,11 @@ BL pyobj::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 	return false;
 }
 
-V pyobj::m_reload(I argc,t_atom *argv)
+V pyobj::m_reload()
 {
 	PY_LOCK
 
 	Unregister("_py");
-
-	if(argc > 2) SetArgs(argc,argv);
-	else
-		SetArgs(0,NULL);
 
 	ReloadModule();
 	Reregister("_py");
@@ -158,6 +159,12 @@ V pyobj::m_reload(I argc,t_atom *argv)
 	SetFunction(funname?GetString(funname):NULL);
 
 	PY_UNLOCK
+}
+
+V pyobj::m_reload_(I argc,t_atom *argv)
+{
+	SetArgs(argc,argv);
+	m_reload();
 }
 
 V pyobj::m_set(I argc,t_atom *argv)
@@ -188,14 +195,28 @@ V pyobj::m_set(I argc,t_atom *argv)
 	PY_UNLOCK
 }
 
+
+V pyobj::m_doc_()
+{
+	if(function) {
+		PyObject *docf = PyObject_GetAttrString(function,"__doc__"); // borrowed!!!
+		if(docf && PyString_Check(docf)) {
+			post("");
+			post(PyString_AsString(docf));
+		}
+	}
+}
+
+
 V pyobj::m_help()
 {
+	post("");
 	post("py %s - python script object, (C)2002 Thomas Grill",PY__VERSION);
 #ifdef _DEBUG
 	post("compiled on " __DATE__ " " __TIME__);
 #endif
 
-	post("Arguments: %s [script name] [function name] [args...]",thisName());
+	post("Arguments: %s [script name] [function name] {args...}",thisName());
 
 	post("Inlet 1:messages to control the py object");
 	post("      2:call python function with message as argument(s)");
@@ -205,6 +226,9 @@ V pyobj::m_help()
 	post("\tbang: call script without arguments");
 	post("\tset [script name] [function name]: set (script and) function name");
 	post("\treload {args...}: reload python script");
+	post("\treload. : reload with former arguments");
+	post("\tdoc: display module doc string");
+	post("\tdoc+: display function doc string");
 #ifdef FLEXT_THREADS
 	post("\tdetach 0/1: detach threads");
 	post("\tstop {wait time (ms)}: stop threads");
@@ -248,15 +272,14 @@ V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 	PY_LOCK
 
 	if(function) {
-		PyObject *pArgs = MakePyArgs(s,argc,argv);
+		PyObject *pArgs = MakePyArgs(s,AtomList(argc,argv));
 		PyObject *pValue = PyObject_CallObject(function, pArgs);
 
-		I rargc;
-		t_atom *rargv = GetPyArgs(rargc,pValue);
+		AtomList *rargs = GetPyArgs(pValue);
 
-		if(rargv) {
-			ToOutList(0,rargc,rargv);
-			delete[] rargv;
+		if(rargs) {
+			ToOutList(0,*rargs);
+			delete rargs;
 		}
 		else {
 			PyErr_Print();

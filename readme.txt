@@ -1,4 +1,4 @@
-pyext - python script objects for PD and MaxMSP
+py/pyext - python script objects for PD and MaxMSP
 
 Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -83,8 +83,9 @@ features:
 - stop individual threads
 
 tests:
+- check for python threading support
 
 bugs:
-- check for python threading support
 - the python interpreter can't be unloaded due to some bug at re-initialization
+- named arguments are not supported
 

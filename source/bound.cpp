@@ -1,3 +1,13 @@
+/* 
+
+py/pyext - python external object for PD and MaxMSP
+
+Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
+For information on usage and redistribution, and for a DISCLAIMER OF ALL
+WARRANTIES, see the file, "license.txt," in this distribution.  
+
+*/
+
 #include "pyext.h"
 #include "flinternal.h"
 
@@ -8,7 +18,7 @@ void pyext::py_proxy::px_method(py_proxy *obj,const t_symbol *s,int argc,t_atom 
 {
 	PY_LOCK
 
-	PyObject *args = MakePyArgs(s,argc,argv,-1,obj->self != NULL);
+	PyObject *args = MakePyArgs(s,AtomList(argc,argv),-1,obj->self != NULL);
 	PyObject *ret = PyObject_CallObject(obj->func,args);
 	if(!ret) {
 		PyErr_Print();
@@ -19,7 +29,7 @@ void pyext::py_proxy::px_method(py_proxy *obj,const t_symbol *s,int argc,t_atom 
 }
 
 
-PyObject *pyext::py_bind(PyObject *,PyObject *args)
+PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 {
     PyObject *self,*meth;
 	C *name;
@@ -30,35 +40,35 @@ PyObject *pyext::py_bind(PyObject *,PyObject *args)
     }
 	else {
 		t_symbol *recv = gensym(name);
+/*
 		if(GetBound(recv))
 			post("py/pyext - Symbol \"%s\" is already hooked",GetString(recv));
-		else {
-			// make a proxy object
-		    py_proxy *px = (py_proxy *)object_new(px_class);
-			if(PyMethod_Check(meth)) {
-				PyObject *no = PyObject_GetAttrString(meth,"__name__");
-				meth  = PyObject_GetAttr(self,no); 
-				Py_DECREF(no);
-			}
-			px->init(recv,self,meth);  
-
-			// add it to the list
-			if(px_tail) px_tail->nxt = px;
-			else px_head = px;
-			px_tail = px;
-
-			// Do bind
-			pd_bind(&px->obj.ob_pd,recv);  
-
-		    Py_INCREF(self); // self is borrowed reference
+*/		
+		// make a proxy object
+		py_proxy *px = (py_proxy *)object_new(px_class);
+		if(PyMethod_Check(meth)) {
+			PyObject *no = PyObject_GetAttrString(meth,"__name__");
+			meth  = PyObject_GetAttr(self,no); 
+			Py_DECREF(no);
 		}
+		px->init(recv,self,meth);  
+
+		// add it to the list
+		if(px_tail) px_tail->nxt = px;
+		else px_head = px;
+		px_tail = px;
+
+		// Do bind
+		pd_bind(&px->obj.ob_pd,recv);  
+
+		Py_INCREF(self); // self is borrowed reference
 	}
 
     Py_INCREF(Py_None);
     return Py_None;
 }
 
-PyObject *pyext::py_unbind(PyObject *,PyObject *args)
+PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 {
     PyObject *self,*meth;
 	C *name;
