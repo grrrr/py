@@ -226,7 +226,6 @@ pyext::~pyext()
 	Unregister("_pyext");
 
 	Py_XDECREF(pyobj);
-
 	Py_XDECREF(class_obj);
 	Py_XDECREF(class_dict);
 
@@ -246,39 +245,45 @@ BL pyext::SetClssMeth() //I argc,t_atom *argv)
 		PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(methname)));  
 		if(!pref) 
 			PyErr_Print();
-		else if(PyClass_Check(pref)) {
-			// make instance, but don't call __init__ 
-			pyobj = PyInstance_NewRaw(pref,NULL);
+        else {
+            if(PyClass_Check(pref)) {
+			    // make instance, but don't call __init__ 
+			    pyobj = PyInstance_NewRaw(pref,NULL);
 
-			Py_DECREF(pref);
-			if(pyobj == NULL) 
-				PyErr_Print();
-			else {
-				// remember the this pointer
-				PyObject *th = PyLong_FromVoidPtr(this); 
-				int ret = PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
+			    Py_DECREF(pref);
+			    if(pyobj == NULL) 
+				    PyErr_Print();
+			    else {
+				    // remember the this pointer
+				    PyObject *th = PyLong_FromVoidPtr(this); 
+				    int ret = PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
 
-				// call init now, after _this has been set, which is
-				// important for eventual callbacks from __init__ to c
-				PyObject *pargs = MakePyArgs(NULL,args,-1,true);
-				if (pargs == NULL) PyErr_Print();
+				    // call init now, after _this has been set, which is
+				    // important for eventual callbacks from __init__ to c
+				    PyObject *pargs = MakePyArgs(NULL,args,-1,true);
+				    if (pargs == NULL) PyErr_Print();
 
-				PyObject *init;
-				init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
-				if(init && PyCallable_Check(init)) {
-					PyObject *res = PyEval_CallObject(init,pargs);
-					if(!res)
-						PyErr_Print();
-					else
-						Py_DECREF(res);
-                    Py_DECREF(init);
-				}
-				
-				Py_XDECREF(pargs);
-			}
+				    PyObject *init;
+				    init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
+                    if(init) {
+                        if(PyCallable_Check(init)) {
+					        PyObject *res = PyEval_CallObject(init,pargs);
+					        if(!res)
+						        PyErr_Print();
+					        else
+						        Py_DECREF(res);
+                        }
+                        Py_DECREF(init);
+				    }
+    				
+				    Py_XDECREF(pargs);
+			    }
+            }
+            else
+			    post("%s - Type of \"%s\" is unhandled!",thisName(),GetString(methname));
+
+		    Py_DECREF(pref);
 		}
-		else 
-			post("%s - Type of \"%s\" is unhandled!",thisName(),GetString(methname));
 		return true;
 	}
 	else
@@ -289,6 +294,7 @@ V pyext::Reload()
 {
 	ClearBinding();
 	Py_XDECREF(pyobj);
+
 	// by here, the Python class destructor should have been called!
 
 	SetArgs(0,NULL);
@@ -323,7 +329,7 @@ void pyext::m_get(const t_symbol *s)
     PY_LOCK
 
 	PyObject *pvar  = PyObject_GetAttrString(pyobj,const_cast<char *>(GetString(s))); /* fetch bound method */
-	if(pvar == NULL) {
+	if(!pvar) {
 		PyErr_Clear(); // no method found
         post("%s - get: Python variable %s not found",thisName(),GetString(s));
 	}
