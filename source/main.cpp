@@ -166,7 +166,28 @@ V py::m__doc(PyObject *obj)
 		PyObject *docf = PyDict_GetItemString(obj,"__doc__"); // borrowed!!!
 		if(docf && PyString_Check(docf)) {
 			post("");
-			post(PyString_AsString(docf));
+			const char *s = PyString_AsString(docf);
+
+			// FIX: Python doc strings can easily be larger than 1k characters
+			// -> split into separate lines
+			for(;;) {
+				char buf[1024];
+				char *nl = strchr(s,'\n');
+				if(!nl) {
+					// no more newline found
+					post(s);
+					break;
+				}
+				else {
+					// copy string before newline to temp buffer and post
+					int l = nl-s;
+					if(l >= sizeof(buf)) l = sizeof buf-1;
+					strncpy(buf,s,l); // copy all but newline
+					buf[l] = 0;
+					post(buf);
+					s = nl+1;  // set after newline
+				}
+			}
 		}
 
         PY_UNLOCK
