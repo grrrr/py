@@ -178,7 +178,7 @@ PyObject *py::py_priority(PyObject *self,PyObject *args)
 		post("py/pyext - Syntax: _priority [int]");
     }
 	else
-		ChangePriority(val);
+		RelPriority(val);
 
     Py_INCREF(Py_None);
     return Py_None;
