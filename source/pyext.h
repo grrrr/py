@@ -41,6 +41,7 @@ protected:
 	V m_reload(I argc,t_atom *argv);
 	virtual V m_help();
 
+	const t_symbol *methname;
 	PyObject *pyobj;
 	I inlets,outlets;
 
@@ -49,6 +50,7 @@ private:
 
 	static pyext *GetThis(PyObject *self);
 	V ClearBinding();
+	BL SetClssMeth(I argc,t_atom *argv);
 
 	static PyObject *class_obj,*class_dict;
 	static PyMethodDef attr_tbl[],meth_tbl[];

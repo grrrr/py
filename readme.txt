@@ -59,7 +59,7 @@ Version history:
 - using flext 0.3.2
 - another bugfix for undefined function
 - pyext now gets full python path
-- python's argv[0] is now "pyext"
+- python's argv[0] is now "py" or "pyext"
 
 0.0.2:
 - fixed bug when calling script with no function defined (thanks to Ben Saylor)

@@ -41,6 +41,7 @@ protected:
 	V m_py_any(const t_symbol *s,I argc,t_atom *argv) { callwork(s,argc,argv); }
 
 	V SetFunction(const C *func);
+	const t_symbol *funname;
 	PyObject *function;
 
 private:
@@ -65,7 +66,7 @@ FLEXT_LIB_V("py",pyobj)
 
 
 pyobj::pyobj(I argc,t_atom *argv):
-	function(NULL)
+	function(NULL),funname(NULL)
 { 
 	PY_LOCK
 
@@ -129,13 +130,14 @@ BL pyobj::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 V pyobj::m_reload(I argc,t_atom *argv)
 {
 	PY_LOCK
-	/*
+
 	if(argc > 2) SetArgs(argc,argv);
 	else
-	*/
-	SetArgs(0,NULL);
+		SetArgs(0,NULL);
 
 	ReloadModule();
+	SetFunction(funname?GetString(funname):NULL);
+
 	PY_UNLOCK
 }
 
@@ -192,6 +194,7 @@ V pyobj::m_help()
 V pyobj::SetFunction(const C *func)
 {
 	if(func) {
+		funname = MakeSymbol(func);
 		PyObject *dict = PyModule_GetDict(module); // borrowed
 		function = PyDict_GetItemString(dict,const_cast<C *>(func)); // borrowed!!!
 		if(!function)
@@ -201,7 +204,8 @@ V pyobj::SetFunction(const C *func)
 			function = NULL;
 		}
 	}
-	else function = NULL;
+	else 
+		function = NULL,funname = NULL;
 }
 
 V pyobj::work(const t_symbol *s,I argc,t_atom *argv)

@@ -29,7 +29,8 @@ PyObject *pyext::class_dict = NULL;
 
 pyext::pyext(I argc,t_atom *argv):
 	pyobj(NULL),pythr(NULL),
-	inlets(0),outlets(0)
+	inlets(0),outlets(0),
+	methname(NULL)
 { 
 	PY_LOCK
 
@@ -79,78 +80,51 @@ pyext::pyext(I argc,t_atom *argv):
 			ImportModule(GetString(argv[0]));
 	}
 
-	t_symbol *sobj = NULL;
+//	t_symbol *sobj = NULL;
 	if(argc >= 2) {
 		// object name
 		if(!IsString(argv[1])) 
 			post("%s - object name argument is invalid",thisName());
 		else {
-			sobj = GetSymbol(argv[1]);
+			methname = GetSymbol(argv[1]);
 		}
 	}
 
-	if(sobj) {
-/*
-		if(argc > 2) 
-			SetArgs(argc-2,argv+2);
-		else
-*/
-		SetArgs(0,NULL);
+	if(methname) {
+		SetClssMeth(argc-2,argv+2);
 
-		if(module) {
-			PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(sobj)));  
-			if (!pref) 
-				PyErr_Print();
-			else if(PyClass_Check(pref)) {
-				PyObject *pargs = MakePyArgs(NULL,argc-2,argv+2);
-				if (pargs == NULL) PyErr_Print();
+		// now get number of inlets and outlets
+		inlets = 1,outlets = 1;
 
-				// call class
-				pyobj = PyInstance_New(pref, pargs,NULL);
-				Py_DECREF(pref);
-				Py_XDECREF(pargs);
-				if(pyobj == NULL) 
-					PyErr_Print();
-				else {
-					// remember the this pointer
-					PyObject *th = PyLong_FromVoidPtr(this); 
-					int ret = PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
-
-					// now get number of inlets and outlets
-					inlets = 1,outlets = 1;
-
-					PyObject *res;
-					res = PyObject_GetAttrString(pyobj,"_inlets"); // get ref
-					if(res) {
-						if(PyCallable_Check(res)) {
-							PyObject *fres = PyEval_CallObject(res,NULL);
-							Py_DECREF(res);
-							res = fres;
-						}
-						if(PyInt_Check(res)) 
-							inlets = PyInt_AsLong(res);
-						Py_DECREF(res);
-					}
-					else 
-						PyErr_Clear();
-
-					res = PyObject_GetAttrString(pyobj,"_outlets"); // get ref
-					if(res) {
-						if(PyCallable_Check(res)) {
-							PyObject *fres = PyEval_CallObject(res,NULL);
-							Py_DECREF(res);
-							res = fres;
-						}
-						if(PyInt_Check(res))
-							outlets = PyInt_AsLong(res);
-						Py_DECREF(res);
-					}
-					else
-						PyErr_Clear();
+		if(pyobj) {
+			PyObject *res;
+			res = PyObject_GetAttrString(pyobj,"_inlets"); // get ref
+			if(res) {
+				if(PyCallable_Check(res)) {
+					PyObject *fres = PyEval_CallObject(res,NULL);
+					Py_DECREF(res);
+					res = fres;
 				}
+				if(PyInt_Check(res)) 
+					inlets = PyInt_AsLong(res);
+				Py_DECREF(res);
 			}
 			else 
-				post("%s - Type of \"%s\" is unhandled!",thisName(),GetString(sobj));
+				PyErr_Clear();
+
+			res = PyObject_GetAttrString(pyobj,"_outlets"); // get ref
+			if(res) {
+				if(PyCallable_Check(res)) {
+					PyObject *fres = PyEval_CallObject(res,NULL);
+					Py_DECREF(res);
+					res = fres;
+				}
+				if(PyInt_Check(res))
+					outlets = PyInt_AsLong(res);
+				Py_DECREF(res);
+			}
+			else
+				PyErr_Clear();
 		}
 	}
 
@@ -178,27 +152,58 @@ pyext::~pyext()
 	ClearBinding();
 	
 	Py_XDECREF(pyobj);
-
 /*
 	// Don't unregister
 
 	if(pyref == 1) {
-		Py_DECREF(class_obj);
+		Py_XDECREF(class_obj);
 		class_obj = NULL;
-		Py_DECREF(class_dict);
+		Py_XDECREF(class_dict);
 		class_dict = NULL;
 	}
 */
 	PY_UNLOCK
 }
 
+BL pyext::SetClssMeth(I argc,t_atom *argv)
+{
+	if(module) {
+		Py_XDECREF(pyobj); pyobj = NULL;
+
+		PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(methname)));  
+		if(!pref) 
+			PyErr_Print();
+		else if(PyClass_Check(pref)) {
+			PyObject *pargs = MakePyArgs(NULL,argc,argv);
+			if (pargs == NULL) PyErr_Print();
+
+			// call class
+			pyobj = PyInstance_New(pref, pargs,NULL);
+			Py_DECREF(pref);
+			Py_XDECREF(pargs);
+			if(pyobj == NULL) 
+				PyErr_Print();
+			else {
+				// remember the this pointer
+				PyObject *th = PyLong_FromVoidPtr(this); 
+				int ret = PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
+			}
+		}
+		else 
+			post("%s - Type of \"%s\" is unhandled!",thisName(),GetString(methname));
+		return true;
+	}
+	else
+		return false;
+}
+
 V pyext::m_reload(I argc,t_atom *argv)
 {
 	PY_LOCK
-//	SetArgs(argc,argv);
 	SetArgs(0,NULL);
 
 	ReloadModule();
+	SetClssMeth(argc,argv);
 	PY_UNLOCK
 }
 

@@ -129,7 +129,9 @@ py::~py()
 		Py_DECREF(module_dict);
 		module_dict = NULL;
 
-		delete modules; modules = NULL;
+		Py_XDECREF(module);
+
+//		delete modules; modules = NULL;
 
 #if 0
 		PyEval_AcquireLock();
