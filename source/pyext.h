@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
+Copyright (c) 2002-2003 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -53,7 +53,7 @@ protected:
 	I inlets,outlets;
 
 private:
-	static V Setup(t_class *);
+	static V Setup(t_classid);
 
 	static pyext *GetThis(PyObject *self);
 	V ClearBinding();

@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and MaxMSP
 
-Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
+Copyright (c) 2002-2003 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -50,7 +50,7 @@ protected:
 	V ResetFunction();
 
 private:
-	static void Setup(t_class *c);
+	static void Setup(t_classid c);
 
 	FLEXT_CALLBACK(m_bang)
 	FLEXT_CALLBACK(m_reload)
