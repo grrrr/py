@@ -331,7 +331,7 @@ void pyobj::callwork(const t_symbol *s,int argc,const t_atom *argv)
 	    else
 		    post("%s: no valid function defined",thisName());
     }
-    else {
+    else if(module) {
         // no function defined as creation argument -> use message tag
         PyObject *func = PyObject_GetAttrString(module,const_cast<char *>(GetString(s)));
         if(func) {

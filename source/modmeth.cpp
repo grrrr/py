@@ -27,6 +27,11 @@ PyMethodDef py::func_tbl[] =
 	{ "_setvalue", py::py_setvalue, METH_VARARGS,"Set value of a 'value' object" },
 #endif
 
+#ifdef PY_NUMARRAY
+	{ "_import", py::py_import, METH_VARARGS,"Import buffer" },
+	{ "_export", py::py_export, METH_VARARGS,"Export buffer" },
+#endif
+
 	{NULL, NULL, 0, NULL} // sentinel
 };
 
@@ -221,5 +226,3 @@ PyObject *py::py_setvalue(PyObject *self,PyObject *args)
     return Py_None;
 }
 #endif
-
-

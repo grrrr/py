@@ -39,7 +39,9 @@ class ex1(pyext._class):
 	def bang_(self,n):
 		for i in xrange(self.loops):
 			# if _shouldexit is true, the thread ought to stop
-			if self._shouldexit: break
+			if self._shouldexit: 
+				print "BREAK"
+				break
 
 			self._outlet(n,i)
 			sleep(self.sltime)

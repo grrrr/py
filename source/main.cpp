@@ -69,12 +69,11 @@ void py::lib_setup()
 	post("(C)2002-2005 Thomas Grill - http://grrrr.org/ext");
     post("");
     post("using Python %s",Py_GetVersion());
+
 #ifdef FLEXT_DEBUG
     post("");
 	post("DEBUG version compiled on %s %s",__DATE__,__TIME__);
 #endif
-	post("------------------------------------------------");
-    post("");
 
 	// -------------------------------------------------------------
 
@@ -134,10 +133,17 @@ void py::lib_setup()
 	FLEXT_SETUP(pyobj);
 	FLEXT_SETUP(pyext);
 
+#ifdef PY_NUMARRAY
+    setupNumarray();
+#endif
+
 #ifdef FLEXT_THREADS
     // release global lock
     PyEval_ReleaseLock();
 #endif
+
+	post("------------------------------------------------");
+    post("");
 }
 
 FLEXT_LIB_SETUP(py,py::lib_setup)
@@ -189,12 +195,14 @@ void py::Exit()
     qucond.Signal();
     if(thrcount) {
 		// Wait for a certain time
-		for(int i = 0; i < (PY_STOP_WAIT/PY_STOP_TICK) && thrcount; ++i) Sleep(PY_STOP_TICK/1000.f);
-
-		// Wait forever
-		post("%s - Waiting for thread termination!",thisName());
-		while(thrcount) Sleep(PY_STOP_TICK/1000.f);
-		post("%s - Okay, all threads have terminated",thisName());
+		for(int i = 0; i < (PY_STOP_WAIT/PY_STOP_TICK) && thrcount; ++i) 
+            Sleep(PY_STOP_TICK*0.001f);
+        if(thrcount) {
+		    // Wait forever
+		    post("%s - Waiting for thread termination!",thisName());
+		    while(thrcount) Sleep(PY_STOP_TICK*0.001f);
+		    post("%s - Okay, all threads have terminated",thisName());
+        }
 	}
 #endif
     flext_base::Exit();

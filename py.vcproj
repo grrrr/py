@@ -86,7 +86,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;c:\data\prog\pd\pd-cvs\src&quot;;..\flext\source;c:\programme\prog\Python24\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS;PY_NUMARRAY"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				RuntimeTypeInfo="TRUE"
@@ -152,7 +152,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="c:\programme\audio\pd\src;c:\data\pdmax\flext\source;C:\Programme\prog\Python24\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS;PY_NUMARRAY"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -1124,6 +1124,9 @@
 					BasicRuntimeChecks="3"
 					BrowseInformation="1"/>
 			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\source\pybuf.cpp">
 		</File>
 		<File
 			RelativePath="source\pyext.cpp">

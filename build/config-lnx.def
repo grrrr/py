@@ -3,3 +3,6 @@ PYTHONPREFIX=/usr
 
 # which Python version do you want to compile against?
 PYTHONVERSION=2.3
+
+# uncomment if numarray support should be compiled in
+# PY_NUMARRAY=1

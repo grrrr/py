@@ -1,2 +1,5 @@
 # where is the Python installation?
 PYTHONPATH=c:\programme\prog\python24
+
+# uncomment if numarray support should be compiled in
+# PY_NUMARRAY=1

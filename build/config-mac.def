@@ -1,1 +1,2 @@
-# nothing to adjust!
+# uncomment if numarray support should be compiled in
+# PY_NUMARRAY=1
