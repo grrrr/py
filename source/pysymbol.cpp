@@ -9,7 +9,6 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 */
 
 #include "pysymbol.h"
-#include "structmember.h"
 
 inline pySymbol *symbol_newsym(const t_symbol *sym)
 {
