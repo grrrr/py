@@ -25,4 +25,4 @@ INSTPATH=/usr/local/lib/pd/extra
 UFLAGS=-malign-power -faltivec -maltivec
 
 # use shared flext library
-#FLEXT_SHARED=1
+FLEXT_SHARED=1
