@@ -87,13 +87,12 @@ pyext::pyext(I argc,const t_atom *argv):
 		}
 
 		class_obj = PyClass_New(NULL, class_dict, className);
-		PyDict_SetItemString(module_dict, PYEXT_CLASS,class_obj);
 		Py_DECREF(className);
     
 		// add methods to class 
 		for (def = meth_tbl; def->ml_name != NULL; def++) {
 			PyObject *func = PyCFunction_New(def, NULL);
-			PyObject *method = PyMethod_New(func, NULL, class_obj);
+			PyObject *method = PyMethod_New(func, NULL, class_obj); // increases class_obj ref count by 1
 			PyDict_SetItemString(class_dict, def->ml_name, method);
 			Py_DECREF(func);
 			Py_DECREF(method);
@@ -104,13 +103,11 @@ pyext::pyext(I argc,const t_atom *argv):
 		// make pyext functions available in class scope
 		PyDict_Merge(class_dict,module_dict,0);
 #endif
+		// after merge so that it's not in class_dict as well...
+		PyDict_SetItemString(module_dict, PYEXT_CLASS,class_obj); // increases class_obj ref count by 1
 
 		PyDict_SetItemString(class_dict,"__doc__",PyString_FromString(pyext_doc));
  	}
-	else {
-		Py_INCREF(class_obj);
-		Py_INCREF(class_dict);
-	}
 
     if(argc >= apre+2 && CanbeInt(argv[apre]) && CanbeInt(argv[apre+1])) {
         inlets = GetAInt(argv[apre]);
@@ -151,7 +148,7 @@ pyext::pyext(I argc,const t_atom *argv):
         ++apre;
 	}
 
-	Register("_pyext");
+ 	Register("_pyext");
 
 //	t_symbol *sobj = NULL;
 	if(argc > apre) {
@@ -225,15 +222,29 @@ pyext::~pyext()
 	
 	Unregister("_pyext");
 
-	Py_XDECREF(pyobj);
-	Py_XDECREF(class_obj);
-	Py_XDECREF(class_dict);
+	Py_XDECREF(pyobj);  // opposite of SetClssMeth
 
+	UnimportModule();
+
+#ifdef PY_DESTROY
 	if(!--pyextref) {
+		Py_XDECREF(class_obj);
+
+		// clear class_dict
+		if(class_dict) {
+			PyDict_Clear(class_dict);
+			Py_DECREF(class_dict);  // is not borrowed from class_obj
+		}
+
+		// remove pyext module
+		PyDict_DelItemString(module_dict, PYEXT_CLASS); // decreases class_obj ref count by 1
+
+		// ref counts should be zero by here!
+
 		class_obj = NULL;
 		class_dict = NULL;
 	}
-
+#endif
 	PY_UNLOCK
 }
 
@@ -250,7 +261,6 @@ BL pyext::SetClssMeth() //I argc,t_atom *argv)
 			    // make instance, but don't call __init__ 
 			    pyobj = PyInstance_NewRaw(pref,NULL);
 
-			    Py_DECREF(pref);
 			    if(pyobj == NULL) 
 				    PyErr_Print();
 			    else {
@@ -261,7 +271,8 @@ BL pyext::SetClssMeth() //I argc,t_atom *argv)
 				    // call init now, after _this has been set, which is
 				    // important for eventual callbacks from __init__ to c
 				    PyObject *pargs = MakePyArgs(NULL,args,-1,true);
-				    if (pargs == NULL) PyErr_Print();
+				    if (pargs == NULL) 
+						PyErr_Print();
 
 				    PyObject *init;
 				    init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
@@ -444,11 +455,7 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_ato
 		else {
 			ret = PyEval_CallObject(pmeth, pargs); 
 			if (ret == NULL) // function not found resp. arguments not matching
-#ifdef FLEXT_DEBUG
 				PyErr_Print();
-#else
-				PyErr_Clear();  
-#endif
 
 			Py_DECREF(pargs);
 		}

@@ -70,7 +70,7 @@ py::py():
 
         // register/initialize pyext module only once!
 		module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
-		module_dict = PyModule_GetDict(module_obj);
+		module_dict = PyModule_GetDict(module_obj); // borrowed reference
 
 		PyModule_AddStringConstant(module_obj,"__doc__",(C *)py_doc);
 
@@ -81,7 +81,6 @@ py::py():
 	else {
 		PY_LOCK
 		Py_INCREF(module_obj);
-		Py_INCREF(module_dict);
 		PY_UNLOCK
 	}
 
@@ -106,13 +105,11 @@ py::~py()
 		
 	Lock();
 
+   	Py_XDECREF(module_obj);
+
+#ifdef PY_DESTROY
     if(!(--pyref)) {
         // no more py/pyext objects left... shut down Python
-
-		module_obj = NULL;
-		module_dict = NULL;
-
-		Py_XDECREF(module);
 
         PyEval_AcquireLock();
 
@@ -120,21 +117,19 @@ py::~py()
 		PyThreadState_Swap(pythrmap[GetThreadId()]);
 #endif
 
-#if 0 //def FLEXT_DEBUG
         // need not necessarily do that....
         Py_Finalize();
-#endif
 
 #ifdef FLEXT_THREADS
         // reset thread state map
         pythrmap.clear();
 #endif
-	}
-    else {
-    	Py_DECREF(module_obj);
-	    Py_DECREF(module_dict);
-    }
 
+		// ref counts should be zero by here
+		module_obj = NULL;
+		module_dict = NULL;
+	}
+#endif
 	Unlock();
 }
 
@@ -229,16 +224,31 @@ V py::ImportModule(const C *name)
 {
 	if(!name) return;
 
-	module = PyImport_ImportModule((C *)name);
+	module = PyImport_ImportModule((C *)name);  // increases module_obj ref count by one
 	if (!module) {
+
 		PyErr_Print();
 		dict = NULL;
 	}
 	else
-		dict = PyModule_GetDict(module); // borrowed
-
+		dict = PyModule_GetDict(module);
 }
 
+V py::UnimportModule()
+{
+	if(!module) return;
+
+	assert(dict && module_obj && module_dict);
+
+	Py_DECREF(module);
+
+	// reference count to module is not 0 here, altough probably the last instance was unloaded
+	// Python retains one reference to the module all the time 
+	// we don't care
+
+	module = NULL;
+	dict = NULL;
+}
 
 V py::ReloadModule()
 {
@@ -262,7 +272,7 @@ V py::ReloadModule()
 V py::GetModulePath(const C *mod,C *dir,I len)
 {
 #if FLEXT_SYS == FLEXT_SYS_PD
-	// uarghh... pd doesn't show it's path for extra modules
+	// uarghh... pd doesn't show its path for extra modules
 
 	C *name;
 	I fd = open_via_path("",mod,".py",dir,&name,len,0);

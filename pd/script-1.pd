@@ -1,4 +1,4 @@
-#N canvas 297 17 676 527 12;
+#N canvas 297 17 680 522 12;
 #X obj 39 278 print;
 #X obj 345 251 print;
 #X msg 499 149 freakhole;
@@ -21,9 +21,7 @@
 #X msg 421 120 somewhere_past_mars;
 #X text 152 101 reload with new arguments;
 #X msg 40 104 reload 1 2 3;
-#X text 23 13 py/pyext - Python script objects \, (C)2002 Thomas Grill
-;
-#X text 21 42 This demonstrates simple scripting. See the script.py
+#X text 21 69 This demonstrates simple scripting. See the script.py
 file.;
 #X obj 39 241 py script strcat;
 #X obj 43 424 py script addall;
@@ -33,24 +31,28 @@ file.;
 #X msg 21 159 dir;
 #X obj 146 279 print A;
 #X msg 58 160 dir+;
-#X connect 2 0 26 1;
-#X connect 3 0 22 1;
-#X connect 4 0 22 1;
-#X connect 6 0 23 1;
-#X connect 7 0 23 1;
-#X connect 9 0 24 0;
-#X connect 11 0 25 0;
-#X connect 12 0 22 1;
-#X connect 13 0 26 0;
-#X connect 14 0 24 0;
-#X connect 15 0 24 0;
-#X connect 17 0 26 1;
-#X connect 19 0 22 0;
-#X connect 22 0 0 0;
-#X connect 22 1 28 0;
-#X connect 23 0 5 0;
-#X connect 24 0 8 0;
-#X connect 25 0 10 0;
-#X connect 26 0 1 0;
-#X connect 27 0 22 0;
-#X connect 29 0 22 0;
+#X obj 16 13 cnv 15 630 40 empty empty py/pyext 10 22 0 24 -260818
+-1 0;
+#X text 235 32 http://www.parasitaere-kapazitaeten.net;
+#X text 235 16 Python script objects \, (C)2003-2004 Thomas Grill;
+#X connect 2 0 25 1;
+#X connect 3 0 21 1;
+#X connect 4 0 21 1;
+#X connect 6 0 22 1;
+#X connect 7 0 22 1;
+#X connect 9 0 23 0;
+#X connect 11 0 24 0;
+#X connect 12 0 21 1;
+#X connect 13 0 25 0;
+#X connect 14 0 23 0;
+#X connect 15 0 23 0;
+#X connect 17 0 25 1;
+#X connect 19 0 21 0;
+#X connect 21 0 0 0;
+#X connect 21 1 27 0;
+#X connect 22 0 5 0;
+#X connect 23 0 8 0;
+#X connect 24 0 10 0;
+#X connect 25 0 1 0;
+#X connect 26 0 21 0;
+#X connect 28 0 21 0;

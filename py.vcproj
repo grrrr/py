@@ -103,10 +103,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="pd.lib pthreadVC.lib"
-				OutputFile=".\pd-msvc\td/py.dll"
+				OutputFile="$(outdir)/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="c:/programme/audio/pd/bin;&quot;..\flext\pd-msvc&quot;;&quot;f:\prog\packs\Python-2.3.2\PCbuild&quot;"
+				AdditionalLibraryDirectories="c:/programme/audio/pd/bin;&quot;..\flext\pd-msvc&quot;;&quot;f:\prog\packs\Python-2.3.4\PCbuild&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\pd-msvc\td/py.pdb"
 				ImportLibrary=".\pd-msvc\td/py.lib"

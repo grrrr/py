@@ -83,6 +83,7 @@ protected:
 	V AddToPath(const C *dir);
 	V SetArgs(I argc,const t_atom *argv);
 	V ImportModule(const C *name);
+	V UnimportModule();
 	V ReloadModule();
 
 	V Register(const C *reg);

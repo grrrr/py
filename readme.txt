@@ -90,6 +90,9 @@ Version history:
 - ADD: inlet and outlet count can be given for pyext, python _inlet and _outlet members are ignored then
 - FIX: crash if script or class names are non-strings
 - FIX: long multi-line doc strings are now printed correctly
+- FIX: message "doc+" for class/instance __doc__ now working
+- FIX: improved/debugged handling of reference counts
+- FIX: _pyext._send will now send anythings if feasible
 
 0.1.2:
 - CHANGE: updates for flext 0.4.1 - method registering within class scope
