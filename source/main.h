@@ -24,8 +24,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <unistd.h>
 #endif
 
-#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 408)
-#error You need at least flext version 0.4.8
+#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 500)
+#error You need at least flext version 0.5.0
 #endif
 
 #define PY__VERSION "0.2.0pre"
@@ -57,6 +57,9 @@ protected:
     FifoEl *head,*tail;
 };
 
+
+PyThreadState *FindThreadState();
+void FreeThreadState();
 
 class py:
 	public flext_base
@@ -102,7 +105,7 @@ protected:
 
 	static bool IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 
-	enum retval { nothing,atom,sequ /*,tuple,list*/ };
+	enum retval { nothing,atom,sequ };
 
 	// --- module stuff -----
 
@@ -117,10 +120,7 @@ protected:
 
 	static PyObject *py_samplerate(PyObject *,PyObject *args);
 	static PyObject *py_blocksize(PyObject *,PyObject *args);
-/*
-	static PyObject *py_inchannels(PyObject *,PyObject *args);
-	static PyObject *py_outchannels(PyObject *,PyObject *args);
-*/
+
 #if FLEXT_SYS == FLEXT_SYS_PD
 	static PyObject *py_getvalue(PyObject *,PyObject *args);
 	static PyObject *py_setvalue(PyObject *,PyObject *args);
@@ -142,6 +142,8 @@ protected:
     virtual bool callpy(PyObject *fun,PyObject *args) = 0;
 
 private:
+//    PyInterpreterState *interpreter;
+
     bool qucall(PyObject *fun,PyObject *args);
     void threadworker();
     Fifo qufifo;
@@ -161,9 +163,24 @@ public:
 	ThrMutex mutex;
 	inline void Lock() { mutex.Unlock(); }
 	inline void Unlock() { mutex.Unlock(); }
+
+	inline PyThreadState *PyLock() 
+    { 
+        PyEval_AcquireLock();
+	    return PyThreadState_Swap(FindThreadState());
+    }
+
+	inline void PyUnlock(PyThreadState *st) 
+    {
+        PyThreadState_Swap(st);
+        PyEval_ReleaseLock();
+    }
 #else
 	inline void Lock() {}
 	inline void Unlock() {}
+
+	inline PyThreadState *PyLock() { return NULL; }
+	inline void PyUnlock(PyThreadState *st) {}
 #endif
 
 	static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);
@@ -181,30 +198,5 @@ protected:
 
     FLEXT_THREAD(threadworker)
 };
-
-#ifdef FLEXT_THREADS
-
-PyThreadState *FindThreadState();
-void FreeThreadState();
-
-#define PY_LOCK \
-	{ \
-    PyEval_AcquireLock(); \
-	PyThreadState *__st = FindThreadState(); \
-	PyThreadState *__oldst = PyThreadState_Swap(__st);
-
-#define PY_UNLOCK \
-    PyThreadState_Swap(__oldst); \
-    PyEval_ReleaseLock(); \
-    }
-
-#else
-
-#define PY_LOCK 
-#define PY_UNLOCK 
-
-class PyLock {};
-
-#endif
 
 #endif

@@ -127,9 +127,11 @@ py::py():
 	detach(0),shouldexit(false),thrcount(0),
 	stoptick(0)
 {
-	PY_LOCK
+//    interpreter = PyInterpreterState_New();
+
+    PyThreadState *state = PyLock();
 	Py_INCREF(module_obj);
-	PY_UNLOCK
+	PyUnlock(state);
 
     FLEXT_ADDTIMER(stoptmr,tick);
 
@@ -153,13 +155,19 @@ py::~py()
 	}
 		
    	Py_XDECREF(module_obj);
+/*
+    PyEval_AcquireLock();
+    PyInterpreterState_Clear(interpreter);
+    PyInterpreterState_Delete(interpreter);
+    PyEval_ReleaseLock();
+*/
 }
 
 
 void py::GetDir(PyObject *obj,AtomList &lst)
 {
     if(obj) {
-        PY_LOCK
+        PyThreadState *state = PyLock();
     
         PyObject *pvar  = PyObject_Dir(obj);
 	    if(!pvar)
@@ -174,7 +182,7 @@ void py::GetDir(PyObject *obj,AtomList &lst)
             Py_DECREF(pvar);
         }
 
-        PY_UNLOCK
+        PyUnlock(state);
     }
 }
 
@@ -189,7 +197,7 @@ void py::m__dir(PyObject *obj)
 void py::m__doc(PyObject *obj)
 {
     if(obj) {
-        PY_LOCK
+        PyThreadState *state = PyLock();
 
 		PyObject *docf = PyDict_GetItemString(obj,"__doc__"); // borrowed!!!
 		if(docf && PyString_Check(docf)) {
@@ -218,7 +226,7 @@ void py::m__doc(PyObject *obj)
 			}
 		}
 
-        PY_UNLOCK
+        PyUnlock(state);
 	}
 }
 
@@ -449,21 +457,18 @@ bool py::gencall(PyObject *pmeth,PyObject *pargs)
 
 void py::work_wrapper(void *data)
 {
-	++thrcount;
-#ifdef FLEXT_DEBUG
-	if(!data) 
-		post("%s - no data!",thisName());
-	else
-#endif
+    FLEXT_ASSERT(data);
 
-    PY_LOCK
+	++thrcount;
+
+    PyThreadState *state = PyLock();
 
     // call worker
 	work_data *w = (work_data *)data;
 	callpy(w->fun,w->args);
 	delete w;
 
-    PY_UNLOCK
+    PyUnlock(state);
 
     --thrcount;
 }
@@ -481,25 +486,26 @@ bool py::qucall(PyObject *fun,PyObject *args)
 void py::threadworker()
 {
     PyObject *fun,*args;
+    PyThreadState *state;
 
     while(!shouldexit) {
-        PY_LOCK
+        state = PyLock();
         while(qufifo.Pop(fun,args)) {
             callpy(fun,args);
             Py_XDECREF(fun);
             Py_XDECREF(args);
         }
-        PY_UNLOCK
+        PyUnlock(state);
         qucond.Wait();
     }
 
-    PY_LOCK
+    state = PyLock();
     // unref remaining Python objects
     while(qufifo.Pop(fun,args)) {
         Py_XDECREF(fun);
         Py_XDECREF(args);
     }
-    PY_UNLOCK
+    PyUnlock(state);
 }
 
 Fifo::~Fifo()

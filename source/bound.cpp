@@ -21,11 +21,12 @@ struct bounddata
     FuncSet funcs;
 };
 
-bool pyext::boundmeth(flext_base *,t_symbol *sym,int argc,t_atom *argv,void *data)
+bool pyext::boundmeth(flext_base *th,t_symbol *sym,int argc,t_atom *argv,void *data)
 {
     bounddata *obj = (bounddata *)data;
+    py *pyth = static_cast<py *>(th);
 
-	PY_LOCK
+	PyThreadState *state = pyth->PyLock();
 
 	PyObject *args = MakePyArgs(sym,argc,argv,-1,obj->self != NULL);
 
@@ -40,7 +41,7 @@ bool pyext::boundmeth(flext_base *,t_symbol *sym,int argc,t_atom *argv,void *dat
 
     Py_XDECREF(args);
 
-	PY_UNLOCK
+	pyth->PyUnlock(state);
     return true;
 }
 

@@ -131,7 +131,7 @@ pyext::pyext(int argc,const t_atom *argv):
 
     const t_atom *clname = NULL;
 
-    PY_LOCK
+    PyThreadState *state = PyLock();
 
 	// init script module
 	if(argc > apre) {
@@ -242,7 +242,7 @@ pyext::pyext(int argc,const t_atom *argv):
     else 
         inlets = outlets = 0;
 
-	PY_UNLOCK
+	PyUnlock(state);
 	
     if(inlets < 0 || outlets < 0)
         InitProblem();
@@ -257,7 +257,7 @@ pyext::pyext(int argc,const t_atom *argv):
 
 pyext::~pyext()
 {
-	PY_LOCK
+	PyThreadState *state = PyLock();
 
 	ClearBinding();
     
@@ -269,7 +269,7 @@ pyext::~pyext()
     Unregister("_pyext");
 	UnimportModule();
 
-	PY_UNLOCK
+	PyUnlock(state);
 }
 
 bool pyext::DoInit()
@@ -339,7 +339,7 @@ void pyext::Reload()
 
 void pyext::m_reload()
 {
-	PY_LOCK
+	PyThreadState *state = PyLock();
 
 	Unregister("_pyext"); // self
 
@@ -350,7 +350,7 @@ void pyext::m_reload()
 
     SetThis();
 
-	PY_UNLOCK
+	PyUnlock(state);
 }
 
 void pyext::m_reload_(int argc,const t_atom *argv)
@@ -361,7 +361,7 @@ void pyext::m_reload_(int argc,const t_atom *argv)
 
 void pyext::m_get(const t_symbol *s)
 {
-    PY_LOCK
+    PyThreadState *state = PyLock();
 
 	PyObject *pvar  = PyObject_GetAttrString(pyobj,const_cast<char *>(GetString(s))); /* fetch bound method */
 	if(!pvar) {
@@ -384,12 +384,12 @@ void pyext::m_get(const t_symbol *s)
         Py_DECREF(pvar);
     }
 
-    PY_UNLOCK
+    PyUnlock(state);
 }
 
 void pyext::m_set(int argc,const t_atom *argv)
 {
-    PY_LOCK
+    PyThreadState *state = PyLock();
 
     if(argc < 2 || !IsString(argv[0]))
         post("%s - Syntax: set varname arguments...",thisName());
@@ -421,7 +421,7 @@ void pyext::m_set(int argc,const t_atom *argv)
         }
     }
 
-    PY_UNLOCK
+    PyUnlock(state);
 }
 
 
@@ -504,7 +504,7 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
 	bool ret = false;
 
-    PY_LOCK
+    PyThreadState *state = PyLock();
 
     // should be enough...
 	char str[256];
@@ -547,7 +547,7 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 		// no matching python method found
 		post("%s - no matching method found for '%s' into inlet %i",thisName(),GetString(s),n);
 
-	PY_UNLOCK
+	PyUnlock(state);
 
     Respond(ret);
 	return ret;

@@ -104,7 +104,7 @@ void pyobj::Setup(t_classid c)
 pyobj::pyobj(int argc,const t_atom *argv):
 	function(NULL),funname(NULL)
 { 
-	PY_LOCK
+	PyThreadState *state = PyLock();
 
 	AddInAnything(2);  
 	AddOutAnything();  
@@ -155,14 +155,14 @@ pyobj::pyobj(int argc,const t_atom *argv):
 		}
 	}
 
-	PY_UNLOCK
+	PyUnlock(state);
 }
 
 pyobj::~pyobj() 
 {
-	PY_LOCK
+	PyThreadState *state = PyLock();
 	Unregister("_py");
-	PY_UNLOCK
+	PyUnlock(state);
 }
 
 
@@ -177,7 +177,7 @@ bool pyobj::m_method_(int n,const t_symbol *s,int argc,const t_atom *argv)
 
 void pyobj::m_reload()
 {
-	PY_LOCK
+	PyThreadState *state = PyLock();
 
 	Unregister("_py");
 
@@ -186,21 +186,21 @@ void pyobj::m_reload()
 	Register("_py");
 	SetFunction(funname?GetString(funname):NULL);
 
-	PY_UNLOCK
+	PyUnlock(state);
 }
 
 void pyobj::m_reload_(int argc,const t_atom *argv)
 {
-	PY_LOCK
+	PyThreadState *state = PyLock();
 	SetArgs(argc,argv);
-	PY_UNLOCK
+	PyUnlock(state);
 
 	m_reload();
 }
 
 void pyobj::m_set(int argc,const t_atom *argv)
 {
-	PY_LOCK
+	PyThreadState *state = PyLock();
 
 	int ix = 0;
 	if(argc >= 2) {
@@ -223,7 +223,7 @@ void pyobj::m_set(int argc,const t_atom *argv)
 	else
 		SetFunction(GetString(argv[ix]));
 
-	PY_UNLOCK
+	PyUnlock(state);
 }
 
 void pyobj::m_help()
@@ -320,13 +320,13 @@ void pyobj::callwork(const t_symbol *s,int argc,const t_atom *argv)
     bool ret = false;
  
 	if(function) {
-        PY_LOCK
+        PyThreadState *state = PyLock();
     
 		PyObject *pargs = MakePyArgs(s,argc,argv);
         Py_INCREF(function);
         ret = gencall(function,pargs);
 
-        PY_UNLOCK
+        PyUnlock(state);
     }
 	else {
 		post("%s: no function defined",thisName());

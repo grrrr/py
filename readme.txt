@@ -21,7 +21,6 @@ Access the flexibility of the python language in PD and MaxMSP
 
 PD - Load it as i library with e.g. "pd -lib py -path scripts"
 
-Max/MSP - Wait for Windows or a Mach-O MacOSX version. MacOS9 doesn't want it.
 
 
 Check out the sample patches and scripts
@@ -54,6 +53,7 @@ Version history:
 - FIX: output of single atoms instead of 1-element lists
 - ADD: new detach mechanism (call queue)
 - ADD: support for Max/MSP @ OSX and Windows
+- DEL: eliminated meaningless inchannels and outchannels methods
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)
@@ -122,12 +122,9 @@ general:
 
 features:
 - enable multiple interpreters?
-- make a pygui object where Tkinter draws to the PD canvas...
 - stop individual threads
 - Python type for symbols
+- support named (keyword) arguments (like attributes for messages)
 
 tests:
 - check for python threading support
-
-bugs:
-- named (keyword) arguments are not supported
