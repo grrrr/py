@@ -12,11 +12,19 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 static PyObject *MakePyAtom(const t_atom &at)
 {
-    if(flext::IsFloat(at)) return PyFloat_FromDouble((D)flext::GetFloat(at));
-	else if(flext::IsInt(at)) return PyInt_FromLong(flext::GetInt(at));
-	else if(flext::IsSymbol(at)) return PyString_FromString(flext::GetString(at));
+	if(flext::IsSymbol(at)) return PyString_FromString(flext::GetString(at));
 //	else if(flext::IsPointer(at)) return NULL; // not handled
-    else return NULL;
+    else if(flext::CanbeInt(at) && flext::CanbeFloat(at)) {
+        // if a number can be an integer... let at be an integer!
+        int ival = flext::GetAInt(at);
+        double fval = flext::GetAFloat(at);
+        return (double)ival == fval?PyInt_FromLong(ival):PyFloat_FromDouble(fval);
+    }
+    // these following should never happen
+    else if(flext::IsFloat(at)) return PyFloat_FromDouble((D)flext::GetFloat(at));
+	else if(flext::IsInt(at)) return PyInt_FromLong(flext::GetInt(at));
+  
+    return NULL;
 }
 
 PyObject *py::MakePyArgs(const t_symbol *s,const AtomList &args,I inlet,BL withself)

@@ -69,12 +69,15 @@ protected:
 	V m__doc(PyObject *obj);
 
     V m_dir() { m__dir(module); }
+    V mg_dir(AtomList &lst) { m__dir(module); }
     V m_doc() { m__doc(dict); }
 
 	PyObject *module,*dict; // inherited user class module and associated dictionary
 
 	static I pyref;
 	static const C *py_doc;
+
+    V GetDir(PyObject *obj,AtomList &lst);
 
 	V GetModulePath(const C *mod,C *dir,I len);
 	V AddToPath(const C *dir);
@@ -137,6 +140,7 @@ protected:
 	FLEXT_ATTRVAR_B(detach)
 	FLEXT_CALLBACK_V(m_stop)
 	FLEXT_CALLBACK(m_dir)
+	FLEXT_ATTRGET_V(mg_dir)
 	FLEXT_CALLBACK(m_doc)
     FLEXT_CALLBACK_T(tick)
 };

@@ -128,21 +128,18 @@ py::~py()
 }
 
 
-void py::m__dir(PyObject *obj)
+void py::GetDir(PyObject *obj,AtomList &lst)
 {
     if(obj) {
         PY_LOCK
     
         PyObject *pvar  = PyObject_Dir(obj);
-	    if(pvar == NULL) {
+	    if(!pvar)
 		    PyErr_Print(); // no method found
-	    }
 	    else {
-            AtomList *lst = GetPyArgs(pvar);
-            if(lst) {
-                // dump dir to attribute outlet
-                ToOutAnything(GetOutAttr(),thisTag(),lst->Count(),lst->Atoms());
-                delete lst;
+            AtomList *l = GetPyArgs(pvar);
+            if(l) { 
+                lst = *l; delete l; 
             }
             else
                 post("%s - %s: List could not be created",thisName(),GetString(thisTag()));
@@ -151,6 +148,14 @@ void py::m__dir(PyObject *obj)
 
         PY_UNLOCK
     }
+}
+
+void py::m__dir(PyObject *obj)
+{
+    AtomList lst;
+    GetDir(obj,lst);
+    // dump dir to attribute outlet
+    ToOutAnything(GetOutAttr(),thisTag(),lst.Count(),lst.Atoms());
 }
 
 V py::m__doc(PyObject *obj)

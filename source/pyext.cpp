@@ -12,7 +12,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <flinternal.h>
 
 
-FLEXT_LIB_V("pyext",pyext)
+FLEXT_LIB_V("pyext pyx",pyext)
 
 V pyext::Setup(t_classid c)
 {
@@ -22,6 +22,9 @@ V pyext::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
 	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
 	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
+
+  	FLEXT_CADDATTR_VAR(c,"args",args,ms_args);
+	FLEXT_CADDATTR_GET(c,"dir+",mg_dir_);
 
 #ifdef FLEXT_THREADS
 	FLEXT_CADDATTR_VAR1(c,"detach",detach);

@@ -84,6 +84,9 @@ Version history:
 
 0.1.3:
 - FIX: class variables are now set atomic if parameter list has only 1 element
+- ADD: introduced shortcut "pyx" for pyext.
+- ADD: arguments to the pyext class are now exposed as attributes "args"
+- FIX: parameters to Python functions are treated as integers when they can be.
 
 0.1.2:
 - CHANGE: updates for flext 0.4.1 - method registering within class scope

@@ -48,7 +48,9 @@ protected:
 
 	V m_reload();
 	V m_reload_(I argc,const t_atom *argv);
+    V ms_args(const AtomList &a) { m_reload_(a.Count(),a.Atoms()); }
     V m_dir_() { m__dir(pyobj); }
+    V mg_dir_(AtomList &lst) { GetDir(pyobj,lst); }
     V m_doc_() { m__doc(pyobj); }
 	virtual V m_help();
 
@@ -108,7 +110,12 @@ private:
     FLEXT_CALLBACK(m_reload)
 	FLEXT_CALLBACK_V(m_reload_)
 	FLEXT_CALLBACK(m_dir_)
+	FLEXT_CALLGET_V(mg_dir_)
 	FLEXT_CALLBACK(m_doc_)
+	FLEXT_CALLGET_V(mg_doc_)
+
+    FLEXT_ATTRGET_V(args)
+    FLEXT_CALLSET_V(ms_args)
 
 	FLEXT_CALLBACK_S(m_get)
 	FLEXT_CALLBACK_V(m_set)
