@@ -39,7 +39,7 @@ public:
 	I Outlets() const { return outlets; }
 
 protected:
-	BL m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
+	virtual BL m_method_(I n,const t_symbol *s,I argc,const t_atom *argv);
 
 	BL work(I n,const t_symbol *s,I argc,const t_atom *argv); 
 
