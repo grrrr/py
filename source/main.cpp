@@ -13,25 +13,25 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <flext.h>
 #include <Python.h>
 
+#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 201)
+#error You need at least flext version 0.2.1 
+#endif
+
+#define PY__VERSION "0.0.1"
+
+
 #define I int
-#define L long
-#define F float
-#define D double
 #define C char
 #define V void
 #define BL bool
+#define F float
+#define D double
 
-
-#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 200)
-#error You need at least flext version 0.2.0 
-#endif
-
-#define PY__VERSION "0.0.0"
 
 class py:
 	public flext_base
 {
-	FLEXT_HEADER_S(py,flext_base)
+	FLEXT_HEADER_S(py,flext_base,setup)
 
 public:
 	py(I argc,t_atom *argv);
@@ -41,122 +41,261 @@ protected:
 	V m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
 
 	V work(const t_symbol *s,I argc,t_atom *argv); 
-	
-//	virtual V m_bang() { work(sym_bang,0,NULL); }
-	virtual V m_list(I argc,t_atom *argv) { work(sym_list,argc,argv); }
-	virtual V m_float(I argc,t_atom *argv) { work(sym_float,argc,argv); }
-	virtual V m_int(I argc,t_atom *argv) { work(sym_int,argc,argv); }
-//	virtual V m_symbol(I argc,t_atom *argv) { work(sym_symbol,argc,argv); }
-	virtual V m_any(const t_symbol *s,I argc,t_atom *argv) { work(s,argc,argv); }
 
-    PyObject *pName,*pModule,*pDict,*pFunc;	
+	virtual V m_bang() { work(sym_bang,0,NULL); }
+	virtual V m_reset(I argc,t_atom *argv);
+	virtual V m_set(I argc,t_atom *argv);
 
+	virtual V m_help();
+
+	// methods for python arguments
+	virtual V m_py_list(I argc,t_atom *argv) { work(sym_list,argc,argv); }
+	virtual V m_py_float(I argc,t_atom *argv) { work(sym_float,argc,argv); }
+	virtual V m_py_int(I argc,t_atom *argv) { work(sym_int,argc,argv); }
+	virtual V m_py_any(const t_symbol *s,I argc,t_atom *argv) { work(s,argc,argv); }
+
+	C *sName,*sFunc;
+	I hName;
+
+
+	class lookup {
+	public:
+		lookup(I hash,PyObject *mod);
+		~lookup();
+
+		V Set(PyObject *mod);
+		V Add(lookup *l);
+
+		I modhash;
+		PyObject *module,*dict;
+		lookup *nxt;
+	};
+
+	static lookup *modules;
 	static I pyref;
 
+
+	V SetArgs(I argc,t_atom *argv);
+	V ImportModule(const C *name);
+	V SetModule(I hname,PyObject *module);
+	V ResetModule();
+	PyObject *GetModule();
+	V SetFunction(const C *name);
+	PyObject *GetFunction();
+
 private:
-//	FLEXT_CALLBACK(m_bang)
-	FLEXT_CALLBACK_G(m_float)
-	FLEXT_CALLBACK_G(m_list)
-	FLEXT_CALLBACK_G(m_int)
-//	FLEXT_CALLBACK_G(m_symbol)
-	FLEXT_CALLBACK_A(m_any)
+	enum retval { nothing,atom,tuple,list };
+
+	static V setup(t_class *);
+	
+	FLEXT_CALLBACK(m_bang)
+	FLEXT_CALLBACK_G(m_reset)
+	FLEXT_CALLBACK_G(m_set)
+
+	FLEXT_CALLBACK_G(m_py_float)
+	FLEXT_CALLBACK_G(m_py_list)
+	FLEXT_CALLBACK_G(m_py_int)
+	FLEXT_CALLBACK_A(m_py_any)
 };
 
-I py::pyref;
 
-V py::cb_setup(t_class *) 
+I py::pyref = 0;
+py::lookup *py::modules = NULL;
+
+py::lookup::lookup(I hname,PyObject *mod):
+	modhash(hname),
+	module(NULL),dict(NULL),
+	nxt(NULL)
+{
+	Set(mod);
+}
+
+py::lookup::~lookup()
+{
+	if(module) Py_DECREF(module);
+	if(nxt) delete nxt;
+}
+
+V py::lookup::Set(PyObject *mod)
+{
+    if(module) Py_DECREF(module);
+	dict = PyModule_GetDict(module = mod);
+}
+
+V py::lookup::Add(lookup *l)
+{
+	if(nxt) nxt->Add(l);
+	else nxt = l;
+}
+
+
+V py::setup(t_class *) 
 {
 	post("py %s - python script object, (C)2002 Thomas Grill",PY__VERSION);
 	post("");
 
 	py::pyref = 0;
+	py::modules = NULL;
 }
 
 // make implementation of a tilde object with one float arg
-FLEXT_GIMME("py",py)
+FLEXT_NEW_G("py",py)
+
+
+static C *strdup(const C *s) {
+	if(!s) return NULL;
+	I len = strlen(s);
+	C *ret = new C[len+1];
+	strcpy(ret,s);
+	return ret;
+}
+
+
+V py::SetArgs(I argc,t_atom *argv)
+{
+	// script arguments
+	I i;
+	C **sargv = new C *[argc];
+	for(i = 0; i < argc; ++i) {
+		sargv[i] = new C[256];
+		GetAString(argv[i],sargv[i],255);
+	}
+
+	// the arguments to the module are only recognized once! (at first use in a patcher)
+	PySys_SetArgv(argc,sargv);
+
+	for(i = 0; i < argc; ++i) delete[] sargv[i];
+	delete[] sargv;
+}
+
+V py::ImportModule(const C *name)
+{
+	if(!name) return;
+
+	if(sName) delete[] sName;
+	sName = strdup(name);
+
+	PyObject *pName = PyString_FromString(sName);
+	hName = PyObject_Hash(pName);
+
+	PyObject *pModule = PyImport_Import(pName);
+	if (!pModule) {
+//		post("%s: python script %s not found or init error",thisName(),sName);
+		PyErr_Print();
+	}
+	else {
+		SetModule(hName,pModule);
+	}
+
+	Py_DECREF(pName);
+}
+
+V py::SetModule(I hname,PyObject *module)
+{
+	for(lookup *l = modules; l && l->modhash != hname; l = l->nxt);
+
+	if(l) 
+		l->Set(module);
+	else {
+		lookup *mod = new lookup(hname,module); 
+		if(modules) modules->Add(mod);
+		else modules = mod;
+	}
+}
+
+V py::ResetModule()
+{
+	for(lookup *l = modules; l && l->modhash != hName; l = l->nxt);
+	if(l && l->module) {
+		PyObject *newmod = PyImport_ReloadModule(l->module);
+		if(!newmod) 
+			PyErr_Print();
+		else {
+			l->Set(newmod);
+		}
+	}
+}
+
+PyObject *py::GetModule()
+{
+	for(lookup *l = modules; l && l->modhash != hName; l = l->nxt);
+	return l?l->module:NULL;
+}
+
+V py::SetFunction(const C *name)
+{
+	if(sFunc) delete[] sFunc;
+	sFunc = strdup(name);
+}
+
+PyObject *py::GetFunction()
+{
+	for(lookup *l = modules; l && l->modhash != hName; l = l->nxt);
+	return l?PyDict_GetItemString(l->dict,sFunc):NULL;
+}
 
 
 py::py(I argc,t_atom *argv):
-	pName(NULL),pModule(NULL),pDict(NULL),pFunc(NULL)
+	sName(NULL),sFunc(NULL)
 { 
-	AddInAnything();  
+	AddInAnything(2);  
 	AddOutAnything();  
 	SetupInOut();  // set up inlets and outlets
 
-//	FLEXT_ADDBANG(0,m_bang);
-	FLEXT_ADDMETHOD_(0,"float",m_float);
-	FLEXT_ADDMETHOD_(0,"int",m_int);
-//	FLEXT_ADDMETHOD_(0,"symbol",m_symbol);
-	FLEXT_ADDMETHOD(0,m_list);
-	FLEXT_ADDMETHOD(0,m_any);
+	FLEXT_ADDBANG(0,m_bang);
+	FLEXT_ADDMETHOD_(0,"reset",m_reset);
+	FLEXT_ADDMETHOD_(0,"set",m_set);
+
+	FLEXT_ADDMETHOD_(1,"float",m_py_float);
+	FLEXT_ADDMETHOD_(1,"int",m_py_int);
+	FLEXT_ADDMETHOD(1,m_py_list);
+	FLEXT_ADDMETHOD(1,m_py_any);
 
 
     if(!(pyref++)) Py_Initialize();
 
-    if (argc < 2 || !IsSymbol(argv[0]) || !IsSymbol(argv[1])) {
-        post("%s: Syntax: %s pythonfile function",thisName(),thisName());
-    }
-	else {
-		const C *scrname = GetString(argv[0]);
 
-/*
-		// script arguments
-		I i, margc = argc > 2?argc-2:0;
-		C **margv = new C *[margc];
-		for(i = 0; i < margc; ++i) {
-			margv[i] = new C[256];
-			GetAString(argv[i+2],margv[i],255);
-		}
-
-		PySys_SetArgv(margc,margv);
-
-		for(i = 0; i < margc; ++i) delete[] margv[i];
-		delete[] margv;
-*/
-
-		C dir[1024];
+	C dir[1024];
 #ifdef PD
-		// uarghh... pd doesn't show it's path for extra modules
+	// uarghh... pd doesn't show it's path for extra modules
 
-		C *name;
-		I fd = open_via_path("",scrname,".py",dir,&name,sizeof(dir),0);
-		if(fd > 0) close(fd);
-		else name = NULL;
+	C *name;
+	I fd = open_via_path("",GetString(argv[0]),".py",dir,&name,sizeof(dir),0);
+	if(fd > 0) close(fd);
+	else name = NULL;
 #elif defined(MAXMSP)
-		*dir = 0;
+	*dir = 0;
 #endif
 
-		// set script path
-		PySys_SetPath(dir);
+	// set script path
+	PySys_SetPath(dir);
 
-		// init script module
+	if(argc > 2) SetArgs(argc-2,argv+2);
 
-		pName = PyString_FromString(scrname);
+	// init script module
+	if(!IsString(argv[0])) 
+		post("%s - script name argument is invalid");
+	else
+		ImportModule(GetString(argv[0]));
 
-
-		// the arguments to the module are only recognized once! (at first use in a patcher)
-		pModule = PyImport_Import(pName);
-		if (!pModule) 
-			post("%s: python script %s not found or init error",thisName(),scrname);
-		else {
-			pDict = PyModule_GetDict(pModule);
-			/* pDict is a borrowed reference */
-
-			pFunc = PyDict_GetItemString(pDict,(C *)GetString(argv[1]));
-			/* pFun: Borrowed reference */
-		}
-
-	}
+	// set function name
+	if(!IsString(argv[1])) 
+		post("%s - function name argument is invalid");
+	else
+		SetFunction(GetString(argv[1]));
 }
 
 py::~py()
 {
 	// pDict and pFunc are borrowed and must not be Py_DECREF-ed 
 
-    if(pModule) Py_DECREF(pModule);
-    if(pName) Py_DECREF(pName);
+//    if(pModule) Py_DECREF(pModule);
+//    if(pName) Py_DECREF(pName);
 
-    if(!(--pyref)) Py_Finalize();
+    if(!(--pyref)) {
+		delete modules; modules = NULL;
+		Py_Finalize();
+	}
 }
 
 V py::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
@@ -164,24 +303,59 @@ V py::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 	post("%s - no method for type %s",thisName(),GetString(s));
 }
 
-/*
-V py::m_any(const t_symbol *s,I argc,t_atom *argv)
+V py::m_reset(I argc,t_atom *argv)
 {
-	if(argc == 0) {
-		t_atom a;
-		SetSymbol(a,s);
-		work(s,1,&a);
-	}
-	else
-		m_method_(0,s,argc,argv);
+	if(argc > 2) SetArgs(argc,argv);
+
+	ResetModule();
 }
-*/
+
+V py::m_set(I argc,t_atom *argv)
+{
+	I ix = 0;
+	if(argc >= 2) {
+		if(!IsString(argv[ix])) {
+			post("%s - script name is not valid",thisName());
+			return;
+		}
+		const C *sn = GetString(argv[ix]);
+		if(strcmp(sn,sName)) ImportModule(sn);
+		++ix;
+	}
+
+	if(!IsString(argv[ix])) 
+		post("%s - function name is not valid",thisName());
+	else
+		SetFunction(GetString(argv[ix]));
+
+}
+
+V py::m_help()
+{
+	post("py %s - python script object, (C)2002 Thomas Grill",PY__VERSION);
+#ifdef _DEBUG
+	post("compiled on " __DATE__ " " __TIME__);
+#endif
+
+	post("Arguments: %s [script name] [function name]",thisName());
+
+	post("Inlet 1:messages to control the py object");
+	post("      2:call python function with message as argument(s)");
+	post("Outlet: 1:return values from python function");	
+	post("Methods:");
+	post("\thelp: shows this help");
+	post("\tbang: call script without arguments");
+	post("\tset [script name] [function name]: set (script and) function name");
+	post("\treset: reload python script");
+	post("");
+}
+
 
 V py::work(const t_symbol *s,I argc,t_atom *argv)
 {
     PyObject *pArgs, *pValue;
 
-//	post("work called: inlet=%i, symbol=%s, argc=%i",inlet,s->s_name,argc);
+	PyObject *pFunc = GetFunction();
 
 	if(pFunc && PyCallable_Check(pFunc)) {
 		BL any = s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer;
@@ -191,7 +365,7 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 		I ix = 0;
 
 		if(any) {
-			pValue = PyString_FromString(get_string(s));
+			pValue = PyString_FromString(GetString(s));
 
 			if(!pValue) 
 				post("%s: cannot convert method header",thisName());
@@ -206,7 +380,7 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 			if(IsFloat(argv[i])) pValue = PyFloat_FromDouble((D)GetFloat(argv[i]));
 			else if(IsInt(argv[i])) pValue = PyInt_FromLong(GetInt(argv[i]));
 			else if(IsSymbol(argv[i])) pValue = PyString_FromString(GetString(argv[i]));
-			else if(is_pointer(argv[i])) pValue = NULL; // not handled
+			else if(IsPointer(argv[i])) pValue = NULL; // not handled
 
 			if(!pValue) {
 				post("%s: cannot convert argument %i",thisName(),any?i+1:i);
@@ -223,21 +397,36 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 			// analyze return value or tuple
 
 			int rargc = 0;
-			BL tpl = false;
+			retval tp = nothing;
 
 			if(PyObject_Not(pValue)) rargc = 0;
 			else {
-				tpl = PyTuple_Check(pValue);
-				rargc = tpl?PyTuple_Size(pValue):1;
+				if(PyTuple_Check(pValue)) {
+					rargc = PyTuple_Size(pValue);
+					tp = tuple;
+				}
+				else if(PyList_Check(pValue)) {
+					rargc = PyList_Size(pValue);
+					tp = list;
+				}
+				else {
+					rargc = 1;
+					tp = atom;
+				}
 			}
 
 			t_atom *ret = new t_atom[rargc];
 
 			for(int ix = 0; ix < rargc; ++ix) {
-				PyObject *arg = tpl?PyTuple_GetItem(pValue,ix):pValue;
+				PyObject *arg;
+				switch(tp) {
+					case tuple: arg = PyTuple_GetItem(pValue,ix); break;
+					case list: arg = PyList_GetItem(pValue,ix); break;
+					default: arg = pValue;
+				}
 
 				if(PyInt_CheckExact(arg)) SetFlint(ret[ix],PyInt_AsLong(arg));
-				else if(PyFloat_Check(arg)) SetFloat(ret[ix],PyFloat_AsDouble(arg));
+				else if(PyFloat_Check(arg)) SetFloat(ret[ix],(F)PyFloat_AsDouble(arg));
 				else if(PyString_Check(arg)) SetString(ret[ix],PyString_AsString(arg));
 				else {
 					post("%s: Could not convert return argument",thisName());
@@ -252,7 +441,8 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 			delete[] ret;
 		}
 		else {
-			post("%s: python function call failed",thisName());
+			PyErr_Print();
+//			post("%s: python function call failed",thisName());
 		}
 		if(pArgs) Py_DECREF(pArgs);
 	}

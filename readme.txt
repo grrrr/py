@@ -22,14 +22,11 @@ Package files:
 The package should at least compile (and is tested) with the following compilers:
 
 - pd - Windows:
-o Borland C++ 5.5 (free): run "make -f makefile.bcc" - makefile is no real make but works
-o Microsoft Visual C++ 6: use "py.dsp" project file 
+o Borland C++ 5.5 (free): edit & run "make -f makefile.bcc" 
+o Microsoft Visual C++ 6: edit "py.dsp" project file 
 
 - pd - linux:
-o GCC for linux: run "make -f makefile.pd-linux" 
-
-- Max/MSP - MacOS:
-o Metrowerks CodeWarrior V6: use "py" project file 
+o GCC for linux: edit & run "make -f makefile.pd-linux" 
 
 ----------------------------------------------------------------------------
 
@@ -40,15 +37,17 @@ Goals/features of the package:
 
 Description:
 
-- 
+- you can load python modules and execute the functions therein
+- different py objects can share the same modules, hence creation arguments only apply upon (re)load of the first instance
+- list, float, symbol messages to the script are transmitted without the header (only the message element(s))
+- multi-element results (tuple, list) from the python script are prepended by list
 
 ----------------------------------------------------------------------------
 
 Version history:
 
 0.0.1:
-- using flext 0.2.0
-
+- using flext 0.2.1
 
 
 ---------------------------------------------------------------------------
@@ -58,14 +57,9 @@ TODO list:
 
 general:
 - Documentation and better example patches
-- cleaner makefile for PD/Borland C++
 
 features:
-- analyze returned lists
-- set method for called function (set is not passed to the script then)
-- 
 
 tests:
 
 bugs:
-- script is unusable once an error occured
