@@ -10,6 +10,9 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+#define STOP_WAIT 1000  // ms
+#define STOP_TICK 10  // ms
+
 V lib_setup()
 {
 	post("py %s - py/pyext python script objects, (C)2002 Thomas Grill",PY__VERSION);
@@ -25,7 +28,8 @@ PyInterpreterState *py::pystate = NULL;
 
 py::py(): 
 	sName(NULL),hName(0),
-	detach(false),thrcount(0)
+	detach(false),shouldexit(false),thrcount(0),
+	clk(NULL),stoptick(0)
 {
 	Lock();
 	// under Max/MSP: doesn't survive next line.....
@@ -42,29 +46,42 @@ py::py():
 	}
 
 	Unlock();
+
+	clk = clock_new(this,(t_method)tick);
 }
 
 py::~py()
 {
 	if(thrcount) {
-		post("%s - Waiting for thread termination",thisName());
+		shouldexit = true;
+
+		// Wait for 0.5 seconds
+		for(int i = 0; i < (STOP_WAIT/STOP_TICK) && thrcount; ++i) Sleep((F)(STOP_TICK/1000.));
+
+		// Wait forever
+		post("%s - Waiting for thread termination!",thisName());
 		while(thrcount) Sleep(0.2f);
+		post("%s - Okay, all threads have terminated",thisName());
 	}
 		
+/*
+	// don't unregister
+
 	Lock();
 
-//    if(!(--pyref)) {
-    if(false) {
+    if(!(--pyref)) {
 		delete modules; modules = NULL;
 
 		PyEval_AcquireLock();
-	    PyThreadState *new_state = PyThreadState_New(pystate); /* must have lock */
+	    PyThreadState *new_state = PyThreadState_New(pystate); // must have lock 
 		PyThreadState *prev_state = PyThreadState_Swap(new_state);
 
 		Py_Finalize();
 	}
 
 	Unlock();
+*/
+	if(clk) clock_free(clk);
 }
 
 
@@ -88,6 +105,7 @@ py::lookup::~lookup()
 V py::lookup::Set(PyObject *mod,py *_th)
 {
     Py_XDECREF(module);
+    Py_XDECREF(dict);
 	dict = PyModule_GetDict(module = mod);
 	th = _th;
 }
@@ -379,22 +397,50 @@ V py::AddToPath(const C *dir)
 	}
 }
 
-
-//flext_base::ThrMutex py::mutex;
-
-/*
-#ifdef FLEXT_THREADS
-BL py::Trylock(I wait) 
+V py::tick(py *th)
 {
-	if(mutex.TryLock()) {
-		Sleep((F)((wait >= 0?wait:waittime)/1000.));
+	th->Lock();
 
-		if(mutex.TryLock()) {
-			post("%s - A thread is running!",thisName());
-			return false;
-		}
+	if(!th->thrcount) {
+		// all threads have stopped
+		th->shouldexit = false;
+		th->stoptick = 0;
 	}
-	return true;
-}	
-#endif
-*/
+	else {
+		// still active threads 
+		if(!--th->stoptick) {
+				post("%s - Threads couldn't be stopped entirely - %i remaining",th->thisName(),th->thrcount);
+			th->shouldexit = false;
+		}
+		else
+			// continue waiting
+			clock_delay(th->clk,STOP_TICK);
+	}
+
+	th->Unlock();
+}
+
+V py::m_stop(int argc,t_atom *argv)
+{
+	if(thrcount) {
+		Lock();
+
+		I wait = STOP_WAIT;
+		if(argc >= 1 && CanbeInt(argv[0])) wait = GetAInt(argv[0]);
+
+		I ticks = wait/STOP_TICK;
+		if(stoptick) {
+			// already stopping
+			if(ticks < stoptick) stoptick = ticks;
+		}
+		else
+			stoptick = ticks;
+		shouldexit = true;
+		clock_delay(clk,STOP_TICK);
+
+		Unlock();
+	}
+		
+}
+
+

@@ -32,7 +32,13 @@ class testcl1(pyext):
 
 
 class testcl2(pyext):
-	def _anything_(self,ix,arg):
+	_inlets=2
+
+	def _anything_1(self,arg):
 		for i in range(1,40):
+			if self._shouldexit: break
 			print i
 			time.sleep(0.2)
+
+	def _anything_2(self,arg):
+		self._outlet(1,1234)

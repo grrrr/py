@@ -90,9 +90,14 @@ protected:
 	// ----------------------------------
 
 	V m_detach(BL det) { detach = det; }
+	virtual V m_stop(int argc,t_atom *argv);
 
-	BL detach;
+	BL detach,shouldexit;
 	I thrcount;
+	t_clock *clk;
+	I stoptick;
+
+	static V tick(py *obj);
 
 	static PyInterpreterState *pystate;
 	PyThreadState *pythrmain;
@@ -105,6 +110,9 @@ protected:
 	V Lock() {}
 	V Unlock() {}
 #endif
+
+	FLEXT_CALLBACK_B(m_detach)
+	FLEXT_CALLBACK_V(m_stop)
 };
 
 #ifdef FLEXT_THREADS

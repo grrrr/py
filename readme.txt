@@ -1,4 +1,4 @@
-py - python script object for PD and MaxMSP
+py/pyext - python script objects for PD and MaxMSP
 
 Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -10,11 +10,12 @@ Donations for further development of the package are highly appreciated.
 
 You will need the flext C++ layer for PD and Max/MSP externals to compile this.
 
-
 Package files:
 - readme.txt: this one
 - gpl.txt,license.txt: GPL license stuff
-- main.cpp: all the stuff
+- main.cpp, main.h: base class
+- py.cpp: py object
+- pyext.cpp: pyext object
 
 ----------------------------------------------------------------------------
 
@@ -25,8 +26,9 @@ o Borland C++ 5.5 (free): edit & run "make -f makefile.bcc"
 o Microsoft Visual C++ 6: edit "py.dsp" project file 
 
 - pd - linux:
-Python doesn't provide a shared lib by default - static linking produces huge externals...
-o GCC for linux: edit & run "make -f makefile.pd-linux" 
+Python doesn't provide a shared lib by default - static linking produces huge externals
+Ok, debian is an exception...
+o GCC: edit "config-pd-linux.txt" & run "sh build-pd-linux.sh" 
 
 - Max/MSP - MacOS:
 The source compiles and links but Max dies on first call of the Python API
@@ -38,7 +40,6 @@ o MPW-PR and GUSI: #undef HAVE_USABLE_WCHAR_T and HAVE_WCHAR_H in pyconfig.h
 Goals/features of the package:
 
 - access the flexibility of the python language in PD/MaxMSP
-
 
 Description:
 
@@ -53,7 +54,7 @@ Description:
 Version history:
 
 0.1.0:
-- using flext 0.3.1
+- using flext 0.3.2
 - another bugfix for undefined function
 - added pyext for full-featured objects
 - py/pyext now get full python path
@@ -78,9 +79,11 @@ general:
 
 features:
 - enable multiple interpreters?
+- introduce a _shouldexit attribute for thread termination (or raise a signal?)
 
 tests:
 
 bugs:
-- the python interpreter isn't unloaded because to some bug at re-initialization
+- the python interpreter won't be unloaded due to some bug at re-initialization
+- fast message repetitions in detached mode make python crash
 

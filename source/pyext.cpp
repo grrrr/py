@@ -49,12 +49,13 @@ private:
 	enum retval { nothing,atom,tuple,list };
 
 	static V setup(t_class *);
-	
-	PyObject *call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *argv);
-	PyObject *call(const C *meth);
 
-	FLEXT_CALLBACK_V(m_reload)
-	FLEXT_CALLBACK_B(m_detach)
+	static I modref;
+	static PyObject *module_obj,*module_dict,*class_obj,*class_dict;
+
+	static PyMethodDef func_tbl[],attr_tbl[],meth_tbl[];
+
+	PyObject *call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *argv);
 
 	V work_wrapper(void *data); 
 	BL callwork(I n,const t_symbol *s,I argc,t_atom *argv); 
@@ -74,12 +75,14 @@ private:
 #endif
 
 	PyThreadState *pythr;
+
+private:
+	FLEXT_CALLBACK_V(m_reload)
 };
 
 FLEXT_LIB_V("pyext",pyext)
 
-#if 0
-PyObject* pyext::py__init__(PyObject *sl, PyObject *args)
+PyObject* pyext::py__init__(PyObject *,PyObject *args)
 {
 //    post("pyext.__init__ called");
 
@@ -87,66 +90,62 @@ PyObject* pyext::py__init__(PyObject *sl, PyObject *args)
     return Py_None;
 }
 
-
-PyObject* pyext::py_setattr(PyObject *sl, PyObject *args)
+PyObject* pyext::py_setattr(PyObject *,PyObject *args)
 {
-    PyObject *selfobj, *arg0,*arg1;
-    if(!PyArg_ParseTuple(args, "OOO:test_foo", &selfobj, &arg0,&arg1)) {
+    PyObject *self,*name,*val,*ret = NULL;
+    if(!PyArg_ParseTuple(args, "OOO:test_foo", &self,&name,&val)) {
         // handle error
-		error("pyext - parsetuple failed");
+		error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
 		return NULL;
     }
-    if (!PyString_Check(arg0)) {
-        return NULL;
-    }    
-    char* name = PyString_AsString(arg0);
-    if (!name) return NULL;
 
-	post("pyext::setattr %s",name);
+	BL handled = false;
+    if(PyString_Check(name)) {
+	    char* sname = PyString_AsString(name);
+		if (sname) {
+//			post("pyext::setattr %s",sname);
+		}
+	}
 
-/*
-    if (strcmp(name, "id")==0) {
-        return Py_BuildValue("i", 42);
-    }
-*/
-    // throw attribute not found and and ...
+	if(!handled) {
+		if(PyInstance_Check(self)) 
+			PyDict_SetItem(((PyInstanceObject *)self)->in_dict, name,val);
+		else
+			error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
+	}
 
-/*
-    Py_INCREF(Py_None);
-    return Py_None;
-*/
-	return NULL;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
-PyObject* pyext::py_getattr(PyObject *sl, PyObject *args)
+PyObject* pyext::py_getattr(PyObject *,PyObject *args)
 {
-    PyObject *selfobj, *arg0;
-    if(!PyArg_ParseTuple(args, "OO:test_foo", &selfobj, &arg0)) {
+    PyObject *self,*name,*ret = NULL;
+    if(!PyArg_ParseTuple(args, "OO:test_foo", &self,&name)) {
         // handle error
-		error("pyext - parsetuple failed");
+		error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
     }
-    if (!PyString_Check(arg0)) {
-        return NULL;
-    }    
-    char* name = PyString_AsString(arg0);
-    if (!name) return NULL;
 
-	post("pyext::getattr %s",name);
-/*
-    if (strcmp(name, "id")==0) {
-        return Py_BuildValue("i", 42);
-    }
-*/
-    // throw attribute not found and and ...
+    if(PyString_Check(name)) {
+	    char* sname = PyString_AsString(name);
+		if (sname) {
+			if(!strcmp(sname,"_shouldexit")) {
+				PyObject *th = PyObject_GetAttrString(self,"_this");
+				if(th) {
+					pyext *ext = (pyext *)PyLong_AsVoidPtr(th); 
+					ret = PyLong_FromLong(ext->shouldexit?1:0);
+				}
+			}
+//			post("pyext::getattr %s",sname);
+		}
+	}
 
-    Py_INCREF(Py_None);
-    return Py_None;
+	return ret?ret:PyObject_GenericGetAttr(self,name);
 }
-#endif
 
-PyObject *pyext::py_outlet(PyObject *sl,PyObject *args) 
+PyObject *pyext::py_outlet(PyObject *,PyObject *args) 
 {
-	PY_LOCK
+//	PY_LOCK
 
 	I rargc;
 	PyObject *self;
@@ -156,12 +155,12 @@ PyObject *pyext::py_outlet(PyObject *sl,PyObject *args)
 
 	if(rargv) {
 		pyext *ext = NULL;
-		PyObject *th = PyObject_GetAttrString(self,"thisptr");
+		PyObject *th = PyObject_GetAttrString(self,"_this");
 		if(th) {
 			ext = (pyext *)PyLong_AsVoidPtr(th); 
 		}
 		else {
-			post("pyext - internal error " __FILE__ "/%i",__LINE__);
+			error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
 		}
 
 		if(ext && rargv && rargc >= 2) {
@@ -177,7 +176,7 @@ PyObject *pyext::py_outlet(PyObject *sl,PyObject *args)
 		}
 		else {
 //			PyErr_Print();
-			post("pyext: python function call failed");
+			error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
 		}
 	}
 
@@ -185,31 +184,33 @@ PyObject *pyext::py_outlet(PyObject *sl,PyObject *args)
 
     Py_INCREF(Py_None);
 
-	PY_UNLOCK
+//	PY_UNLOCK
     return Py_None;
 }
 
 
-static PyMethodDef pyext_meths[] = 
+PyMethodDef pyext::func_tbl[] = {{NULL, NULL, 0, NULL}};
+
+PyMethodDef pyext::meth_tbl[] = 
 {
 //    {"__init__", pyext::py__init__, METH_VARARGS, "pyext init"},
     {"_outlet", pyext::py_outlet, METH_VARARGS,"pyext outlet"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
-
-static PyMethodDef pyext_attrs[] =
+PyMethodDef pyext::attr_tbl[] =
 {
-//	{ "__setattr__", pyext::py_setattr, METH_VARARGS,"pyext setattr" },
-//	{ "__getattr__", pyext::py_getattr, METH_VARARGS,"pyext getattr" },
-  { NULL, NULL,0,NULL },
+	{ "__setattr__", pyext::py_setattr, METH_VARARGS,"pyext setattr" },
+	{ "__getattr__", pyext::py_getattr, METH_VARARGS,"pyext getattr" },
+	{ NULL, NULL,0,NULL },
 };
 
 
-
-static PyMethodDef pyext_mod_meths[] = {{NULL, NULL, 0, NULL}};
-
-static I ref = 0;
+I pyext::modref = 0;
+PyObject *pyext::module_obj = NULL;
+PyObject *pyext::module_dict = NULL;
+PyObject *pyext::class_obj = NULL;
+PyObject *pyext::class_dict = NULL;
 
 pyext::pyext(I argc,t_atom *argv):
 	pyobj(NULL),pythr(NULL),
@@ -217,36 +218,42 @@ pyext::pyext(I argc,t_atom *argv):
 { 
 	PY_LOCK
 
-	if(!(ref++)) {
-		PyObject *module = Py_InitModule(PYEXT_MODULE, pyext_mod_meths);
+	if(!(modref++)) {
+		// register/initialize pyext module only once!
 
-		PyObject *moduleDict = PyModule_GetDict(module);
-		PyObject *classDict = PyDict_New();
+		module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
+
+		module_dict = PyModule_GetDict(module_obj);
+		class_dict = PyDict_New();
 		PyObject *className = PyString_FromString(PYEXT_CLASS);
-/*
+		PyMethodDef *def;
+
 		// add setattr/getattr to class 
-		for(PyMethodDef* _def = pyext_attrs; _def->ml_name; _def++) {
-			  PyObject *func = PyCFunction_New(_def, NULL);
-			  PyDict_SetItemString(classDict, _def->ml_name, func);
+		for(def = attr_tbl; def->ml_name; def++) {
+			  PyObject *func = PyCFunction_New(def, NULL);
+			  PyDict_SetItemString(class_dict, def->ml_name, func);
 			  Py_DECREF(func);
 		}
-*/
 
-		PyObject *fooClass = PyClass_New(NULL, classDict, className);
-		PyDict_SetItemString(moduleDict, PYEXT_CLASS, fooClass);
-		Py_DECREF(classDict);
+		class_obj = PyClass_New(NULL, class_dict, className);
+		PyDict_SetItemString(module_dict, PYEXT_CLASS,class_obj);
 		Py_DECREF(className);
-		Py_DECREF(fooClass);
     
 		// add methods to class 
-		for (PyMethodDef *def = pyext_meths; def->ml_name != NULL; def++) {
+		for (def = meth_tbl; def->ml_name != NULL; def++) {
 			PyObject *func = PyCFunction_New(def, NULL);
-			PyObject *method = PyMethod_New(func, NULL, fooClass);
-			PyDict_SetItemString(classDict, def->ml_name, method);
+			PyObject *method = PyMethod_New(func, NULL, class_obj);
+			PyDict_SetItemString(class_dict, def->ml_name, method);
 			Py_DECREF(func);
 			Py_DECREF(method);
 		}
  	}
+	else {
+		Py_INCREF(module_obj);
+		Py_INCREF(class_obj);
+		Py_INCREF(module_dict);
+		Py_INCREF(class_dict);
+	}
 
 	// init script module
 	if(argc >= 1) {
@@ -287,45 +294,48 @@ pyext::pyext(I argc,t_atom *argv):
 				PyObject *pargs = MakePyArgs(NULL,argc-2,argv+2);
 				if (pargs == NULL) PyErr_Print();
 
-				pyobj = PyEval_CallObject(pclass, pargs);         /* call class() */
+				// call class
+				pyobj = PyInstance_New(pclass, pargs,NULL);
 				Py_DECREF(pclass);
-				if(pargs) Py_DECREF(pargs);
+				Py_XDECREF(pargs);
 				if(pyobj == NULL) 
 					PyErr_Print();
 				else {
+					// remember the this pointer
 					PyObject *th = PyLong_FromVoidPtr(this); 
-					int ret = PyObject_SetAttrString(pyobj,"thisptr",th);
+					int ret = PyObject_SetAttrString(pyobj,"_this",th);
+
+					// now get number of inlets and outlets
+					inlets = 1,outlets = 1;
 
 					PyObject *res;
 					res = PyObject_GetAttrString(pyobj,"_inlets"); 
-					if(res && PyInt_Check(res)) {
-						inlets = PyInt_AsLong(res);
+					if(res) {
+						if(PyCallable_Check(res)) {
+							PyObject *fres = PyEval_CallObject(res,NULL);
+							Py_DECREF(res);
+							res = fres;
+						}
+						if(PyInt_Check(res)) 
+							inlets = PyInt_AsLong(res);
 						Py_DECREF(res);
 					}
-					else inlets = 1;
+					else 
+						PyErr_Clear();
 
 					res = PyObject_GetAttrString(pyobj,"_outlets"); 
-					if(res && PyInt_Check(res)) {
-						outlets = PyInt_AsLong(res);
-						Py_DECREF(res);
-					}
-					else outlets = 1;
-					
-/*
-					PyObject *res;
-					res = call("_inlets");
 					if(res) {
-						inlets = PyInt_AsLong(res);
+						if(PyCallable_Check(res)) {
+							PyObject *fres = PyEval_CallObject(res,NULL);
+							Py_DECREF(res);
+							res = fres;
+						}
+						if(PyInt_Check(res))
+							outlets = PyInt_AsLong(res);
 						Py_DECREF(res);
 					}
-					else inlets = 1;
-					res = call("_outlets");
-					if(res) {
-						outlets = PyInt_AsLong(res);
-						Py_DECREF(res);
-					}
-					else outlets = 1;
-*/
+					else
+						PyErr_Clear();
 				}
 			}
 		}
@@ -341,6 +351,7 @@ pyext::pyext(I argc,t_atom *argv):
 
 #ifdef FLEXT_THREADS
 	FLEXT_ADDMETHOD_(0,"detach",m_detach);
+	FLEXT_ADDMETHOD_(0,"stop",m_stop);
 #endif
 }
 
@@ -348,9 +359,22 @@ pyext::~pyext()
 {
 	PY_LOCK
 	
-	--ref;
 	Py_XDECREF(pyobj);
 
+/*
+	// Don't unregister
+
+	if(!--modref) {
+		Py_DECREF(class_obj);
+		class_obj = NULL;
+		Py_DECREF(class_dict);
+		class_dict = NULL;
+		Py_DECREF(module_obj);
+		module_obj = NULL;
+		Py_DECREF(module_dict);
+		module_dict = NULL;
+	}
+*/
 	PY_UNLOCK
 }
 
@@ -393,6 +417,7 @@ V pyext::m_help()
 	post("\treload [args...]: reload python script");
 #ifdef FLEXT_THREADS
 	post("\tdetach 0/1: detach threads");
+	post("\tstop [wait time (ms)]: stop threads");
 #endif
 	post("");
 }
@@ -425,31 +450,6 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *arg
 	return ret;
 }
 
-PyObject *pyext::call(const C *meth) 
-{
-	PyObject *pres = NULL;
-
-	PyObject *pmeth  = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
-	if(pmeth == NULL) {
-		PyErr_Clear(); // no method found
-	}
-	else {
-//		PyObject *sf = PyTuple_New(0);
-//		PyTuple_SetItem(sf,0,pyobj); 
-
-		pres = PyEval_CallObject(pmeth, NULL);           /* call method(x,y) */
-		if (pres == NULL)
-			PyErr_Print();
-		else {
-//			Py_DECREF(pres);
-		}
-		Py_DECREF(pmeth);
-//		Py_DECREF(sf);
-	}
-
-	return pres;
-}
-
 V pyext::work_wrapper(V *data)
 {
 	++thrcount;
@@ -462,8 +462,14 @@ V pyext::work_wrapper(V *data)
 BL pyext::callwork(I n,const t_symbol *s,I argc,t_atom *argv)
 {
 	if(detach) {
-		FLEXT_CALLMETHOD_X(work_wrapper,new work_data(n,s,argc,argv));
-		return true;
+		if(shouldexit) {
+			post("%s - New threads can't be launched now!",thisName());
+			return false;
+		}
+		else {
+			FLEXT_CALLMETHOD_X(work_wrapper,new work_data(n,s,argc,argv));
+			return true;
+		}
 	}
 	else 
 		return work(n,s,argc,argv);

@@ -49,7 +49,6 @@ private:
 	FLEXT_CALLBACK(m_bang)
 	FLEXT_CALLBACK_V(m_reload)
 	FLEXT_CALLBACK_V(m_set)
-	FLEXT_CALLBACK_B(m_detach)
 
 	FLEXT_CALLBACK_V(m_py_float)
 	FLEXT_CALLBACK_V(m_py_list)
@@ -80,6 +79,7 @@ pyobj::pyobj(I argc,t_atom *argv):
 	FLEXT_ADDMETHOD_(0,"set",m_set);
 #ifdef FLEXT_THREADS
 	FLEXT_ADDMETHOD_(0,"detach",m_detach);
+	FLEXT_ADDMETHOD_(0,"stop",m_stop);
 #endif
 
 	FLEXT_ADDMETHOD_(1,"float",m_py_float);
@@ -176,6 +176,7 @@ V pyobj::m_help()
 	post("\treload [args...]: reload python script");
 #ifdef FLEXT_THREADS
 	post("\tdetach 0/1: detach threads");
+	post("\tstop [wait time (ms)]: stop threads");
 #endif
 	post("");
 }
@@ -203,8 +204,8 @@ V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 			PyErr_Print();
 //			post("%s: python function call failed",thisName());
 		}
-		if(pArgs) Py_DECREF(pArgs);
-		if(pValue) Py_DECREF(pValue);
+		Py_XDECREF(pArgs);
+		Py_XDECREF(pValue);
 	}
 	else {
 		post("%s: no function defined",thisName());
@@ -216,8 +217,12 @@ V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 
 V pyobj::callwork(const t_symbol *s,I argc,t_atom *argv)
 {
-	if(detach)
-		FLEXT_CALLMETHOD_A(work,s,argc,argv);
+	if(detach) {
+		if(shouldexit)
+			post("%s - New threads can't be launched now!",thisName());
+		else
+			FLEXT_CALLMETHOD_A(work,s,argc,argv);
+	}
 	else
 		work(s,argc,argv);
 }
