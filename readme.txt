@@ -57,7 +57,7 @@ o Cygwin: edit "config-pd-cygwin.txt" & run "sh build-pd-cygwin.sh"
 pd - linux:
 -----------
 Python doesn't provide a shared lib by default - static linking produces huge externals
-Ok, debian is an exception...
+Ok, debian is an exception... the precompiled binary is for debian, therefore.
 
 o GCC: edit "config-pd-linux.txt" & run "sh build-pd-linux.sh" 
 
