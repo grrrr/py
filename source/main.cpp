@@ -190,7 +190,8 @@ V py::ReloadModule()
 		PyObject *newmod = PyImport_ReloadModule(module);
 		if(!newmod) {
 			PyErr_Print();
-			dict = NULL;
+			// old module still exists?!
+//			dict = NULL;
 		}
 		else {
 			Py_XDECREF(module);

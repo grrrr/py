@@ -170,7 +170,7 @@ pyext::~pyext()
 BL pyext::SetClssMeth() //I argc,t_atom *argv)
 {
 	if(module) {
-		Py_XDECREF(pyobj); //pyobj = NULL;
+//		Py_XDECREF(pyobj); //pyobj = NULL;
 
 		PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(methname)));  
 		if(!pref) 
@@ -201,6 +201,8 @@ BL pyext::SetClssMeth() //I argc,t_atom *argv)
 
 V pyext::Reload()
 {
+	Py_XDECREF(pyobj);
+	ReloadModule();
 	SetClssMeth();
 }
 
@@ -210,13 +212,15 @@ V pyext::m_reload(I argc,t_atom *argv)
 {
 	PY_LOCK
 
-	Unregister("_pyext");
+	Unregister("_pyext"); // self
 	SetArgs(0,NULL);
 
 	args(argc,argv);
 	ReloadModule();
-	Reregister("_pyext");
-	Register("_pyext");
+	Reload();
+
+	Reregister("_pyext"); // the others
+	Register("_pyext"); // self
 
 	PY_UNLOCK
 }
@@ -306,7 +310,7 @@ BL pyext::callwork(I n,const t_symbol *s,I argc,t_atom *argv)
 {
 	if(detach) {
 		if(shouldexit) {
-			post("%s - New threads can't be launched now!",thisName());
+			post("%s - Stopping.... new threads can't be launched now!",thisName());
 			return true;
 		}
 		else {
