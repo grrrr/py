@@ -47,7 +47,25 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #define D double
 
 
-#include "main.h"
+class Fifo
+{
+protected:
+    struct FifoEl {
+        PyObject *fun;
+        PyObject *args;
+        FifoEl *nxt;
+    };
+public:
+    Fifo(): head(NULL),tail(NULL) {}
+    ~Fifo();
+
+    bool Push(PyObject *f,PyObject *a);
+    bool Pop(PyObject *&f,PyObject *&a);
+    
+protected:
+    FifoEl *head,*tail;
+};
+
 
 class py:
 	public flext_base
@@ -89,7 +107,7 @@ protected:
 	V Reregister(const C *reg);
 	virtual V Reload() = 0;
 
-    V Respond(BL b) { if(respond) { t_atom a[1]; SetBool(a[0],b); ToOutAnything(GetOutAttr(),MakeSymbol("response"),1,a); } }
+    V Respond(BL b);
 
 	static BL IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 
@@ -108,8 +126,10 @@ protected:
 
 	static PyObject *py_samplerate(PyObject *,PyObject *args);
 	static PyObject *py_blocksize(PyObject *,PyObject *args);
+/*
 	static PyObject *py_inchannels(PyObject *,PyObject *args);
 	static PyObject *py_outchannels(PyObject *,PyObject *args);
+*/
 #if FLEXT_SYS == FLEXT_SYS_PD
 	static PyObject *py_getvalue(PyObject *,PyObject *args);
 	static PyObject *py_setvalue(PyObject *,PyObject *args);
@@ -119,12 +139,16 @@ protected:
 
 	virtual V m_stop(int argc,const t_atom *argv);
 
-	BL detach,shouldexit,respond;
+	BL shouldexit,respond;
 	I thrcount;
 	I stoptick;
     Timer stoptmr;
+    I detach;
 
 	V tick(V *);
+    
+    void threadworker();
+    ThrCond cond;
 
 public:
 
@@ -142,7 +166,7 @@ public:
 protected:
 	// callbacks
 
-	FLEXT_ATTRVAR_B(detach)
+	FLEXT_ATTRVAR_I(detach)
 	FLEXT_ATTRVAR_B(respond)
 	FLEXT_CALLBACK_V(m_stop)
 	FLEXT_CALLBACK(m_dir)
@@ -167,9 +191,31 @@ void FreeThreadState();
     PyEval_ReleaseLock(); \
     }
 
+class PyLock
+{
+public:
+    PyLock() 
+    {
+        PyEval_AcquireLock();
+        state = PyThreadState_Swap(FindThreadState());
+    }
+    
+    ~PyLock()
+    {
+        PyThreadState_Swap(state);
+        PyEval_ReleaseLock();
+    }
+protected:
+    PyThreadState state;
+};
+
 #else
+
 #define PY_LOCK 
 #define PY_UNLOCK 
+
+class PyLock {};
+
 #endif
 
 #endif

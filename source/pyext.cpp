@@ -460,6 +460,26 @@ V pyext::m_help()
 	post("");
 }
 
+PyObject *pyext::callpy(PyObject *fun,PyObject *args)
+{
+    PyObject *ret = PyEval_CallObject(fun,args); 
+    if(ret == NULL) // function not found resp. arguments not matching
+        PyErr_Print();
+    else {
+        AtomList *rargs = GetPyArgs(ret);
+		if(!rargs) 
+            PyErr_Print();
+        else {
+            // call to outlet _outside_ the Mutex lock!
+            // otherwise (if not detached) deadlock will occur
+            if(rargs->Count()) ToOutList(0,*rargs);
+            delete rargs;
+        }
+        Py_DECREF(ret);
+    }
+    return ret;
+} 
+
 PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *argv) 
 {
 	PyObject *ret = NULL;
@@ -473,10 +493,7 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_ato
 		if(!pargs)
 			PyErr_Print();
 		else {
-			ret = PyEval_CallObject(pmeth, pargs); 
-			if (ret == NULL) // function not found resp. arguments not matching
-				PyErr_Print();
-
+            ret = callpy(pmeth,pargs);
 			Py_DECREF(pargs);
 		}
 		Py_DECREF(pmeth);

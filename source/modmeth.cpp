@@ -18,12 +18,12 @@ PyMethodDef py::func_tbl[] =
 #ifdef FLEXT_THREADS
 	{ "_priority", py::py_priority, METH_VARARGS,"Set priority of current thread" },
 #endif
-
+/*
 	{ "_samplerate", py::py_samplerate, METH_NOARGS,"Get system sample rate" },
 	{ "_blocksize", py::py_blocksize, METH_NOARGS,"Get system block size" },
 	{ "_inchannels", py::py_inchannels, METH_NOARGS,"Get number of audio in channels" },
 	{ "_outchannels", py::py_outchannels, METH_NOARGS,"Get number of audio out channels" },
-
+*/
 #if FLEXT_SYS == FLEXT_SYS_PD
 	{ "_getvalue", py::py_getvalue, METH_VARARGS,"Get value of a 'value' object" },
 	{ "_setvalue", py::py_setvalue, METH_VARARGS,"Set value of a 'value' object" },
@@ -42,8 +42,10 @@ const C *py::py_doc =
 #endif
 	"_samplerate(): Get system sample rate\n"
 	"_blocksize(): Get current blocksize\n"
+/*
 	"_inchannels(): Get number of audio in channels\n"
 	"_outchannels(): Get number of audio out channels\n"
+*/
     "_getvalue(name): Get value of a 'value' object\n"
     "_setvalue(name,float): Set value of a 'value' object\n"
 ;
@@ -105,7 +107,7 @@ PyObject *py::py_blocksize(PyObject *self,PyObject *args)
 {
 	return PyLong_FromLong(sys_getblksize());
 }
-
+/*
 PyObject *py::py_inchannels(PyObject *self,PyObject *args)
 {
 #if FLEXT_SYS == FLEXT_SYS_PD
@@ -131,7 +133,7 @@ PyObject *py::py_outchannels(PyObject *self,PyObject *args)
 #endif
 	return PyLong_FromLong(ch);
 }
-
+*/
 PyObject *py::py_send(PyObject *,PyObject *args)
 {
     // should always be a tuple

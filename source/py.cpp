@@ -127,12 +127,11 @@ pyobj::pyobj(I argc,const t_atom *argv):
 			// add current dir to path
 			AddToPath(GetString(canvas_getcurrentdir()));
 #elif FLEXT_SYS == FLEXT_SYS_MAX 
-#if FLEXT_OS == FLEXT_OS_WIN
-#else
+/*
 			short path = patcher_myvol(thisCanvas());
 			path_topathname(path,NULL,dir); 
 			AddToPath(dir);       
-#endif
+*/
 #else 
 	        #pragma message("Adding current dir to path is not implemented")
 #endif
@@ -248,7 +247,7 @@ V pyobj::m_help()
 	post("\tdir: dump module dictionary");
 	post("\tdir+: dump function dictionary");
 #ifdef FLEXT_THREADS
-	post("\tdetach 0/1: detach threads");
+	post("\tdetach 0/1/2: detach threads");
 	post("\tstop {wait time (ms)}: stop threads");
 #endif
 	post("");
@@ -290,6 +289,13 @@ V pyobj::Reload()
 	ResetFunction();
 }
 
+PyObject *py::callpy(PyObject *fun,PyObject *args)
+{
+    PyObject *ret = PyEval_CallObject(fun,args); 
+    if(ret == NULL) // function not found resp. arguments not matching
+        PyErr_Print();
+    return ret;
+} 
 
 BL pyobj::work(const t_symbol *s,I argc,const t_atom *argv)
 {

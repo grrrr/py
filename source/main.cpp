@@ -93,8 +93,11 @@ V py::lib_setup()
 	PyModule_AddStringConstant(module_obj,"__doc__",(C *)py_doc);
 
 	// redirect stdout
-	PyObject* py_out = Py_InitModule("stdout", StdOut_Methods);
+	PyObject* py_out;
+    py_out = Py_InitModule("stdout", StdOut_Methods);
 	PySys_SetObject("stdout", py_out);
+    py_out = Py_InitModule("stderr", StdOut_Methods);
+	PySys_SetObject("stderr", py_out);
 
 #ifdef FLEXT_THREADS
     // release global lock
@@ -116,7 +119,7 @@ PyObject *py::module_dict = NULL;
 
 py::py(): 
 	module(NULL),
-	detach(false),shouldexit(false),thrcount(0),
+	detach(0),shouldexit(false),thrcount(0),
 	stoptick(0)
 {
 	PY_LOCK
@@ -295,10 +298,25 @@ V py::GetModulePath(const C *mod,C *dir,I len)
 	// how do i get the path in Max/MSP?
     short path;
     long type;
-    char smod[256];
+    char smod[1024];
     strcat(strcpy(smod,mod),".py");
-    if(!locatefile_extended(smod,&path,&type,&type,-1))
+    if(!locatefile_extended(smod,&path,&type,&type,-1)) {
+#if FLEXT_OS == FLEXT_OS_WIN
         path_topathname(path,NULL,dir);
+#else
+        // convert pathname to unix style
+        path_topathname(path,NULL,smod);
+        char *colon = strchr(smod,':');
+        if(colon) {
+            *colon = 0;
+            strcpy(dir,"/Volumes/");
+            strcat(dir,smod);
+            strcat(dir,colon+1);
+        }
+        else
+            strcpy(dir,smod);
+#endif
+    }
     else 
         // not found
         *dir = 0;
@@ -325,6 +343,19 @@ V py::AddToPath(const C *dir)
 		PySys_SetObject("path",pobj);
 	}
 }
+
+static const t_symbol *sym_respond = flext::MakeSymbol("response");
+
+V py::Respond(BL b) 
+{ 
+    if(respond) { 
+        t_atom a; 
+        SetBool(a,b); 
+        ToOutAnything(GetOutAttr(),sym_response,1,&a); 
+    } 
+}
+
+
 
 static PyObject *output = NULL;
 
@@ -367,4 +398,46 @@ PyObject* py::StdOut_Write(PyObject* self, PyObject* args)
 
     Py_INCREF(Py_None);
     return Py_None;
+}
+
+void py::threadworker()
+{
+    while(!ShouldExit()) {
+        PyObject *fun,*args;
+        while(fifo.pop(fun,args)) {
+        }
+        
+        cond.Wait();
+    }
+}
+
+Fifo::~Fifo()
+{
+    FifoEl *el = head;
+    while(el) {
+        FifoEl *n = el->nxt;
+        delete el;
+        el = n;
+    }
+}
+
+void Fifo::Push(PyObject *f,PyObject *a)
+{
+    FifoEl *el = new FifoEl;
+    el->fun = f;
+    el->args = a;
+    tail = tail->nxt = el;
+    if(!head) head = el;
+}
+
+bool Fifo::Pop(PyObject *&f,PyObject *&a)
+{
+    if(!head) return false;
+    FifoEl *el = head;
+    head = el->nxt;
+    f = el->fun;
+    a = el->args;
+    if(tail == el) tail = NULL;
+    delete el;
+    return true;
 }
