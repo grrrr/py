@@ -340,8 +340,11 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="1"
+				Optimization="3"
+				GlobalOptimizations="TRUE"
+				InlineFunctionExpansion="2"
+				OmitFramePointers="TRUE"
+				OptimizeForProcessor="3"
 				AdditionalIncludeDirectories="&quot;f:\prog\pd\pd-cvs\src&quot;;f:\prog\packs\pthreads;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_SHARED"
 				StringPooling="TRUE"
@@ -362,7 +365,7 @@
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="f:\prog\max\flext\pd-msvc;&quot;f:\prog\pd\pd-cvs/bin&quot;;f:\prog\packs\pthreads;C:\Programme\prog\Python23\libs"
 				ProgramDatabaseFile=".\pd-msvc\tr/py.pdb"
-				ImportLibrary=".\pd-msvc\sr/py.lib"
+				ImportLibrary="$(outdir)/py.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
