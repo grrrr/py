@@ -17,6 +17,7 @@ static PyMethodDef StdOut_Methods[] =
 	{ NULL,    NULL,           }  
 };
 
+static PyObject *gcollect = NULL;
 
 #ifdef FLEXT_THREADS
 
@@ -118,6 +119,13 @@ void py::lib_setup()
 	PySys_SetObject("stdout", py_out);
     py_out = Py_InitModule("stderr", StdOut_Methods);
 	PySys_SetObject("stderr", py_out);
+
+    // get garbage collector function
+    PyObject *gcobj = PyImport_ImportModule("gc");
+    if(gcobj) {
+        gcollect = PyObject_GetAttrString(gcobj,"collect");
+        Py_DECREF(gcobj);
+    }
 
 	// -------------------------------------------------------------
 
@@ -548,6 +556,21 @@ short py::patcher_myvol(t_patcher *x)
 }
 #endif
 
+void py::collect()
+{
+    if(gcollect) {
+        PyObject *args = PyTuple_New(0);
+        PyObject *ret = PyObject_Call(gcollect,args,NULL);
+        Py_DECREF(args);
+        if(ret) {
+#ifdef FLEXT_DEBUG
+            int refs = PyInt_AsLong(ret);
+            if(refs) post("py/pyext - Garbage collector reports %i unreachable objects",refs);
+#endif
+            Py_DECREF(ret);
+        }
+    }
+}
 
 Fifo::~Fifo()
 {

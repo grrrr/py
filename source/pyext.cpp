@@ -244,27 +244,7 @@ void pyext::DoExit()
     	Py_DECREF(pyobj);  // opposite of SetClssMeth
     }
 
-    if(gcrun) {
-        // object is still referenced - run garbage collector
-        PyObject *gcobj = PyImport_ImportModule("gc");
-        if(gcobj) {
-            PyObject *gcollect = PyObject_GetAttrString(gcobj,"collect");
-            if(gcollect) {
-                PyObject *args = PyTuple_New(0);
-                PyObject *ret = PyObject_Call(gcollect,args,NULL);
-                Py_DECREF(args);
-                if(ret) {
-#ifdef FLEXT_DEBUG
-                    int refs = PyInt_AsLong(ret);
-                    post("%s - Garbage collector reports %i unreachable objects",thisName(),refs);
-#endif
-                    Py_DECREF(ret);
-                }
-                Py_DECREF(gcollect);
-            }
-            Py_DECREF(gcobj);
-        }
-    }
+    if(gcrun) collect();
 }
 
 void pyext::InitInOut(int &inl,int &outl)
@@ -560,13 +540,7 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 	// try anything/inlet
     if(!ret) {
 		sprintf(str,"_anything_%i",n);
-		if(s == sym_bang && !argc) {
-			t_atom argv;
-			SetSymbol(argv,sym__);
-			ret = call(str,0,s,1,&argv);
-		}
-		else
-			ret = call(str,0,s,argc,argv);
+		ret = call(str,0,s,argc,argv);
 	}
 
     // try int at any inlet

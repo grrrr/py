@@ -90,7 +90,7 @@ protected:
 
     void Respond(bool b);
 
-	static bool IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
+	static bool IsAnything(const t_symbol *s) { return s && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 
 	enum retval { nothing,atom,sequ };
 
@@ -132,6 +132,8 @@ protected:
     static short patcher_myvol(t_patcher *x);
 #endif
 
+    static void collect();
+
 private:
 
 	void work_wrapper(void *data); 
@@ -142,14 +144,12 @@ private:
     Fifo qufifo;
     ThrCond qucond;
 
+    static PyThreadState *FindThreadState();
+    static void FreeThreadState();
+
 	FLEXT_THREAD_X(work_wrapper)
 #else
 	FLEXT_CALLBACK_X(work_wrapper)
-#endif
-
-#ifdef FLEXT_THREADS
-    static PyThreadState *FindThreadState();
-    static void FreeThreadState();
 #endif
 
 public:
