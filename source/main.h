@@ -18,8 +18,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <unistd.h>
 #endif
 
-#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 401)
-#error You need at least flext version 0.4.1
+#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 403)
+#error You need at least flext version 0.4.3
 #endif
 
 #define PY__VERSION "0.1.2pre"

@@ -142,18 +142,11 @@ PyObject *py::py_send(PyObject *,PyObject *args)
 
 			AtomList *lst = GetPyArgs(val);
 			if(lst) {
-//				t_class **cl = (t_class **)GetBound(recv);
-				t_class **cl = (t_class **)recv->s_thing;
-				if(cl) {
-#if FLEXT_SYS == FLEXT_SYS_PD
-					pd_forwardmess(cl,lst->Count(),lst->Atoms());
-#else
-#pragma message ("Send is not implemented")
-#endif
-				}
+                if(!Forward(recv,*lst))
 #ifdef FLEXT_DEBUG
-				else 
 					post("py/pyext - Receiver doesn't exist");
+#else
+                    {}
 #endif
 			}
 			else 
