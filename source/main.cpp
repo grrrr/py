@@ -97,11 +97,29 @@ void py::lib_setup()
     pythrmap[GetThreadId()] = pythrmain;
 #endif
 
+    // sys.argv must be set to empty tuple
+    char *nothing = "";
+	PySys_SetArgv(0,&nothing);
+
     // register/initialize pyext module only once!
 	module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
 	module_dict = PyModule_GetDict(module_obj); // borrowed reference
 
 	PyModule_AddStringConstant(module_obj,"__doc__",(char *)py_doc);
+
+	// redirect stdout
+	PyObject* py_out;
+    py_out = Py_InitModule("stdout", StdOut_Methods);
+	PySys_SetObject("stdout", py_out);
+    py_out = Py_InitModule("stderr", StdOut_Methods);
+	PySys_SetObject("stderr", py_out);
+
+    // get garbage collector function
+    PyObject *gcobj = PyImport_ImportModule("gc");
+    if(gcobj) {
+        gcollect = PyObject_GetAttrString(gcobj,"collect");
+        Py_DECREF(gcobj);
+    }
 
     // add symbol type
     initsymbol();
@@ -118,20 +136,6 @@ void py::lib_setup()
     // add samplebuffer type
     initsamplebuffer();
     PyModule_AddObject(module_obj,"Buffer",(PyObject *)&pySamplebuffer_Type);
-
-	// redirect stdout
-	PyObject* py_out;
-    py_out = Py_InitModule("stdout", StdOut_Methods);
-	PySys_SetObject("stdout", py_out);
-    py_out = Py_InitModule("stderr", StdOut_Methods);
-	PySys_SetObject("stderr", py_out);
-
-    // get garbage collector function
-    PyObject *gcobj = PyImport_ImportModule("gc");
-    if(gcobj) {
-        gcollect = PyObject_GetAttrString(gcobj,"collect");
-        Py_DECREF(gcobj);
-    }
 
 	// -------------------------------------------------------------
 

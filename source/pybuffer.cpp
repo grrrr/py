@@ -653,10 +653,11 @@ PyTypeObject pySamplebuffer_Type = {
 void initsamplebuffer()
 {
 #ifdef PY_NUMARRAY
+    PyErr_Clear();
     import_libnumarray();
     if(PyErr_Occurred())
         // catch import error
-        PyErr_Clear();
+        PyErr_Print();
     else {
         // numarray support ok
         nasupport = true;
