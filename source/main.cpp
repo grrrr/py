@@ -12,6 +12,9 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include <flext.h>
 #include <Python.h>
+#ifndef NT
+#include <unistd.h>
+#endif
 
 #if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 201)
 #error You need at least flext version 0.2.1 
@@ -43,7 +46,7 @@ protected:
 	V work(const t_symbol *s,I argc,t_atom *argv); 
 
 	virtual V m_bang() { work(sym_bang,0,NULL); }
-	virtual V m_reset(I argc,t_atom *argv);
+	virtual V m_reload(I argc,t_atom *argv);
 	virtual V m_set(I argc,t_atom *argv);
 
 	virtual V m_help();
@@ -78,7 +81,7 @@ protected:
 	V SetArgs(I argc,t_atom *argv);
 	V ImportModule(const C *name);
 	V SetModule(I hname,PyObject *module);
-	V ResetModule();
+	V ReloadModule();
 	PyObject *GetModule();
 	V SetFunction(const C *name);
 	PyObject *GetFunction();
@@ -91,7 +94,7 @@ private:
 	static V setup(t_class *);
 	
 	FLEXT_CALLBACK(m_bang)
-	FLEXT_CALLBACK_G(m_reset)
+	FLEXT_CALLBACK_G(m_reload)
 	FLEXT_CALLBACK_G(m_set)
 
 	FLEXT_CALLBACK_G(m_py_float)
@@ -207,7 +210,7 @@ V py::SetModule(I hname,PyObject *module)
 	}
 }
 
-V py::ResetModule()
+V py::ReloadModule()
 {
 	lookup *l;
 	for(l = modules; l && l->modhash != hName; l = l->nxt);
@@ -250,7 +253,7 @@ py::py(I argc,t_atom *argv):
 	SetupInOut();  // set up inlets and outlets
 
 	FLEXT_ADDBANG(0,m_bang);
-	FLEXT_ADDMETHOD_(0,"reset",m_reset);
+	FLEXT_ADDMETHOD_(0,"reload",m_reload);
 	FLEXT_ADDMETHOD_(0,"set",m_set);
 
 	FLEXT_ADDMETHOD_(1,"float",m_py_float);
@@ -308,11 +311,11 @@ V py::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 	post("%s - no method for type %s",thisName(),GetString(s));
 }
 
-V py::m_reset(I argc,t_atom *argv)
+V py::m_reload(I argc,t_atom *argv)
 {
 	if(argc > 2) SetArgs(argc,argv);
 
-	ResetModule();
+	ReloadModule();
 }
 
 V py::m_set(I argc,t_atom *argv)
@@ -342,7 +345,7 @@ V py::m_help()
 	post("compiled on " __DATE__ " " __TIME__);
 #endif
 
-	post("Arguments: %s [script name] [function name]",thisName());
+	post("Arguments: %s [script name] [function name] [args...]",thisName());
 
 	post("Inlet 1:messages to control the py object");
 	post("      2:call python function with message as argument(s)");
@@ -351,7 +354,7 @@ V py::m_help()
 	post("\thelp: shows this help");
 	post("\tbang: call script without arguments");
 	post("\tset [script name] [function name]: set (script and) function name");
-	post("\treset: reload python script");
+	post("\treload [args...]: reload python script");
 	post("");
 }
 
@@ -455,3 +458,4 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 		post("%s: no function defined",thisName());
 	}
 }
+

@@ -19,11 +19,19 @@ INSTDIR=/usr/lib/pd/extra
 FLEXTPATH=/usr/lib/pd/flext
 FLEXTLIB=$(FLEXTPATH)/flext.a
 
+# python stuff	### EDIT! ###
+PYTHONINCLUDE=/usr/include/python2.2
+PYTHONLIB=/usr/lib/python2.2/config
+PYTHONEXE=/usr/bin/python
+PYTHONDYN=
+
 # compiler+linker stuff	### EDIT! ###
-INCLUDES=/usr/lib/pd/include
+INCLUDES=/usr/lib/pd/include $(PYTHONINCLUDE)
+LIBPATH=$(PYTHONLIB)
 FLAGS=-DPD
-CFLAGS=-O6 -mpentium -g
-LIBS=m
+CFLAGS=-O6 -mpentium  
+LIBS=m util 
+#python2.2
 
 
 # the rest can stay untouched
@@ -47,8 +55,8 @@ $(TARGDIR):
 $(TARGDIR)/%.o : %.cpp
 	$(CXX) -c $(CFLAGS) $(FLAGS) $(patsubst %,-I%,$(INCLUDES) $(FLEXTPATH)) $< -o $@
 
-$(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS)) $(FLEXTLIB) 
-	$(CXX) $(LDFLAGS) -shared $^ $(patsubst %,-l%,$(LIBS)) -o $@ 
+$(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS)) $(FLEXTLIB) $(PYTHONDYN)
+	$(CXX) -shared $^ $(patsubst %,-L%,$(LIBPATH)) $(patsubst %,-l%,$(LIBS)) -o $@ 
 	chmod 755 $@
 
 $(INSTDIR):
@@ -64,6 +72,8 @@ install:: $(TARGET)
 clean:
 	rm -f $(TARGDIR)/*.o $(TARGET)
 	
+
+
 
 
 
