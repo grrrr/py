@@ -17,6 +17,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.2.0 
 #endif
 
+#define PY_VERSION "0.0.0"
 
 class py:
 	public flext_base
@@ -56,6 +57,9 @@ I py::pyref;
 
 V py::cb_setup(t_class *) 
 {
+	post("py %s - python script object, (C)2002 Thomas Grill",PY_VERSION);
+	post("");
+
 	py::pyref = 0;
 }
 
@@ -118,6 +122,8 @@ py::py(I argc,t_atom *argv):
 
 		pName = PyString_FromString(scrname);
 
+
+		// the arguments to the module are only recognized once! (at first use in a patcher)
 		pModule = PyImport_Import(pName);
 		if (!pModule) 
 			post("%s: python script %s not found or init error",thisName(),scrname);
