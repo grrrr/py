@@ -65,6 +65,8 @@ private:
 	static V Setup(t_classid);
 
 	static pyext *GetThis(PyObject *self);
+	void SetThis();
+
 	V ClearBinding();
 	BL MakeInstance();
 	BL DoInit();

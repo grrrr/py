@@ -87,6 +87,13 @@ pyext *pyext::GetThis(PyObject *self)
     }
 }
 
+void pyext::SetThis()
+{
+	// remember the this pointer
+	PyObject *th = PyLong_FromVoidPtr(this); 
+	int ret = PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
+}
+
 
 #if FLEXT_SYS == FLEXT_SYS_MAX
 static short patcher_myvol(t_patcher *x)
@@ -254,11 +261,9 @@ pyext::~pyext()
 
 BL pyext::DoInit()
 {
-	// remember the this pointer
-	PyObject *th = PyLong_FromVoidPtr(this); 
-	int ret = PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
+    SetThis();
 
-	// call init now, after _this has been set, which is
+    // call init now, after _this has been set, which is
 	// important for eventual callbacks from __init__ to c
 	PyObject *pargs = MakePyArgs(NULL,args.Count(),args.Atoms(),-1,true);
 	if(!pargs) PyErr_Print();
@@ -329,6 +334,8 @@ V pyext::m_reload()
 
 	Reregister("_pyext"); // the others
 	Register("_pyext"); // self
+
+    SetThis();
 
 	PY_UNLOCK
 }

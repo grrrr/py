@@ -132,6 +132,8 @@ V pyext::ClearBinding()
     // in case the object couldn't be constructed...
     if(!pyobj) return;
 
+    FLEXT_ASSERT(GetThis(pyobj));
+
     void *data = NULL;
     const t_symbol *sym = NULL;
 

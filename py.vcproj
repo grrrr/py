@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="py"
+	ProjectGUID="{98512688-BE2E-4C17-A7D4-92BC21DC6FFE}"
 	SccProjectName="py"
 	SccAuxPath=""
 	SccLocalPath="."
@@ -291,14 +292,14 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pd.lib pthreadVC.lib"
+				AdditionalDependencies="flext_ld.lib pd.lib pthreadVC.lib"
 				OutputFile="$(outdir)/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="&quot;f:\prog\pd\pd-cvs/bin&quot;;f:\prog\packs\pthreads;&quot;f:\prog\packs\Python-2.3.2\PCbuild&quot;"
+				AdditionalLibraryDirectories="f:\prog\max\flext\pd-msvc;&quot;f:\prog\pd\pd-cvs/bin&quot;;f:\prog\packs\pthreads;&quot;f:\prog\packs\Python-2.3.4\PCbuild&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\pd-msvc\td/py.pdb"
-				ImportLibrary=".\pd-msvc\td/py.lib"
+				ImportLibrary=".\pd-msvc\sd/py.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -341,7 +342,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="f:\prog\pd\pd-cvs\src,f:\prog\packs\pthreads;f:\prog\max\flext\source,C:\Programme\prog\Python22\include"
+				AdditionalIncludeDirectories="&quot;f:\prog\pd\pd-cvs\src&quot;;f:\prog\packs\pthreads;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_SHARED"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -355,13 +356,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pd.lib pthreadVC.lib"
+				AdditionalDependencies="flext_l.lib pd.lib pthreadVC.lib"
 				OutputFile="$(outdir)\py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="f:\prog\pd\pd-cvs/bin;f:\prog\packs\pthreads,C:\Programme\prog\Python22\libs"
+				AdditionalLibraryDirectories="f:\prog\max\flext\pd-msvc;&quot;f:\prog\pd\pd-cvs/bin&quot;;f:\prog\packs\pthreads;C:\Programme\prog\Python23\libs"
 				ProgramDatabaseFile=".\pd-msvc\tr/py.pdb"
-				ImportLibrary=".\pd-msvc\tr/py.lib"
+				ImportLibrary=".\pd-msvc\sr/py.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
