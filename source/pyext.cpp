@@ -431,7 +431,7 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *arg
 		PyErr_Clear(); // no method found
 	}
 	else {
-		PyObject *pargs = MakePyArgs(s,argc,argv,inlet?inlet:-1);
+		PyObject *pargs = MakePyArgs(s,argc,argv,inlet?inlet:-1,true);
 		if(!pargs)
 			PyErr_Print();
 		else {

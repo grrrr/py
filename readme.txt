@@ -79,11 +79,13 @@ general:
 
 features:
 - enable multiple interpreters?
-- introduce a _shouldexit attribute for thread termination (or raise a signal?)
+- implement send and receive
+- make a pygui object where Tkinter draws to PD canvas...
+- stop individual threads
 
 tests:
 
 bugs:
-- the python interpreter won't be unloaded due to some bug at re-initialization
-- fast message repetitions in detached mode make python crash
+- check for python threading support
+- the python interpreter can't be unloaded due to some bug at re-initialization
 

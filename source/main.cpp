@@ -254,7 +254,7 @@ PyObject *py::GetFunction(const C *func)
 	return ret;
 }
 
-PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet)
+PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet,BL withself)
 {
 	PyObject *pArgs;
 
@@ -271,7 +271,7 @@ PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet)
 
 	I ix;
 	PyObject *tmp;
-	if(argc < (any?1:2)) tmp = pArgs,ix = pix;
+	if(!withself || argc < (any?1:2)) tmp = pArgs,ix = pix;
 	else tmp = PyTuple_New(argc+(any?1:0)),ix = 0;
 
 	if(any) {
