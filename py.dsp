@@ -40,8 +40,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "msvc\r"
-# PROP Intermediate_Dir "msvc\r"
+# PROP Output_Dir "pd-msvc\r"
+# PROP Intermediate_Dir "pd-msvc\r"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "PY_EXPORTS" /YX /FD /c
@@ -66,8 +66,8 @@ LINK32=link.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "msvc\d"
-# PROP Intermediate_Dir "msvc\d"
+# PROP Output_Dir "pd-msvc\d"
+# PROP Intermediate_Dir "pd-msvc\d"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "PY_EXPORTS" /YX /FD /GZ /c
@@ -93,8 +93,8 @@ LINK32=link.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "msvc\tr"
-# PROP Intermediate_Dir "msvc\tr"
+# PROP Output_Dir "pd-msvc\tr"
+# PROP Intermediate_Dir "pd-msvc\tr"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GR /GX /O2 /I "c:\programme\audio\pd\src" /I "f:\prog\max\flext" /I "C:\Programme\prog\Python22\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "PD" /D "NT" /YX /FD /c
@@ -108,7 +108,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib pd.lib flext-pdwin.lib /nologo /dll /machine:I386 /libpath:"c:/programme/audio/pd/bin" /libpath:"..\flext\msvc" /libpath:"C:\Programme\prog\Python22\libs"
-# ADD LINK32 kernel32.lib user32.lib pd.lib flext_t-pdwin.lib pthreadVC.lib /nologo /dll /machine:I386 /libpath:"c:/programme/audio/pd/bin" /libpath:"..\flext\pd-msvc" /libpath:"C:\Programme\prog\Python22\libs"
+# ADD LINK32 kernel32.lib user32.lib pd.lib flext_t-pdwin.lib pthreadVC.lib /nologo /dll /machine:I386 /out:"pd-msvc\py.dll" /libpath:"c:/programme/audio/pd/bin" /libpath:"..\flext\pd-msvc" /libpath:"C:\Programme\prog\Python22\libs"
 
 !ELSEIF  "$(CFG)" == "py - Win32 Threads Debug"
 
@@ -120,8 +120,8 @@ LINK32=link.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "msvc\td"
-# PROP Intermediate_Dir "msvc\td"
+# PROP Output_Dir "pd-msvc\td"
+# PROP Intermediate_Dir "pd-msvc\td"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GR /GX /ZI /Od /I "c:\programme\audio\pd\src" /I "f:\prog\max\flext" /I "C:\Programme\prog\Python22\include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "PD" /D "NT" /FR /YX /FD /GZ /c

@@ -12,10 +12,10 @@ FLEXTPATH=${PDPATH}/flext
 PYTHONVER=python22
 
 # where are the python header files?
-PYTHONINCLUDE=/cygdrive/c/programme/prog/$(PYTHONVER)/include
+PYTHONINCLUDE=/cygdrive/c/programme/prog/${PYTHONVER}/include
 
 # what is the python library file?
-PYTHONLIB=/cygdrive/c/programme/prog/$(PYTHONVER)/libs/$(PYTHONVER).lib
+PYTHONLIB=/cygdrive/c/programme/prog/${PYTHONVER}/libs/${PYTHONVER}.lib
 
 # where should the external(s) be built?
 TARGDIR=./pd-cygwin

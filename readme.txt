@@ -50,9 +50,7 @@ pd - Windows:
 -------------
 o Borland C++ 5.5 (free): edit "config-pd-bcc.txt" & run "build-pd-bcc.bat" 
 
-o Microsoft Visual C++ 6: edit "config-pd-msvc.txt" & run "build-pd-msvc.bat" 
-
-o Cygwin: edit "config-pd-cygwin.txt" & run "sh build-pd-cygwin.sh" 
+o Microsoft Visual C++ 6: edit the project file "py.dsp" & build 
 
 pd - linux:
 -----------

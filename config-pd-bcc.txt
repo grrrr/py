@@ -18,7 +18,7 @@ PYTHONVER=python22
 PYTHONINCLUDE=c:\programme\prog\$(PYTHONVER)\include
 
 # what is the python library file?
-PYTHONBIN=c:\winnt\system32\$(PYTHONVER).dll
+PYTHONBIN=c:\windows\system32\$(PYTHONVER).dll
 
 # where should the external(s) be built?
 OUTPATH=.\pd-bcc

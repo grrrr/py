@@ -9,7 +9,7 @@
 #
 # ---------------------------------------------
 
-include config-pd-bcc.txt
+!include config-pd-bcc.txt
 
 NAME=py
 SETUPFUNCTION=$(NAME)_setup
@@ -18,7 +18,7 @@ SETUPFUNCTION=$(NAME)_setup
 TARGET=pdwin
 
 # includes, libs
-INCPATH=-I$(BCCPATH)\include -I$(PYTHONPATH)\include -I$(PDPATH)\src -I$(FLEXTPATH)
+INCPATH=-I$(BCCPATH)\include -I$(PYTHONINCLUDE) -I$(PDPATH)\src -I$(FLEXTPATH)
 LIBPATH=-L$(BCCPATH)\lib -L$(PDPATH)\lib 
 LIBS=cw32.lib import32.lib C0D32.OBJ 
 
@@ -31,10 +31,8 @@ CFLAGS=-6 -O2 -OS -ff -tWD
 # ----------------------------------------------
 
 # all the source files from the package
-SRCS= main.cpp py.cpp pyext.cpp
-HDRS= main.h
-
-OBJS= $(SRCS:.cpp=.obj)
+SRCS= main.cpp py.cpp pyext.cpp modmeth.cpp clmeth.cpp register.cpp pyargs.cpp bound.cpp
+HDRS= main.h pyext.h
 
 # default target
 all: $(OUTPATH)\$(NAME).dll
@@ -44,14 +42,20 @@ clean:
 	-del /s /q $(OUTPATH) > nul
 	rmdir $(OUTPATH)
 
+
+install:
+	cp $(OUTPATH)\$(NAME).dll $(INSTDIR)
+	
 # ----------------------------------------------
 
-.PATH.OBJ=$(OUTPATH)
+OBJS= $(SRCS:.cpp=.obj)
 
-$(SRCS): $(HDRS)
-	-touch $<
+#.PATH.OBJ=$(OUTPATH)
 
-.cpp.obj:
+#$(SRCS): $(HDRS)
+#	-touch $<
+
+{source}.cpp.obj:
 	bcc32 -c $(CFLAGS) $(DEFS) $(INCPATH) -n$(OUTPATH) $<
 
 $(OUTPATH):
@@ -71,5 +75,8 @@ $(OUTPATH)\$(NAME).def:
 $(OUTPATH)\$(NAME).dll :: $(OUTPATH) $(OUTPATH)\$(NAME).def $(OUTPATH)\pd.lib $(OUTPATH)\python.lib
 
 $(OUTPATH)\$(NAME).dll :: $(OBJS) 
-	ilink32 -C -Tpd $(LIBPATH) $** ,$<,,$(LIBS) $(OUTPATH)\pd.lib $(OUTPATH)\python.lib $(FLEXTPATH)\bcc\flext-$(TARGET).lib ,$(OUTPATH)\$(NAME).def
+	cd $(OUTPATH)
+	ilink32 -C -Tpd $(LIBPATH) $** ,..\$<,,$(LIBS) pd.lib python.lib $(FLEXTPATH)\flext-$(TARGET).lib ,$(NAME).def
+	cd ..
 
+	
