@@ -11,6 +11,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #ifndef __MAIN_H
 #define __MAIN_H
 
+#define FLEXT_ATTRIBUTES 1
+
 #include <flext.h>
 #include <Python.h>
 #include <map>
@@ -59,7 +61,11 @@ public:
 
 protected:
 
-	V m_doc();
+    V m__dir(PyObject *obj);
+	V m__doc(PyObject *obj);
+
+    V m_dir() { m__dir(module); }
+    V m_doc() { m__doc(dict); }
 
 	PyObject *module,*dict; // inherited user class module and associated dictionary
 
@@ -99,7 +105,6 @@ protected:
 
 	// ----thread stuff ------------
 
-	V m_detach(BL det) { detach = det; }
 	virtual V m_stop(int argc,const t_atom *argv);
 
 	BL detach,shouldexit;
@@ -125,8 +130,9 @@ public:
 protected:
 	// callbacks
 
-	FLEXT_CALLBACK_B(m_detach)
+	FLEXT_ATTRVAR_B(detach)
 	FLEXT_CALLBACK_V(m_stop)
+	FLEXT_CALLBACK(m_dir)
 	FLEXT_CALLBACK(m_doc)
     FLEXT_CALLBACK_T(tick)
 };

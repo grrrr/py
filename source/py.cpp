@@ -29,7 +29,8 @@ protected:
 	V m_reload();
 	V m_reload_(I argc,const t_atom *argv);
 	V m_set(I argc,const t_atom *argv);
-	V m_doc_();
+    V m_dir_() { m__dir(function); }
+    V m_doc_() { m__doc(function); }
 
 	virtual V m_help();
 
@@ -56,6 +57,7 @@ private:
 	FLEXT_CALLBACK(m_reload)
 	FLEXT_CALLBACK_V(m_reload_)
 	FLEXT_CALLBACK_V(m_set)
+	FLEXT_CALLBACK(m_dir_)
 	FLEXT_CALLBACK(m_doc_)
 
 	FLEXT_CALLBACK_V(m_py_float)
@@ -82,9 +84,11 @@ void pyobj::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
 	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
 #ifdef FLEXT_THREADS
-	FLEXT_CADDMETHOD_(c,0,"detach",m_detach);
+	FLEXT_CADDATTR_VAR1(c,"detach",detach);
 	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
 #endif
+	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
+	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
 
 	FLEXT_CADDMETHOD_(c,1,"float",m_py_float);
 	FLEXT_CADDMETHOD_(c,1,"int",m_py_int);
@@ -201,29 +205,12 @@ V pyobj::m_set(I argc,const t_atom *argv)
 	PY_UNLOCK
 }
 
-
-V pyobj::m_doc_()
-{
-	PY_LOCK
-
-	if(function) {
-		PyObject *docf = PyObject_GetAttrString(function,"__doc__"); // borrowed!!!
-		if(docf && PyString_Check(docf)) {
-			post("");
-			post(PyString_AsString(docf));
-		}
-	}
-
-	PY_UNLOCK
-}
-
-
 V pyobj::m_help()
 {
 	post("");
-	post("py %s - python script object, (C)2002 Thomas Grill",PY__VERSION);
+	post("py %s - python script object, (C)2002,2003 Thomas Grill",PY__VERSION);
 #ifdef FLEXT_DEBUG
-	post("compiled on " __DATE__ " " __TIME__);
+	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
 
 	post("Arguments: %s [script name] [function name] {args...}",thisName());

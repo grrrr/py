@@ -78,11 +78,14 @@ Version history:
 
 0.1.2:
 - CHANGE: updates for flext 0.4.1 - method registering within class scope
-- fixed bugs in bound.cpp (object_free calls)
-- bug fixed for threaded methods along with flext bug fix.
-- map Python threads to system threads
-- shut down Python appropriately
-- use flext timer and bind functionality
+- FIX: bugs in bound.cpp (object_free calls)
+- FIX: bug with threaded methods along with flext bug fix.
+- ADD: map Python threads to system threads
+- ADD: shut down the Python interpreter appropriately
+- CHANGE: use flext timer and bind functionality
+- ADD: attribute functionality
+- ADD: dir and dir+ methods for Python dictionary listing
+- ADD: get and set methods for Python class attributes
 
 0.1.1:
 - CHANGE: updates for flext 0.4.0

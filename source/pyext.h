@@ -48,8 +48,12 @@ protected:
 
 	V m_reload();
 	V m_reload_(I argc,const t_atom *argv);
-	V m_doc_();
+    V m_dir_() { m__dir(pyobj); }
+    V m_doc_() { m__doc(pyobj); }
 	virtual V m_help();
+
+	V m_get(const t_symbol *s);
+	V m_set(I argc,const t_atom *argv);
 
 	const t_symbol *methname;
 	PyObject *pyobj;
@@ -103,7 +107,11 @@ private:
     
     FLEXT_CALLBACK(m_reload)
 	FLEXT_CALLBACK_V(m_reload_)
+	FLEXT_CALLBACK(m_dir_)
 	FLEXT_CALLBACK(m_doc_)
+
+	FLEXT_CALLBACK_S(m_get)
+	FLEXT_CALLBACK_V(m_set)
 };
 
 

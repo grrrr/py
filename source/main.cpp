@@ -38,7 +38,6 @@ py::py():
 	stoptick(0)
 {
 	Lock();
-	// under Max/MSP @ OS9: doesn't survive next line.....
 
 	if(!(pyref++)) {
 		Py_Initialize();
@@ -121,18 +120,45 @@ py::~py()
 }
 
 
-V py::m_doc()
+void py::m__dir(PyObject *obj)
 {
-	if(dict) {
-		PyObject *docf = PyDict_GetItemString(dict,"__doc__"); // borrowed!!!
+    if(obj) {
+        PY_LOCK
+    
+        PyObject *pvar  = PyObject_Dir(obj);
+	    if(pvar == NULL) {
+		    PyErr_Print(); // no method found
+	    }
+	    else {
+            AtomList *lst = GetPyArgs(pvar);
+            if(lst) {
+                // dump dir to attribute outlet
+                ToOutAnything(GetOutAttr(),thisTag(),lst->Count(),lst->Atoms());
+                delete lst;
+            }
+            else
+                post("%s - %s: List could not be created",thisName(),GetString(thisTag()));
+            Py_DECREF(pvar);
+        }
+
+        PY_UNLOCK
+    }
+}
+
+V py::m__doc(PyObject *obj)
+{
+    if(obj) {
+        PY_LOCK
+
+		PyObject *docf = PyDict_GetItemString(obj,"__doc__"); // borrowed!!!
 		if(docf && PyString_Check(docf)) {
 			post("");
 			post(PyString_AsString(docf));
 		}
+
+        PY_UNLOCK
 	}
 }
-
-
 
 
 V py::SetArgs(I argc,const t_atom *argv)
@@ -202,6 +228,15 @@ V py::GetModulePath(const C *mod,C *dir,I len)
 	if(dir == name) strcpy(dir,".");
 #elif FLEXT_SYS == FLEXT_SYS_MAX
 	// how do i get the path in Max/MSP?
+    short path;
+    long type;
+    char smod[256];
+    strcat(strcpy(smod,mod),".py");
+    if(!locatefile_extended(smod,&path,&type,&type,-1))
+        path_topathname(path,NULL,dir);
+    else 
+        // not found
+        *dir = 0;
 #else
 	*dir = 0;
 #endif
@@ -225,5 +260,3 @@ V py::AddToPath(const C *dir)
 		PySys_SetObject("path",pobj);
 	}
 }
-
-

@@ -18,13 +18,18 @@ V pyext::Setup(t_classid c)
 {
 	FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
 	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
+	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
+	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
 	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
 	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
 
 #ifdef FLEXT_THREADS
-	FLEXT_CADDMETHOD_(c,0,"detach",m_detach);
+	FLEXT_CADDATTR_VAR1(c,"detach",detach);
 	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
 #endif
+
+	FLEXT_CADDMETHOD_(c,0,"get",m_get);
+	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 }
 
 pyext *pyext::GetThis(PyObject *self)
@@ -35,6 +40,20 @@ pyext *pyext::GetThis(PyObject *self)
 	Py_XDECREF(th);
 	return ret;
 }
+
+
+#if FLEXT_SYS == FLEXT_SYS_MAX
+static short patcher_myvol(t_patcher *x)
+{
+    t_box *w;
+    if (x->p_vol)
+        return x->p_vol;
+    else if (w = (t_box *)x->p_vnewobj)
+        return patcher_myvol(w->b_patcher);
+    else
+        return 0;
+}
+#endif
 
 
 I pyext::pyextref = 0;
@@ -89,16 +108,19 @@ pyext::pyext(I argc,const t_atom *argv):
 
 	// init script module
 	if(argc >= 1) {
-		C dir[1024];
+		char dir[1024];
+
 #if FLEXT_SYS == FLEXT_SYS_PD
 		// add dir of current patch to path
-		strcpy(dir,GetString(canvas_getdir(thisCanvas())));
-		AddToPath(dir);
+		AddToPath(GetString(canvas_getdir(thisCanvas())));
 		// add current dir to path
-		strcpy(dir,GetString(canvas_getcurrentdir()));
-		AddToPath(dir);
-#else
-#pragma message("Adding current dir to path is not implemented")
+		AddToPath(GetString(canvas_getcurrentdir()));
+#elif FLEXT_SYS == FLEXT_SYS_MAX 
+        short path = patcher_myvol(thisCanvas());
+        path_topathname(path,NULL,dir); 
+		AddToPath(dir);       
+#else 
+        #pragma message("Adding current dir to path is not implemented")
 #endif
 
 		GetModulePath(GetString(argv[0]),dir,sizeof(dir));
@@ -274,22 +296,61 @@ V pyext::m_reload_(I argc,const t_atom *argv)
 	m_reload();
 }
 
-V pyext::m_doc_()
+void pyext::m_get(const t_symbol *s)
 {
-	if(pyobj) {
-		PY_LOCK
+    PY_LOCK
 
-		PyObject *docf = PyObject_GetAttrString(pyobj,"__doc__"); // borrowed!!!
-		if(docf && PyString_Check(docf)) {
-			post("");
-			post(PyString_AsString(docf));
-		}
-
-		PY_UNLOCK
+	PyObject *pvar  = PyObject_GetAttrString(pyobj,const_cast<char *>(GetString(s))); /* fetch bound method */
+	if(pvar == NULL) {
+		PyErr_Clear(); // no method found
+        post("%s - get: Python variable %s not found",thisName(),GetString(s));
 	}
+	else {
+        AtomList *lst = GetPyArgs(pvar);
+        if(lst) {
+            // dump value to attribute outlet
+            AtomAnything out("get",lst->Count()+1);
+            SetSymbol(out[0],s);
+            out.Set(lst->Count(),lst->Atoms(),1);
+            delete lst;
+
+            ToOutAnything(GetOutAttr(),out);
+        }
+        else
+            post("%s - get: List could not be created",thisName());
+        Py_DECREF(pvar);
+    }
+
+    PY_UNLOCK
 }
 
+void pyext::m_set(int argc,const t_atom *argv)
+{
+    PY_LOCK
 
+    if(argc < 2 || !IsString(argv[0]))
+        post("%s - Syntax: set varname arguments...",thisName());
+    else if(*GetString(argv[0]) == '_')
+        post("%s - set: variables with leading _ are reserved and can't be set",thisName());
+    else {
+        char *ch = const_cast<char *>(GetString(argv[0]));
+        if(!PyObject_HasAttrString(pyobj,ch)) {
+		    PyErr_Clear(); // no method found
+            post("%s - set: Python variable %s not found",thisName(),ch);
+	    }
+	    else {
+		    PyObject *pval = MakePyArgs(sym_list,AtomList(argc-1,argv+1),-1,false);
+		    if(!pval)
+			    PyErr_Print();
+		    else {
+                PyObject_SetAttrString(pyobj,ch,pval);
+                Py_DECREF(pval);
+            }
+        }
+    }
+
+    PY_UNLOCK
+}
 
 
 BL pyext::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
@@ -307,9 +368,9 @@ BL pyext::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
 V pyext::m_help()
 {
 	post("");
-	post("pyext %s - python script object, (C)2002 Thomas Grill",PY__VERSION);
+	post("pyext %s - python script object, (C)2002,2003 Thomas Grill",PY__VERSION);
 #ifdef FLEXT_DEBUG
-	post("compiled on " __DATE__ " " __TIME__);
+	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
 
 	post("Arguments: %s [script name] [class name] {args...}",thisName());
@@ -345,7 +406,7 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_ato
 		else {
 			ret = PyEval_CallObject(pmeth, pargs); 
 			if (ret == NULL) // function not found resp. arguments not matching
-#if 1 //def FLEXT_DEBUG
+#ifdef FLEXT_DEBUG
 				PyErr_Print();
 #else
 				PyErr_Clear();  

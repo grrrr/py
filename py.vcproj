@@ -470,7 +470,7 @@
 				AdditionalIncludeDirectories="&quot;F:\prog\audio\MaxWinSDK\c74support\msp-includes&quot;;&quot;F:\prog\audio\MaxWinSDK\c74support\max-includes&quot;;f:\prog\packs\pthreads;f:\prog\max\flext\source;C:\Programme\prog\Python23\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=1;FLEXT_THREADS"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="2"
 				BrowseInformation="1"
@@ -500,7 +500,9 @@
 				TypeLibraryName=".\pd-msvc\td/py.tlb"
 				HeaderFileName=""/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCPostBuildEventTool"
+				Description="copy"
+				CommandLine="copy $(outdir)\py.mxe &quot;C:\Programme\Gemeinsame Dateien\Cycling &apos;74\externals&quot;"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool

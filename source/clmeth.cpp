@@ -194,7 +194,7 @@ PyObject *pyext::pyext_detach(PyObject *,PyObject *args)
     }
 	else {
 		pyext *ext = GetThis(self);
-		ext->m_detach(val != 0);
+		ext->detach = val != 0;
 	}
 
     Py_INCREF(Py_None);
