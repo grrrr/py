@@ -93,6 +93,7 @@ Version history:
 - FIX: message "doc+" for class/instance __doc__ now working
 - FIX: improved/debugged handling of reference counts
 - FIX: _pyext._send will now send anythings if feasible
+- CHANGE: no more finalization - it's really not necessary...
 
 0.1.2:
 - CHANGE: updates for flext 0.4.1 - method registering within class scope

@@ -27,7 +27,7 @@ static PyObject *MakePyAtom(const t_atom &at)
     return NULL;
 }
 
-PyObject *py::MakePyArgs(const t_symbol *s,const AtomList &args,I inlet,BL withself)
+PyObject *py::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,I inlet,BL withself)
 {
 	PyObject *pArgs;
 
@@ -41,7 +41,7 @@ PyObject *py::MakePyArgs(const t_symbol *s,const AtomList &args,I inlet,BL withs
 */
     {
 	    BL any = IsAnything(s);
-	    pArgs = PyTuple_New(args.Count()+(any?1:0)+(inlet >= 0?1:0));
+	    pArgs = PyTuple_New(argc+(any?1:0)+(inlet >= 0?1:0));
 
 	    I pix = 0;
 
@@ -54,8 +54,8 @@ PyObject *py::MakePyArgs(const t_symbol *s,const AtomList &args,I inlet,BL withs
 
 	    I ix;
 	    PyObject *tmp;
-	    if(!withself || args.Count() < (any?1:2)) tmp = pArgs,ix = pix;
-	    else tmp = PyTuple_New(args.Count()+(any?1:0)),ix = 0;
+	    if(!withself || argc < (any?1:2)) tmp = pArgs,ix = pix;
+	    else tmp = PyTuple_New(argc+(any?1:0)),ix = 0;
 
 	    if(any) {
 		    PyObject *pValue = PyString_FromString(GetString(s));
@@ -64,8 +64,8 @@ PyObject *py::MakePyArgs(const t_symbol *s,const AtomList &args,I inlet,BL withs
 		    PyTuple_SetItem(tmp, ix++, pValue); 
 	    }
 
-	    for(I i = 0; i < args.Count(); ++i) {
-		    PyObject *pValue = MakePyAtom(args[i]);
+	    for(I i = 0; i < argc; ++i) {
+		    PyObject *pValue = MakePyAtom(argv[i]);
 		    if(!pValue) {
 			    post("py/pyext: cannot convert argument %i",any?i+1:i);
 			    continue;

@@ -10,19 +10,57 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+
+static PyMethodDef StdOut_Methods[] =
+{
+	{ "write", py::StdOut_Write, 1 },
+	{ NULL,    NULL,           }  
+};
+
 V py::lib_setup()
 {
 	post("");
 	post("py/pyext %s - python script objects, (C)2002-2004 Thomas Grill",PY__VERSION);
 	post("");
 
+	// -------------------------------------------------------------
+
+	Py_Initialize();
+
+#ifdef FLEXT_THREADS
+    // enable thread support and acquire the global thread lock
+	PyEval_InitThreads();
+
+    // get thread state
+    PyThreadState *pythrmain = PyThreadState_Get();
+    // get main interpreter state
+	pystate = pythrmain->interp;
+
+    // release global lock
+    PyEval_ReleaseLock();
+
+    // add thread state of main thread to map
+    pythrmap[GetThreadId()] = pythrmain;
+#endif
+
+    // register/initialize pyext module only once!
+	module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
+	module_dict = PyModule_GetDict(module_obj); // borrowed reference
+
+	PyModule_AddStringConstant(module_obj,"__doc__",(C *)py_doc);
+
+	// redirect stdout
+	PyObject* py_out = Py_InitModule("stdout", StdOut_Methods);
+	PySys_SetObject("stdout", py_out);
+
+	// -------------------------------------------------------------
+
 	FLEXT_SETUP(pyobj);
 	FLEXT_SETUP(pyext);
-
-	pyref = 0;
 }
 
 FLEXT_LIB_SETUP(py,py::lib_setup)
+
 
 PyInterpreterState *py::pystate = NULL;
 
@@ -30,16 +68,8 @@ PyInterpreterState *py::pystate = NULL;
 std::map<flext::thrid_t,PyThreadState *> py::pythrmap;
 #endif
 
-I py::pyref = 0;
 PyObject *py::module_obj = NULL;
 PyObject *py::module_dict = NULL;
-
-
-static PyMethodDef StdOut_Methods[] =
-{
-	{ "write", py::StdOut_Write, 1 },
-	{ NULL,    NULL,           }  
-};
 
 
 py::py(): 
@@ -49,40 +79,9 @@ py::py():
 {
 	Lock();
 
-	if(!(pyref++)) {
-		Py_Initialize();
-
-	#ifdef FLEXT_THREADS
-        // enable thread support and acquire the global thread lock
-		PyEval_InitThreads();
-
-        // get thread state
-        PyThreadState *pythrmain = PyThreadState_Get();
-        // get main interpreter state
-		pystate = pythrmain->interp;
-
-        // release global lock
-        PyEval_ReleaseLock();
-
-        // add thread state of main thread to map
-        pythrmap[GetThreadId()] = pythrmain;
-    #endif
-
-        // register/initialize pyext module only once!
-		module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
-		module_dict = PyModule_GetDict(module_obj); // borrowed reference
-
-		PyModule_AddStringConstant(module_obj,"__doc__",(C *)py_doc);
-
-		// redirect stdout
-		PyObject* py_out = Py_InitModule("stdout", StdOut_Methods);
-		PySys_SetObject("stdout", py_out);
-	}
-	else {
-		PY_LOCK
-		Py_INCREF(module_obj);
-		PY_UNLOCK
-	}
+	PY_LOCK
+	Py_INCREF(module_obj);
+	PY_UNLOCK
 
 	Unlock();
 
@@ -104,32 +103,7 @@ py::~py()
 	}
 		
 	Lock();
-
    	Py_XDECREF(module_obj);
-
-#ifdef PY_DESTROY
-    if(!(--pyref)) {
-        // no more py/pyext objects left... shut down Python
-
-        PyEval_AcquireLock();
-
-#ifdef FLEXT_THREADS
-		PyThreadState_Swap(pythrmap[GetThreadId()]);
-#endif
-
-        // need not necessarily do that....
-        Py_Finalize();
-
-#ifdef FLEXT_THREADS
-        // reset thread state map
-        pythrmap.clear();
-#endif
-
-		// ref counts should be zero by here
-		module_obj = NULL;
-		module_dict = NULL;
-	}
-#endif
 	Unlock();
 }
 

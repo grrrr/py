@@ -25,7 +25,7 @@ bool pyext::boundmeth(flext_base *,t_symbol *sym,int argc,t_atom *argv,void *dat
 
 	PY_LOCK
 
-	PyObject *args = MakePyArgs(sym,AtomList(argc,argv),-1,obj->self != NULL);
+	PyObject *args = MakePyArgs(sym,argc,argv,-1,obj->self != NULL);
 
     // call all functions bound by this symbol
     for(std::set<PyObject *>::iterator it = obj->funcs.begin(); it != obj->funcs.end(); ++it) {
