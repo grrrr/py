@@ -58,16 +58,15 @@ void FreeThreadState()
 void py::lib_setup()
 {
 	post("");
-	post("--------------------------------------");
+	post("------------------------------------------------");
 	post("py/pyext %s - python script objects",PY__VERSION);
-	post("      (C)2002-2005 Thomas Grill");
-    post("         http://grrrr.org/ext");
+	post("(C)2002-2005 Thomas Grill - http://grrrr.org/ext");
 #ifdef FLEXT_DEBUG
-    post("");
+        post("");
 	post("DEBUG version compiled on %s %s",__DATE__,__TIME__);
 #endif
-	post("--------------------------------------");
-    post("");
+	post("------------------------------------------------");
+        post("");
 
 	// -------------------------------------------------------------
 
