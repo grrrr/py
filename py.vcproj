@@ -292,14 +292,14 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="flext_ld.lib pd.lib pthreadVC.lib"
+				AdditionalDependencies="pd.lib pthreadVC.lib"
 				OutputFile="$(outdir)/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="f:\prog\max\flext\pd-msvc;&quot;f:\prog\pd\pd-cvs/bin&quot;;f:\prog\packs\pthreads;&quot;f:\prog\packs\Python-2.3.4\PCbuild&quot;"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\pd-msvc\td/py.pdb"
-				ImportLibrary=".\pd-msvc\sd/py.lib"
+				ProgramDatabaseFile="$(outdir)/py.pdb"
+				ImportLibrary="$(outdir)/py.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
