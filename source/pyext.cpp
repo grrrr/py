@@ -239,6 +239,8 @@ void pyext::DoExit()
             Py_DECREF(args);
             Py_DECREF(objdel);
         }
+        else
+            PyErr_Clear();
 
         gcrun = pyobj->ob_refcnt > 1;
     	Py_DECREF(pyobj);  // opposite of SetClssMeth
