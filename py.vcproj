@@ -292,7 +292,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pd.lib pthreadVC.lib"
+				AdditionalDependencies="flext_ld.lib pd.lib pthreadVC.lib"
 				OutputFile="$(outdir)/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"

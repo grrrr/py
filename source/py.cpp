@@ -321,7 +321,7 @@ BL pyobj::work(const t_symbol *s,I argc,const t_atom *argv)
 	if(rargs) {
 		// call to outlet _outside_ the Mutex lock!
 		// otherwise (if not detached) deadlock will occur
-		ToOutList(0,*rargs);
+ 		if(rargs->Count()) ToOutList(0,*rargs);
 		delete rargs;
 	}
 

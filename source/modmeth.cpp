@@ -19,10 +19,15 @@ PyMethodDef py::func_tbl[] =
 	{ "_priority", py::py_priority, METH_VARARGS,"Set priority of current thread" },
 #endif
 
-	{ "_samplerate", py::py_samplerate, 0,"Get system sample rate" },
-	{ "_blocksize", py::py_blocksize, 0,"Get system block size" },
-	{ "_inchannels", py::py_inchannels, 0,"Get number of audio in channels" },
-	{ "_outchannels", py::py_outchannels, 0,"Get number of audio out channels" },
+	{ "_samplerate", py::py_samplerate, METH_NOARGS,"Get system sample rate" },
+	{ "_blocksize", py::py_blocksize, METH_NOARGS,"Get system block size" },
+	{ "_inchannels", py::py_inchannels, METH_NOARGS,"Get number of audio in channels" },
+	{ "_outchannels", py::py_outchannels, METH_NOARGS,"Get number of audio out channels" },
+
+#if FLEXT_SYS == FLEXT_SYS_PD
+	{ "_getvalue", py::py_getvalue, METH_VARARGS,"Get value of a 'value' object" },
+	{ "_setvalue", py::py_setvalue, METH_VARARGS,"Set value of a 'value' object" },
+#endif
 
 	{NULL, NULL, 0, NULL} // sentinel
 };
@@ -39,6 +44,8 @@ const C *py::py_doc =
 	"_blocksize(): Get current blocksize\n"
 	"_inchannels(): Get number of audio in channels\n"
 	"_outchannels(): Get number of audio out channels\n"
+    "_getvalue(name): Get value of a 'value' object\n"
+    "_setvalue(name,float): Set value of a 'value' object\n"
 ;
 
 
@@ -186,5 +193,51 @@ PyObject *py::py_priority(PyObject *self,PyObject *args)
 }
 #endif
 
+#if FLEXT_SYS == FLEXT_SYS_PD
+PyObject *py::py_getvalue(PyObject *self,PyObject *args)
+{
+    FLEXT_ASSERT(PyTuple_Check(args));
+
+    PyObject *ret;
+	PyObject *name = PyTuple_GetItem(args,0); // borrowed reference
+
+    if(name && PyString_Check(name)) {
+		const t_symbol *sym = MakeSymbol(PyString_AsString(name));
+
+        float f;
+        if(value_getfloat(const_cast<t_symbol *>(sym),&f)) {
+		    post("py/pyext - Could not get value '%s'",GetString(sym));
+            Py_INCREF(ret = Py_None);
+        }
+        else
+            ret = PyFloat_FromDouble(f);
+    }
+    else {
+        post("py/pyext - Syntax: _getvalue [name]");
+        Py_INCREF(ret = Py_None);
+    }
+    return ret;
+}
+
+PyObject *py::py_setvalue(PyObject *self,PyObject *args)
+{
+    FLEXT_ASSERT(PyTuple_Check(args));
+
+	PyObject *name = PyTuple_GetItem(args,0); // borrowed reference
+	PyObject *val = PyTuple_GetItem(args,1); // borrowed reference
+    if(name && val && PyString_Check(name) && PyNumber_Check(val)) {
+		const t_symbol *sym = MakeSymbol(PyString_AsString(name));
+        float f = PyFloat_AsDouble(val);
+
+        if(value_setfloat(const_cast<t_symbol *>(sym),f))
+		    post("py/pyext - Could not set value '%s'",GetString(sym));
+    }
+    else
+        post("py/pyext - Syntax: _setvalue [name] [value]");
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+#endif
 
 

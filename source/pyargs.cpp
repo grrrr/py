@@ -107,7 +107,9 @@ flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 		rargc = PySequence_Size(pValue);
 		tp = sequ;
 	}
-	else {
+    else if(pValue == Py_None)
+        Py_DECREF(pValue);
+    else {
 		rargc = 1;
 		tp = atom;
 	}

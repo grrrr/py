@@ -115,6 +115,10 @@ protected:
 	static PyObject *py_blocksize(PyObject *,PyObject *args);
 	static PyObject *py_inchannels(PyObject *,PyObject *args);
 	static PyObject *py_outchannels(PyObject *,PyObject *args);
+#if FLEXT_SYS == FLEXT_SYS_PD
+	static PyObject *py_getvalue(PyObject *,PyObject *args);
+	static PyObject *py_setvalue(PyObject *,PyObject *args);
+#endif
 
 	// ----thread stuff ------------
 

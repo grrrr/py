@@ -21,15 +21,18 @@ V py::lib_setup()
 {
 	post("");
 	post("py/pyext %s - python script objects, (C)2002-2004 Thomas Grill",PY__VERSION);
-	post("");
+#ifdef FLEXT_DEBUG
+	post("DEBUG version compiled on %s %s",__DATE__,__TIME__);
+#endif
+    post("");
 
 	// -------------------------------------------------------------
 
 	Py_Initialize();
 
-#if 0 //def FLEXT_DEBUG
+#ifdef FLEXT_DEBUG
 	Py_DebugFlag = 1;
-	Py_VerboseFlag = 1;
+//	Py_VerboseFlag = 1;
 #endif
 
 #ifdef FLEXT_THREADS

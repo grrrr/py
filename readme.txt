@@ -86,6 +86,8 @@ Version history:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)
 - FIX: many memory leaks associated to ***GetItem stuff (big thanks to sven!)
 - FIX: set "this" memory in object after reloading script
+- ADD: _getvalue,_setvalue to access PD values
+- FIX: don't shout when Python script returns PyNone
 
 0.1.3:
 - FIX: class variables are now set atomic if parameter list has only 1 element
