@@ -36,10 +36,10 @@ PyMethodDef py::func_tbl[] =
 	{ "_priority", py::py_priority, METH_VARARGS,"Set priority of current thread" },
 #endif
 
-	{ "_samplerate", py::py_samplerate, NULL,"Get system sample rate" },
-	{ "_blocksize", py::py_blocksize, NULL,"Get system block size" },
-	{ "_inchannels", py::py_inchannels, NULL,"Get number of audio in channels" },
-	{ "_outchannels", py::py_outchannels, NULL,"Get number of audio out channels" },
+	{ "_samplerate", py::py_samplerate, 0,"Get system sample rate" },
+	{ "_blocksize", py::py_blocksize, 0,"Get system block size" },
+	{ "_inchannels", py::py_inchannels, 0,"Get number of audio in channels" },
+	{ "_outchannels", py::py_outchannels, 0,"Get number of audio out channels" },
 
 	{NULL, NULL, 0, NULL} // sentinel
 };

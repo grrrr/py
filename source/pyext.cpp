@@ -1,8 +1,6 @@
 #include "pyext.h"
 #include <flinternal.h>
 
-#include <windows.h>
-
 FLEXT_LIB_V("pyext",pyext)
 
 
@@ -293,10 +291,11 @@ BL pyext::callwork(I n,const t_symbol *s,I argc,t_atom *argv)
 	if(detach) {
 		if(shouldexit) {
 			post("%s - New threads can't be launched now!",thisName());
-			return false;
+			return true;
 		}
 		else {
-			FLEXT_CALLMETHOD_X(work_wrapper,new work_data(n,s,argc,argv));
+			BL ret = FLEXT_CALLMETHOD_X(work_wrapper,new work_data(n,s,argc,argv));
+			if(!ret) post("%s - Failed to launch thread!",thisName());
 			return true;
 		}
 	}

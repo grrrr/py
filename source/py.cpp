@@ -245,7 +245,8 @@ V pyobj::callwork(const t_symbol *s,I argc,t_atom *argv)
 		if(shouldexit)
 			post("%s - New threads can't be launched now!",thisName());
 		else
-			FLEXT_CALLMETHOD_A(work,s,argc,argv);
+			if(!FLEXT_CALLMETHOD_A(work,s,argc,argv))
+				post("%s - Failed to launch thread!",thisName());
 	}
 	else
 		work(s,argc,argv);

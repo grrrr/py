@@ -17,6 +17,7 @@ INCLUDES=$(PDPATH) $(PYTHONINCLUDE)
 LIBPATH=$(PYTHONLIB)
 FLAGS=-DPD -DFLEXT_THREADS
 CFLAGS=-O6 -mcpu=pentiumpro
+#CFLAGS=-g
 LIBS=m util python$(PYTHONVER)  
 
 
@@ -27,15 +28,15 @@ LIBS=m util python$(PYTHONVER)
 NAME=py
 
 # all the source files from the package
-SRCS=main.cpp py.cpp pyext.cpp
-HDRS=main.h
+SRCS=main.cpp py.cpp pyext.cpp bound.cpp clmeth.cpp
+HDRS=main.h pyext.h
 
 TARGET=$(TARGDIR)/$(NAME).pd_linux
 
 # default target
 all: $(TARGDIR) $(TARGET)
 
-$(SRCS): $(HDRS)
+$(SRCS): $(HDRS) $(FLEXTLIB)
 	touch $@
 
 $(TARGDIR):
