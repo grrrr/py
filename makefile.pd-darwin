@@ -17,7 +17,7 @@ FLEXTLIB=${FLEXTPATH}/flext_t.a
 # compiler+linker stuff	
 INCLUDES=${PDPATH} ${FLEXTPATH} ${PYTHONINCLUDE}
 LIBPATH= ${PYTHONLIB}
-FLAGS=-DPD -Dunix -DMACOSX -DFLEXT_THREADS
+FLAGS=-DFLEXT_SYS=2 -DFLEXT_THREADS
 CFLAGS=-O6 -Wno-unused -Wno-parentheses -Wno-switch -Wstrict-prototypes # -maltivec
 #CFLAGS=-g
 LIBS=m python${PYTHONVER}
@@ -29,11 +29,8 @@ LDFLAGS=-bundle -bundle_loader ${PD}
 NAME=py
 
 # all the source files from the package
-SRCS=main.cpp py.cpp pyext.cpp bound.cpp clmeth.cpp modmeth.cpp pyargs.cpp register.cpp
-HDRS=main.h pyext.h
+include make-files.txt
 
-
-DIR=source
 
 TARGET=$(TARGDIR)/$(NAME).pd_darwin
 MAKEFILE=makefile.pd-darwin
@@ -41,13 +38,13 @@ MAKEFILE=makefile.pd-darwin
 # default target
 all: $(TARGDIR) $(TARGET)
 
-$(patsubst %,$(DIR)/%,$(SRCS)): $(patsubst %,$(DIR)/%,$(HDRS)) $(FLEXTLIB) $(MAKEFILE) $(CONFIG)
+$(patsubst %,$(SRCDIR)/%,$(SRCS)): $(patsubst %,$(SRCDIR)/%,$(HDRS)) $(FLEXTLIB) $(MAKEFILE) $(CONFIG)
 	touch $@
 
 $(TARGDIR):
 	mkdir $(TARGDIR)
 
-$(TARGDIR)/%.o : $(DIR)/%.cpp
+$(TARGDIR)/%.o : $(SRCDIR)/%.cpp
 	$(CXX) -c $(CFLAGS) $(FLAGS) $(patsubst %,-I%,$(INCLUDES)) $< -o $@
 
 $(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS)) $(FLEXTLIB) 

@@ -23,7 +23,7 @@ LIBPATH=-L$(BCCPATH)\lib -L$(PDPATH)\lib
 LIBS=cw32.lib import32.lib C0D32.OBJ 
 
 # compiler definitions and flags
-DEFS=-DPD -DNT 
+DEFS=-DFLEXT_SYS=2 
 CFLAGS=-6 -O2 -OS -ff -tWD 
 
 
@@ -31,8 +31,7 @@ CFLAGS=-6 -O2 -OS -ff -tWD
 # ----------------------------------------------
 
 # all the source files from the package
-SRCS= main.cpp py.cpp pyext.cpp modmeth.cpp clmeth.cpp register.cpp pyargs.cpp bound.cpp
-HDRS= main.h pyext.h
+!include make-files.txt
 
 # default target
 all: $(OUTPATH)\$(NAME).dll
@@ -55,7 +54,7 @@ OBJS= $(SRCS:.cpp=.obj)
 #$(SRCS): $(HDRS)
 #	-touch $<
 
-{source}.cpp.obj:
+{$(SRCDIR)}.cpp.obj:
 	bcc32 -c $(CFLAGS) $(DEFS) $(INCPATH) -n$(OUTPATH) $<
 
 $(OUTPATH):

@@ -30,21 +30,20 @@ LIBS=m util python$(PYTHONVER)
 NAME=py
 
 # all the source files from the package
-SRCS=main.cpp py.cpp pyext.cpp bound.cpp clmeth.cpp modmeth.cpp pyargs.cpp register.cpp
-HDRS=main.h pyext.h
+include make-files.txt
 
 TARGET=$(TARGDIR)/$(NAME).pd_linux
 
 # default target
 all: $(TARGDIR) $(TARGET)
 
-$(patsubst %,source/%,$(SRCS)): $(patsubst %,source/%,$(HDRS)) $(FLEXTLIB) $(CONFIG)
+$(patsubst %,$(SRCDIR)/%,$(SRCS)): $(patsubst %,$(SRCDIR)/%,$(HDRS)) $(FLEXTLIB) $(CONFIG)
 	touch $@
 
 $(TARGDIR):
 	mkdir $(TARGDIR)
 
-$(TARGDIR)/%.o : source/%.cpp
+$(TARGDIR)/%.o : $(SRCDIR)/%.cpp
 	$(CXX) -c $(CFLAGS) $(FLAGS) $(patsubst %,-I%,$(INCLUDES) $(FLEXTPATH)) $< -o $@
 
 $(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS)) $(FLEXTLIB) 

@@ -15,21 +15,17 @@ LIBPATH=/LIBPATH:"$(MSVCPATH)\lib" /LIBPATH:"$(PDPATH)\bin" /LIBPATH:"$(FLEXTPAT
 LIBS=pd.lib pthreadVC.lib flext_t-pdwin.lib $(PYTHONLIB)
 
 # compiler definitions and flags
-DEFS=/DPD /DNT /DFLEXT_THREADS
+DEFS=/DFLEXT_SYS=2 /DFLEXT_THREADS
 
 CFLAGS=/GR- /GX- /GD /G6 /Ox /MT
 
 # the rest can stay untouched
 # ----------------------------------------------
 
-# all the source files from the package
-SRCS= main.cpp py.cpp pyext.cpp modmeth.cpp clmeth.cpp register.cpp pyargs.cpp bound.cpp
-HDRS= main.h pyext.h
-
-# -----------------------------------------------
-
 NAME=py
-DIR=source
+
+# all the source files from the package
+!include make-files.txt
 
 all: $(OUTPATH) $(OUTPATH)\$(NAME).dll
 
@@ -43,7 +39,7 @@ OBJS= $(SRCS:.cpp=.obj)
 $(OUTPATH):
 	-mkdir $(OUTPATH) > nul
 
-{$(DIR)}.cpp{}.obj:
+{$(SRCDIR)}.cpp{}.obj:
 	cl /c /LD $(CFLAGS) $(DEFS) $(INCPATH) $** /Fo$(OUTPATH)\$@
 
 $(OUTPATH)\$(NAME).dll: $(OBJS)

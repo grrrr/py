@@ -1,0 +1,6 @@
+# all the source files from the package
+SRCDIR=source
+
+SRCS= main.cpp py.cpp pyext.cpp modmeth.cpp clmeth.cpp register.cpp pyargs.cpp bound.cpp
+
+HDRS= main.h pyext.h
