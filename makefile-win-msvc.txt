@@ -1,6 +1,3 @@
-# py/pyext - python script object for PD and Max/MSP
-# Copyright (C)2002-04 Thomas Grill (gr@grrrr.org)
-#
 # Makefile for MSVC++ 6 and 7
 #
 # usage:
@@ -12,4 +9,4 @@ INCPATH=/I$(PYTHONPATH)\include
 LIBPATH=/LIBPATH:$(PYTHONPATH)\libs
 
 # multithreaded build
-FLEXT_THREADED=1
+THREADED=1
