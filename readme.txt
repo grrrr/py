@@ -82,6 +82,7 @@ Version history:
 - FIX: bound instance methods weren't correctly decref'd
 - ADD: Python symbol type
 - ADD: _del method in pyext-derived class can be used to clean up things on exit
+- FIX: solved py->py messaging problem with lock count instead of message queuing
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)
@@ -120,7 +121,7 @@ Version history:
 - CHANGE: updates for flext 0.4.0
 - FIX: crash when module couldn't be loaded
 - FIX: GetBound method (modmeth.cpp, line 138) doesn't exist in flext any more
-- FIX: deadlock occured when connecting to py/pyext boxes in non-detached mode
+- FIX: deadlock occured when connecting two py/pyext boxes in non-detached mode
 - ADD: current path and path of the canvas is added to the python path
 - FIX: path is not added to python path if already included
 

@@ -27,6 +27,8 @@ static PyInterpreterState *pymain = NULL;
 static PyThreadState *pythrmain = NULL;
 static PyThrMap pythrmap;
 
+int py::lockcount = 0;
+
 PyThreadState *py::FindThreadState()
 {
     flext::thrid_t id = flext::GetThreadId();

@@ -175,11 +175,11 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 				// by using the queue there is no immediate call of the next object
 				// deadlock would occur if this was another py/pyext object!
 				if(lst->Count() && IsSymbol((*lst)[0]))
-					ext->ToQueueAnything(o-1,GetSymbol((*lst)[0]),lst->Count()-1,lst->Atoms()+1);
+					ext->ToOutAnything(o-1,GetSymbol((*lst)[0]),lst->Count()-1,lst->Atoms()+1);
 				else if(lst->Count() > 1)
-					ext->ToQueueList(o-1,*lst);
+					ext->ToOutList(o-1,*lst);
                 else
-                    ext->ToQueueAtom(o-1,*lst->Atoms());
+                    ext->ToOutAtom(o-1,*lst->Atoms());
 			}
 			else
 				post("pyext: outlet index out of range");

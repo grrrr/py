@@ -14,17 +14,18 @@ static PyObject *MakePyAtom(const t_atom &at)
 {
 	if(flext::IsSymbol(at)) 
         return pySymbol_FromSymbol(flext::GetSymbol(at));
-//	else if(flext::IsPointer(at)) return NULL; // not handled
-    else if(flext::CanbeInt(at) && flext::CanbeFloat(at)) {
+    else if(flext::CanbeInt(at) || flext::CanbeFloat(at)) {
         // if a number can be an integer... let at be an integer!
         int ival = flext::GetAInt(at);
         double fval = flext::GetAFloat(at);
         return (double)ival == fval?PyInt_FromLong(ival):PyFloat_FromDouble(fval);
     }
+//	else if(flext::IsPointer(at)) return NULL; // not handled
+/*
     // these following should never happen
     else if(flext::IsFloat(at)) return PyFloat_FromDouble((double)flext::GetFloat(at));
 	else if(flext::IsInt(at)) return PyInt_FromLong(flext::GetInt(at));
-  
+*/  
     return NULL;
 }
 

@@ -159,16 +159,20 @@ public:
 	inline void Lock() { mutex.Unlock(); }
 	inline void Unlock() { mutex.Unlock(); }
 
+    // this is respecially needed when one py/pyext object calls another one
+    // we don't want the message to be queued, but otoh we have to avoid deadlock
+    static int lockcount;
+
 	inline PyThreadState *PyLock() 
     { 
-        PyEval_AcquireLock();
+        if(!lockcount++) PyEval_AcquireLock();
 	    return PyThreadState_Swap(FindThreadState());
     }
 
 	inline void PyUnlock(PyThreadState *st) 
     {
         PyThreadState_Swap(st);
-        PyEval_ReleaseLock();
+        if(!--lockcount) PyEval_ReleaseLock();
     }
 #else
 	inline void Lock() {}
