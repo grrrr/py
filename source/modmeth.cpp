@@ -227,7 +227,7 @@ PyObject *py::py_setvalue(PyObject *self,PyObject *args)
 	PyObject *val = PyTuple_GetItem(args,1); // borrowed reference
     if(name && val && PyString_Check(name) && PyNumber_Check(val)) {
 		const t_symbol *sym = MakeSymbol(PyString_AsString(name));
-        float f = PyFloat_AsDouble(val);
+        float f = (float)PyFloat_AsDouble(val);
 
         if(value_setfloat(const_cast<t_symbol *>(sym),f))
 		    post("py/pyext - Could not set value '%s'",GetString(sym));
