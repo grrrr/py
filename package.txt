@@ -4,7 +4,8 @@ BUILDTYPE=multi
 BUILDDIR=build
 
 SRCDIR=source
+PRECOMPILE=pyprefix.h
 
-SRCS= main.cpp py.cpp pyext.cpp modmeth.cpp clmeth.cpp register.cpp pyargs.cpp bound.cpp
+SRCS= main.cpp py.cpp pyext.cpp modmeth.cpp clmeth.cpp register.cpp pyargs.cpp bound.cpp pysymbol.cpp
 
-HDRS= main.h pyext.h
+HDRS= pyprefix.h main.h pyext.h pysymbol.h

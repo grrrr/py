@@ -58,6 +58,7 @@ Version history:
 - ADD: py: when no function is given on the command line, let it be selected by message tag
 - FIX: __init__ wasn't called on reload
 - FIX: bound instance methods weren't correctly decref'd
+- ADD: Python symbol type
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)

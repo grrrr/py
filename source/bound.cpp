@@ -155,7 +155,7 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
                 bdt->funcs.erase(it);               
             }
             else
-                post("%s - Function to unbind couldn't be found",thisName());
+                post("py/pyext - Function to unbind couldn't be found");
 
             if(bdt->funcs.empty()) {
     		    Py_DECREF(bdt->self);

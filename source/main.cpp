@@ -56,6 +56,8 @@ void py::FreeThreadState()
 #endif
 
 
+void initsymbol();
+
 void py::lib_setup()
 {
 	post("");
@@ -93,11 +95,14 @@ void py::lib_setup()
     pythrmap[GetThreadId()] = pythrmain;
 #endif
 
+    initsymbol();
+
     // register/initialize pyext module only once!
 	module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
 	module_dict = PyModule_GetDict(module_obj); // borrowed reference
 
 	PyModule_AddStringConstant(module_obj,"__doc__",(char *)py_doc);
+    PyModule_AddObject(module_obj,"Symbol",(PyObject *)&pySymbol_Type);
 
 	// redirect stdout
 	PyObject* py_out;
