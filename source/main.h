@@ -51,7 +51,7 @@ protected:
 class py:
 	public flext_base
 {
-	FLEXT_HEADER(py,flext_base)
+	FLEXT_HEADER_S(py,flext_base,Setup)
 
 public:
 	py();
@@ -180,8 +180,12 @@ public:
 	static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);
 
 protected:
-	// callbacks
 
+    virtual void m_click();
+
+	static void Setup(t_classid c);
+
+	// callbacks
 	FLEXT_ATTRVAR_I(detach)
 	FLEXT_ATTRVAR_B(respond)
 	FLEXT_CALLBACK_V(m_stop)

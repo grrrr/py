@@ -137,6 +137,16 @@ PyObject *py::module_obj = NULL;
 PyObject *py::module_dict = NULL;
 
 
+void py::Setup(t_classid c)
+{
+	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
+	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
+#ifdef FLEXT_THREADS
+	FLEXT_CADDATTR_VAR1(c,"detach",detach);
+	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
+#endif
+}
+
 py::py(): 
 	module(NULL),
 	detach(0),shouldexit(false),thrcount(0),
@@ -239,6 +249,10 @@ void py::m__doc(PyObject *obj)
 	}
 }
 
+void py::m_click()
+{
+    // this should once open the editor....
+}
 
 void py::SetArgs(int argc,const t_atom *argv)
 {

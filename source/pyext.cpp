@@ -20,20 +20,13 @@ void pyext::Setup(t_classid c)
 {
     sym_get = flext::MakeSymbol("get");
     
-    FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
 	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
-	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
-	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
-	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
+    FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
 	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
-
-  	FLEXT_CADDATTR_VAR(c,"args",args,ms_args);
+	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
 	FLEXT_CADDATTR_GET(c,"dir+",mg_dir_);
 
-#ifdef FLEXT_THREADS
-	FLEXT_CADDATTR_VAR1(c,"detach",detach);
-	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
-#endif
+    FLEXT_CADDATTR_VAR(c,"args",args,ms_args);
 
 	FLEXT_CADDMETHOD_(c,0,"get",m_get);
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
@@ -195,17 +188,7 @@ pyext::~pyext()
 {
 	PyThreadState *state = PyLock();
 
-	ClearBinding();
-    
-    if(pyobj) {
-        if(pyobj->ob_refcnt > 1) {
-            post("%s - Python object is still referenced",thisName());
-
-            // Force-quit object
-            DoExit();
-        }
-    	Py_DECREF(pyobj);  // opposite of SetClssMeth
-    }
+    DoExit();
 
     Unregister("_pyext");
 	UnimportModule();
@@ -238,20 +221,32 @@ bool pyext::DoInit()
     return true;
 }
 
-bool pyext::DoExit()
+void pyext::DoExit()
 {
-	PyObject *meth = PyObject_GetAttrString(pyobj,"__del__"); // get ref
-    if(meth) {
-        if(PyMethod_Check(meth)) {
-			PyObject *res = PyObject_CallObject(meth,NULL);
-			if(!res)
-				PyErr_Print();
-			else
-				Py_DECREF(res);
+	ClearBinding();
+
+    if(pyobj) {
+        if(pyobj->ob_refcnt > 1) {
+            post("%s - Python object is still referenced",thisName());
+
+            // Force-quit object:
+            // call __del__ manually
+            // this is dangerous, because it could get called a second time
+            // if object really has no more references then
+	        PyObject *meth = PyObject_GetAttrString(pyobj,"__del__"); // get ref
+            if(meth) {
+                if(PyMethod_Check(meth)) {
+			        PyObject *res = PyObject_CallObject(meth,NULL);
+			        if(!res)
+				        PyErr_Print();
+			        else
+				        Py_DECREF(res);
+                }
+                Py_DECREF(meth);
+	        }
         }
-        Py_DECREF(meth);
-	}
-    return true;
+    	Py_DECREF(pyobj);  // opposite of SetClssMeth
+    }
 }
 
 void pyext::InitInOut(int &inl,int &outl)
@@ -334,8 +329,7 @@ bool pyext::MakeInstance()
 
 void pyext::Reload()
 {
-	ClearBinding();
-	Py_XDECREF(pyobj);
+	DoExit();
 
 	// by here, the Python class destructor should have been called!
 

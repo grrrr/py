@@ -81,18 +81,13 @@ FLEXT_LIB_V("py",pyobj)
 
 void pyobj::Setup(t_classid c)
 {
-	FLEXT_CADDBANG(c,0,m_bang);
 	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
-	FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
-	FLEXT_CADDMETHOD_(c,0,"set",m_set);
-	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
+    FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
 	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
-#ifdef FLEXT_THREADS
-	FLEXT_CADDATTR_VAR1(c,"detach",detach);
-	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
-#endif
-	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
 	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
+
+	FLEXT_CADDBANG(c,0,m_bang);
+	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
 	FLEXT_CADDMETHOD_(c,1,"float",m_py_float);
 	FLEXT_CADDMETHOD_(c,1,"int",m_py_int);
