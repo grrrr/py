@@ -298,7 +298,7 @@ V pyext::m_doc_()
 
 
 
-BL pyext::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
+BL pyext::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 {
 	if(pyobj && n >= 1) {
 		return callwork(n,s,argc,argv);
@@ -351,7 +351,7 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_ato
 		else {
 			ret = PyEval_CallObject(pmeth, pargs); 
 			if (ret == NULL) // function not found resp. arguments not matching
-#ifdef _DEBUG
+#if 1 //def _DEBUG
 				PyErr_Print();
 #else
 				PyErr_Clear();  

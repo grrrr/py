@@ -29,11 +29,11 @@ class ex1(pyext._class):
 	_outlets=2
 
 	sltime=0.2 # sleep time
-	loops=30   # loops to iterate
+	loops=20   # loops to iterate
 
 	# method for bang to any inlet
 	def bang_(self,n):
-		for i in range(30):
+		for i in range(self.loops):
 			# if _shouldexit is true, the thread ought to stop
 			if self._shouldexit: break
 
