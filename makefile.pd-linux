@@ -12,15 +12,31 @@ CONFIG=config-pd-linux.txt
 
 include $(CONFIG)
 
-FLEXTLIB=$(FLEXTPATH)/flext_t.a
 
 # compiler+linker stuff	
 INCLUDES=$(PDPATH) $(PYTHONINCLUDE)
 LIBPATH=$(PYTHONLIB)
 FLAGS=-DFLEXT_SYS=2 -DFLEXT_THREADS
-CFLAGS=-O6 -mcpu=pentiumpro
-#CFLAGS=-g
-LIBS=m util python$(PYTHONVER)  
+CFLAGS=-O2 $(UFLAGS)
+LIBS=stdc++ python$(PYTHONVER)  
+
+
+ifdef FLEXT_SHARED
+CFLAGS+=-shared -DFLEXT_SHARED
+LIBPATH+=$(FLEXTPATH)
+LIBFLEXT=-lflext
+
+ifeq ($(CXX),icc)
+LDFLAGS+=-i_dynamic
+else
+LDFLAGS+=-Wl,-Bdynamic
+endif
+
+else
+
+LIBFLEXT=$(FLEXTPATH)/libflext_t.a
+
+endif
 
 
 # ---------------------------------------------
@@ -37,21 +53,22 @@ TARGET=$(TARGDIR)/$(NAME).pd_linux
 # default target
 all: $(TARGDIR) $(TARGET)
 
-$(patsubst %,$(SRCDIR)/%,$(SRCS)): $(patsubst %,$(SRCDIR)/%,$(HDRS)) $(FLEXTLIB) $(CONFIG)
+$(patsubst %,$(SRCDIR)/%,$(SRCS)): $(patsubst %,$(SRCDIR)/%,$(HDRS)) $(MAKEFILE) $(CONFIG)
 	touch $@
 
 $(TARGDIR):
-	mkdir $(TARGDIR)
+	-mkdir $(TARGDIR)
 
 $(TARGDIR)/%.o : $(SRCDIR)/%.cpp
 	$(CXX) -c $(CFLAGS) $(FLAGS) $(patsubst %,-I%,$(INCLUDES) $(FLEXTPATH)) $< -o $@
 
-$(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS)) $(FLEXTLIB) 
-	$(CXX) -shared $^ $(patsubst %,-L%,$(LIBPATH)) $(patsubst %,-l%,$(LIBS)) -o $@ 
+$(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS))  
+	$(CXX) -shared $(LDFLAGS) -o $@ $^ $(patsubst %,-L%,$(LIBPATH)) $(LIBFLEXT) $(patsubst %,-l%,$(LIBS)) 
+	strip --strip-unneeded $@ 
 	chmod 755 $@
 
 $(INSTPATH):
-	mkdir $(INSTDIR)
+	-mkdir $(INSTDIR)
 
 install:: $(INSTDIR)
 

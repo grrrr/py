@@ -27,5 +27,5 @@ TARGDIR=./pd-linux
 # (leave blank to omit installation)
 INSTPATH=/usr/local/lib/pd/extra
 
-
-
+# define for shared build
+#FLEXT_SHARED=1
