@@ -66,7 +66,7 @@ protected:
 
 	V GetModulePath(const C *mod,C *dir,I len);
 	V AddToPath(const C *dir);
-	V SetArgs(I argc,t_atom *argv);
+	V SetArgs(I argc,const t_atom *argv);
 	V ImportModule(const C *name);
 	V ReloadModule();
 
@@ -98,7 +98,7 @@ protected:
 	// ----thread stuff ------------
 
 	V m_detach(BL det) { detach = det; }
-	virtual V m_stop(int argc,t_atom *argv);
+	virtual V m_stop(int argc,const t_atom *argv);
 
 	BL detach,shouldexit;
 	I thrcount;

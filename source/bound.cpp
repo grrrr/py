@@ -14,7 +14,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 t_class *pyext::px_class;
 pyext::py_proxy *pyext::px_head,*pyext::px_tail;
 
-void pyext::py_proxy::px_method(py_proxy *obj,const t_symbol *s,int argc,t_atom *argv)
+void pyext::py_proxy::px_method(py_proxy *obj,const t_symbol *s,int argc,const t_atom *argv)
 {
 	PY_LOCK
 

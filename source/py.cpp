@@ -17,29 +17,29 @@ class pyobj:
 	FLEXT_HEADER(pyobj,py)
 
 public:
-	pyobj(I argc,t_atom *argv);
+	pyobj(I argc,const t_atom *argv);
 	~pyobj();
 
 protected:
-	BL m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
+	BL m_method_(I n,const t_symbol *s,I argc,const t_atom *argv);
 
-	V work(const t_symbol *s,I argc,t_atom *argv); 
+	V work(const t_symbol *s,I argc,const t_atom *argv); 
 
 	V m_bang() { work(sym_bang,0,NULL); }
 	V m_reload();
-	V m_reload_(I argc,t_atom *argv);
-	V m_set(I argc,t_atom *argv);
+	V m_reload_(I argc,const t_atom *argv);
+	V m_set(I argc,const t_atom *argv);
 	V m_doc_();
 
 	virtual V m_help();
 
 	// methods for python arguments
-	V callwork(const t_symbol *s,I argc,t_atom *argv);
+	V callwork(const t_symbol *s,I argc,const t_atom *argv);
 	
-	V m_py_list(I argc,t_atom *argv) { callwork(sym_list,argc,argv); }
-	V m_py_float(I argc,t_atom *argv) { callwork(sym_float,argc,argv); }
-	V m_py_int(I argc,t_atom *argv) { callwork(sym_int,argc,argv); }
-	V m_py_any(const t_symbol *s,I argc,t_atom *argv) { callwork(s,argc,argv); }
+	V m_py_list(I argc,const t_atom *argv) { callwork(sym_list,argc,argv); }
+	V m_py_float(I argc,const t_atom *argv) { callwork(sym_float,argc,argv); }
+	V m_py_int(I argc,const t_atom *argv) { callwork(sym_int,argc,argv); }
+	V m_py_any(const t_symbol *s,I argc,const t_atom *argv) { callwork(s,argc,argv); }
 
 	const t_symbol *funname;
 	PyObject *function;
@@ -72,7 +72,7 @@ private:
 FLEXT_LIB_V("py",pyobj)
 
 
-pyobj::pyobj(I argc,t_atom *argv):
+pyobj::pyobj(I argc,const t_atom *argv):
 	function(NULL),funname(NULL)
 { 
 	PY_LOCK
@@ -139,7 +139,7 @@ pyobj::~pyobj()
 
 
 
-BL pyobj::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
+BL pyobj::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
 {
 	if(n == 1)
 		post("%s - no method for type %s",thisName(),GetString(s));
@@ -160,7 +160,7 @@ V pyobj::m_reload()
 	PY_UNLOCK
 }
 
-V pyobj::m_reload_(I argc,t_atom *argv)
+V pyobj::m_reload_(I argc,const t_atom *argv)
 {
 	PY_LOCK
 	SetArgs(argc,argv);
@@ -169,7 +169,7 @@ V pyobj::m_reload_(I argc,t_atom *argv)
 	m_reload();
 }
 
-V pyobj::m_set(I argc,t_atom *argv)
+V pyobj::m_set(I argc,const t_atom *argv)
 {
 	PY_LOCK
 
@@ -279,7 +279,7 @@ V pyobj::Reload()
 }
 
 
-V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
+V pyobj::work(const t_symbol *s,I argc,const t_atom *argv)
 {
 	AtomList *rargs = NULL;
 
@@ -311,7 +311,7 @@ V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 	}
 }
 
-V pyobj::callwork(const t_symbol *s,I argc,t_atom *argv)
+V pyobj::callwork(const t_symbol *s,I argc,const t_atom *argv)
 {
 	if(detach) {
 		if(shouldexit)

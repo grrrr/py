@@ -36,7 +36,7 @@ I pyext::pyextref = 0;
 PyObject *pyext::class_obj = NULL;
 PyObject *pyext::class_dict = NULL;
 
-pyext::pyext(I argc,t_atom *argv):
+pyext::pyext(I argc,const t_atom *argv):
 	pyobj(NULL),pythr(NULL),
 	inlets(0),outlets(0),
 	methname(NULL)
@@ -274,7 +274,7 @@ V pyext::m_reload()
 	PY_UNLOCK
 }
 
-V pyext::m_reload_(I argc,t_atom *argv)
+V pyext::m_reload_(I argc,const t_atom *argv)
 {
 	args(argc,argv);
 	m_reload();
@@ -298,7 +298,7 @@ V pyext::m_doc_()
 
 
 
-BL pyext::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
+BL pyext::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
 {
 	if(pyobj && n >= 1) {
 		return callwork(n,s,argc,argv);
@@ -336,7 +336,7 @@ V pyext::m_help()
 	post("");
 }
 
-PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *argv) 
+PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *argv) 
 {
 	PyObject *ret = NULL;
 
@@ -384,7 +384,7 @@ V pyext::work_wrapper(V *data)
 	--thrcount;
 }
 
-BL pyext::callwork(I n,const t_symbol *s,I argc,t_atom *argv)
+BL pyext::callwork(I n,const t_symbol *s,I argc,const t_atom *argv)
 {
 	if(detach) {
 		if(shouldexit) {
@@ -401,7 +401,7 @@ BL pyext::callwork(I n,const t_symbol *s,I argc,t_atom *argv)
 		return work(n,s,argc,argv);
 }
 
-BL pyext::work(I n,const t_symbol *s,I argc,t_atom *argv)
+BL pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
 {
 	BL retv = false;
 

@@ -66,7 +66,7 @@ V py::tick(py *th)
 	th->Unlock();
 }
 
-V py::m_stop(int argc,t_atom *argv)
+V py::m_stop(int argc,const t_atom *argv)
 {
 	if(thrcount) {
 		Lock();

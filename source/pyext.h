@@ -19,7 +19,7 @@ class pyext:
 	FLEXT_HEADER_S(pyext,py,setup)
 
 public:
-	pyext(I argc,t_atom *argv);
+	pyext(I argc,const t_atom *argv);
 	~pyext();
 
 	static PyObject *pyext__doc__(PyObject *,PyObject *args);
@@ -39,12 +39,12 @@ public:
 	I Outlets() const { return outlets; }
 
 protected:
-	BL m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
+	BL m_method_(I n,const t_symbol *s,I argc,const t_atom *argv);
 
-	BL work(I n,const t_symbol *s,I argc,t_atom *argv); 
+	BL work(I n,const t_symbol *s,I argc,const t_atom *argv); 
 
 	V m_reload();
-	V m_reload_(I argc,t_atom *argv);
+	V m_reload_(I argc,const t_atom *argv);
 	V m_doc_();
 	virtual V m_help();
 
@@ -87,7 +87,7 @@ private:
 //		bool cmp(PyObject *s,PyObject *f) const { return self == s && func == f; }
 //		void init(PyObject *s,char *f) { self = s,func = f,nxt = NULL; }
 //		bool cmp(PyObject *s,char *f) const { return self == s && func == f; }
-		static void px_method(py_proxy *c,const t_symbol *s,int argc,t_atom *argv);
+		static void px_method(py_proxy *c,const t_symbol *s,int argc,const t_atom *argv);
 	};
 	static py_proxy *px_head,*px_tail;
 
@@ -96,16 +96,16 @@ private:
 
 	// ---------------------------
 
-	PyObject *call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *argv);
+	PyObject *call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *argv);
 
 	V work_wrapper(void *data); 
-	BL callwork(I n,const t_symbol *s,I argc,t_atom *argv); 
+	BL callwork(I n,const t_symbol *s,I argc,const t_atom *argv); 
 
 	class work_data:
 		public flext::AtomAnything
 	{
 	public:
-		work_data(I _n,const t_symbol *_s,I _argc,t_atom *_argv): n(_n),AtomAnything(_s,_argc,_argv) {}
+		work_data(I _n,const t_symbol *_s,I _argc,const t_atom *_argv): n(_n),AtomAnything(_s,_argc,_argv) {}
 		I n;
 	};
 

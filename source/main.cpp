@@ -127,7 +127,7 @@ V py::m_doc()
 
 
 
-V py::SetArgs(I argc,t_atom *argv)
+V py::SetArgs(I argc,const t_atom *argv)
 {
 	// script arguments
 	C **sargv = new C *[argc+1];
