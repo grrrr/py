@@ -160,7 +160,7 @@ PyObject *py::GetFunction(const C *func)
 	return l?PyDict_GetItemString(l->dict,const_cast<C *>(func)):NULL;
 }
 
-PyObject *py::MakeArgs(const t_symbol *s,I argc,t_atom *argv)
+PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv)
 {
 	BL any = s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer;
 
@@ -172,7 +172,7 @@ PyObject *py::MakeArgs(const t_symbol *s,I argc,t_atom *argv)
 		PyObject *pValue = PyString_FromString(GetString(s));
 
 		if(!pValue) 
-			post("%s: cannot convert method header",thisName());
+			post("py: cannot convert method header");
 
 		/* pValue reference stolen here: */
 		PyTuple_SetItem(pArgs, ix++, pValue); 
@@ -187,7 +187,7 @@ PyObject *py::MakeArgs(const t_symbol *s,I argc,t_atom *argv)
 		else if(IsPointer(argv[i])) pValue = NULL; // not handled
 
 		if(!pValue) {
-			post("%s: cannot convert argument %i",thisName(),any?i+1:i);
+			post("py: cannot convert argument %i",any?i+1:i);
 			continue;
 		}
 
@@ -198,7 +198,7 @@ PyObject *py::MakeArgs(const t_symbol *s,I argc,t_atom *argv)
 	return pArgs;
 }
 
-t_atom *py::GetRets(int &argc,PyObject *pValue)
+t_atom *py::GetPyArgs(int &argc,PyObject *pValue)
 {
 	if(pValue == NULL) { argc = 0; return NULL; }
 
@@ -237,7 +237,7 @@ t_atom *py::GetRets(int &argc,PyObject *pValue)
 		else if(PyFloat_Check(arg)) SetFloat(ret[ix],(F)PyFloat_AsDouble(arg));
 		else if(PyString_Check(arg)) SetString(ret[ix],PyString_AsString(arg));
 		else {
-			post("%s: Could not convert return argument",thisName());
+			post("py: Could not convert return argument");
 			ok = false;
 		}
 		// No DECREF for arg -> borrowed from pValue!

@@ -71,8 +71,8 @@ protected:
 	V ReloadModule();
 	PyObject *GetModule();
 	PyObject *GetFunction(const C *func);
-	PyObject *MakeArgs(const t_symbol *s,I argc,t_atom *argv);
-	t_atom *GetRets(int &argc,PyObject *pValue);
+	static PyObject *MakePyArgs(const t_symbol *s,I argc,t_atom *argv);
+	static t_atom *GetPyArgs(int &argc,PyObject *pValue);
 
 	static C *strdup(const C *s);
 

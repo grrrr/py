@@ -38,9 +38,7 @@ protected:
 	virtual V m_py_int(I argc,t_atom *argv) { work(sym_int,argc,argv); }
 	virtual V m_py_any(const t_symbol *s,I argc,t_atom *argv) { work(s,argc,argv); }
 
-	C *sFunc;
-
-	V SetFunction(const C *name);
+	t_symbol *sFunc;
 
 private:
 
@@ -57,13 +55,6 @@ private:
 };
 
 FLEXT_LIB_G("py",pyobj)
-
-
-V pyobj::SetFunction(const C *name)
-{
-	if(sFunc) delete[] sFunc;
-	sFunc = strdup(name);
-}
 
 
 pyobj::pyobj(I argc,t_atom *argv):
@@ -112,7 +103,7 @@ pyobj::pyobj(I argc,t_atom *argv):
 		if(!IsString(argv[1])) 
 			post("%s - function name argument is invalid",thisName());
 		else
-			SetFunction(GetString(argv[1]));
+			sFunc = GetSymbol(argv[1]);
 	}
 }
 
@@ -146,7 +137,7 @@ V pyobj::m_set(I argc,t_atom *argv)
 	if(!IsString(argv[ix])) 
 		post("%s - function name is not valid",thisName());
 	else
-		SetFunction(GetString(argv[ix]));
+		sFunc = GetSymbol(argv[ix]);
 
 }
 
@@ -173,14 +164,14 @@ V pyobj::m_help()
 
 V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 {
-	PyObject *pFunc = GetFunction(sFunc);
+	PyObject *pFunc = GetFunction(GetString(sFunc));
 
 	if(pFunc && PyCallable_Check(pFunc)) {
-		PyObject *pArgs = MakeArgs(s,argc,argv);
+		PyObject *pArgs = MakePyArgs(s,argc,argv);
 		PyObject *pValue = PyObject_CallObject(pFunc, pArgs);
 
 		I rargc;
-		t_atom *rargv = GetRets(rargc,pValue);
+		t_atom *rargv = GetPyArgs(rargc,pValue);
 
 		if(rargv) {
 			ToOutList(0,rargc,rargv);
