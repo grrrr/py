@@ -243,7 +243,7 @@ PyObject *py::GetFunction()
 
 
 py::py(I argc,t_atom *argv):
-	sName(NULL),sFunc(NULL)
+	sName(NULL),sFunc(NULL),hName(0)
 { 
 	AddInAnything(2);  
 	AddOutAnything();  
@@ -262,43 +262,42 @@ py::py(I argc,t_atom *argv):
     if(!(pyref++)) Py_Initialize();
 
 
-	C dir[1024];
-#ifdef PD
-	// uarghh... pd doesn't show it's path for extra modules
-
-	C *name;
-	I fd = open_via_path("",GetString(argv[0]),".py",dir,&name,sizeof(dir),0);
-	if(fd > 0) close(fd);
-	else name = NULL;
-#elif defined(MAXMSP)
-	*dir = 0;
-#endif
-
-	// set script path
-	PySys_SetPath(dir);
-
 	if(argc > 2) SetArgs(argc-2,argv+2);
 
 	// init script module
-	if(!IsString(argv[0])) 
-		post("%s - script name argument is invalid");
-	else
-		ImportModule(GetString(argv[0]));
+	if(argc >= 1) {
+		C dir[1024];
+#ifdef PD
+		// uarghh... pd doesn't show it's path for extra modules
 
-	// set function name
-	if(!IsString(argv[1])) 
-		post("%s - function name argument is invalid");
-	else
-		SetFunction(GetString(argv[1]));
+		C *name;
+		I fd = open_via_path("",GetString(argv[0]),".py",dir,&name,sizeof(dir),0);
+		if(fd > 0) close(fd);
+		else name = NULL;
+#elif defined(MAXMSP)
+		*dir = 0;
+#endif
+
+		// set script path
+		PySys_SetPath(dir);
+
+		if(!IsString(argv[0])) 
+			post("%s - script name argument is invalid",thisName());
+		else
+			ImportModule(GetString(argv[0]));
+	}
+
+	if(argc >= 2) {
+		// set function name
+		if(!IsString(argv[1])) 
+			post("%s - function name argument is invalid",thisName());
+		else
+			SetFunction(GetString(argv[1]));
+	}
 }
 
 py::~py()
 {
-	// pDict and pFunc are borrowed and must not be Py_DECREF-ed 
-
-//    if(pModule) Py_DECREF(pModule);
-//    if(pName) Py_DECREF(pName);
-
     if(!(--pyref)) {
 		delete modules; modules = NULL;
 		Py_Finalize();
