@@ -66,6 +66,7 @@ LINK32=link.exe
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir "msvc-debug"
 # PROP Intermediate_Dir "msvc-debug"
+# PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "PY_EXPORTS" /YX /FD /GZ /c
 # ADD CPP /nologo /W3 /Gm /GR /GX /ZI /Od /I "c:\programme\audio\pd\src" /I "u:\prog\max\flext" /I "C:\Programme\prog\Python22\include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "PD" /D "NT" /FR /YX /FD /GZ /c
@@ -117,6 +118,18 @@ SOURCE=.\readme.txt
 # Begin Source File
 
 SOURCE=.\main.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\main.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\py.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\pyext.cpp
 # End Source File
 # End Target
 # End Project

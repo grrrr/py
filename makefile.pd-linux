@@ -1,38 +1,48 @@
-# py - python script object for PD and MaxMSP
-# Copyright (C) 2002 Thomas Grill
+# py - python script object for PD and Max/MSP
+# Copyright (C) 2002 Thomas Grill (xovo@gmx.net)
 #
-# Makefile for gcc 
+# Makefile for gcc @ linux
 #
-# usage: make -f makefile.pd-linux
+# usage:
+# to build run "make -f makefile.pd-linux"
+# to install (as root), do "make -f makefile.pd-linux install"
 #
-# ---------------------------------------------
 
-NAME=py
+## EDIT ZONE ##################################
 
-# where to build
-TARGDIR=./pd-linux
-
-# where to install	### EDIT! ###
-INSTDIR=/usr/lib/pd/extra
-
-# flext stuff	### EDIT! ###
+# flext path
 FLEXTPATH=/usr/lib/pd/flext
-FLEXTLIB=$(FLEXTPATH)/flext.a
 
-# python stuff	### EDIT! ###
+# pd path
+PDPATH=/usr/lib/pd/include
+
+# python paths
 PYTHONINCLUDE=/usr/include/python2.2
 PYTHONLIB=/usr/lib/python2.2/config
 
-# compiler+linker stuff	### EDIT! ###
-INCLUDES=/usr/lib/pd/include $(PYTHONINCLUDE)
+# where to install	
+INSTDIR=/usr/lib/pd/extra
+
+###############################################
+
+FLEXTLIB=$(FLEXTPATH)/flext.a
+
+# where to build (temporary)
+TARGDIR=./pd-linux
+
+# compiler+linker stuff	
+INCLUDES=$(PDPATH) $(PYTHONINCLUDE)
 LIBPATH=$(PYTHONLIB)
 FLAGS=-DPD
 CFLAGS=-O6 -mcpu=pentium  
 LIBS=m util python2.2 # static linking with python
 
 
+# ---------------------------------------------
 # the rest can stay untouched
 # ----------------------------------------------
+
+NAME=py
 
 # all the source files from the package
 SRCS=main.cpp 
