@@ -153,6 +153,7 @@ public:
 
     // this is respecially needed when one py/pyext object calls another one
     // we don't want the message to be queued, but otoh we have to avoid deadlock
+    // (recursive calls can only happen in the system thread)
     static int lockcount;
 
 	inline PyThreadState *PyLock() 

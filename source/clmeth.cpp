@@ -231,9 +231,10 @@ PyObject *pyext::pyext_stop(PyObject *,PyObject *args)
     }
 	else {
 		pyext *ext = GetThis(self);
-		int cnt = 0;
+		int cnt;
 		t_atom at;
-		if(val >= 0) flext::SetInt(at,val);
+		if(val >= 0) cnt = 1,flext::SetInt(at,val);
+        else cnt = 0;
 		ext->m_stop(cnt,&at);
 	}
 
