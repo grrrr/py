@@ -42,7 +42,7 @@
 				OutputFile=".\pd-msvc\d/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="c:/programme/audio/pd/bin,..\flext\pd-msvc,f:\prog\packs\Python-2.2.1\PCbuild"
+				AdditionalLibraryDirectories="c:/programme/audio/pd/bin;&quot;..\flext\pd-msvc&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\pd-msvc\d/py.pdb"
 				ImportLibrary=".\pd-msvc\d/py.lib"
@@ -152,7 +152,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="c:\programme\audio\pd\src,f:\prog\max\flext\source,C:\Programme\prog\Python22\include"
+				AdditionalIncludeDirectories="c:\programme\audio\pd\src,f:\prog\max\flext\source,C:\Programme\prog\Python23\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;FLEXT_SYS=2;FLEXT_THREADS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -170,7 +170,7 @@
 				OutputFile="pd-msvc\py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="c:/programme/audio/pd/bin,..\flext\pd-msvc,C:\Programme\prog\Python22\libs"
+				AdditionalLibraryDirectories="c:/programme/audio/pd/bin;&quot;..\flext\pd-msvc&quot;;C:\Programme\prog\Python23\libs"
 				ProgramDatabaseFile=".\pd-msvc\tr/py.pdb"
 				ImportLibrary=".\pd-msvc\tr/py.lib"
 				TargetMachine="1"/>
@@ -228,7 +228,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="pd.lib"
+				AdditionalDependencies="pd.lib python23.lib"
 				OutputFile=".\pd-msvc\r/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
