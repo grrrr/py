@@ -21,18 +21,27 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 class py:
 	public flext_base
 {
-	FLEXT_HEADER(py,flext_base)
+	FLEXT_HEADER_S(py,flext_base)
 
 public:
 	py(I argc,t_atom *argv);
 	~py();
 
 protected:
-	virtual V m_method_m(I n,const t_symbol *s,I argc,t_atom *argv); 
+	virtual V m_method_(I n,const t_symbol *s,I argc,t_atom *argv); 
 
     PyObject *pName,*pModule,*pDict,*pFunc;	
 	t_atom *ret;
+
+	static I pyref;
 };
+
+I py::pyref;
+
+V py::cb_setup(t_class *) 
+{
+	py::pyref = 0;
+}
 
 // make implementation of a tilde object with one float arg
 FLEXT_GIMME("py",py)
@@ -47,7 +56,7 @@ py::py(I argc,t_atom *argv):
 	setup_inout();  // set up inlets and outlets
 
 
-    Py_Initialize();
+    if(!(pyref++)) Py_Initialize();
 
     if (argc < 2 || !is_symbol(argv[0]) || !is_symbol(argv[1])) {
         post("%s: Syntax: %s pythonfile function",thisName(),thisName());
@@ -79,48 +88,60 @@ py::~py()
     if(pModule) Py_DECREF(pModule);
     if(pName) Py_DECREF(pName);
 
-    Py_Finalize();
+    if(!(--pyref)) Py_Finalize();
 }
 
-V py::m_method_m(I,const t_symbol *s,I argc,t_atom *argv)
+V py::m_method_(I inlet,const t_symbol *s,I argc,t_atom *argv)
 {
     PyObject *pArgs, *pValue;
 
+//	post("Any called: inlet=%i, symbol=%s, argc=%i",inlet,s->s_name,argc);
+
 	if(pFunc && PyCallable_Check(pFunc)) {
 
-		I pyargc = argc;
-		if(s && (s != sym_float || s != sym_int || s != sym_symbol || s != sym_list)) ++pyargc;
+		if(s == sym_bang) {
+			pArgs = PyTuple_New(0);
+			argc = 0;
+		}
+		else {
+			BL any;
+			any = s && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list;
 
-		pArgs = PyTuple_New(pyargc);
+			pArgs = PyTuple_New(any?argc+1:argc);
 
-		I ix = 0;
-		if(s && (s != sym_float || s != sym_int || s != sym_symbol || s != sym_list)) {
-			pValue = PyString_FromString(s->s_name);
-			if(!pValue) {
-				post("%s: cannot convert argument header",thisName());
+			I ix = 0;
+			if(any) {
+//				post("Header: symbol=%s",s->s_name);
+
+				pValue = PyString_FromString(s->s_name);
+				if(!pValue) {
+					post("%s: cannot convert argument header",thisName());
+				}
+
+				/* pValue reference stolen here: */
+				PyTuple_SetItem(pArgs, ix, pValue);
+				++ix;
 			}
 
-			/* pValue reference stolen here: */
-			PyTuple_SetItem(pArgs, ix, pValue);
-			ix++;
-		}
+			for(I i = 0; i < argc; ++i) {
+				pValue = NULL;
+				
+				if(is_float(argv[i])) pValue = PyFloat_FromDouble((D)get_float(argv[i]));
+				else if(is_int(argv[i])) pValue = PyInt_FromLong(get_int(argv[i]));
+				else if(is_symbol(argv[i])) pValue = PyString_FromString(geta_string(argv[i]));
 
-		for(I i = 0; i < argc; ++i) {
-			pValue = NULL;
-			
-			if(is_float(argv[i])) pValue = PyFloat_FromDouble((D)get_float(argv[i]));
-			else if(is_int(argv[i])) pValue = PyInt_FromLong(get_int(argv[i]));
-			if(is_symbol(argv[i])) pValue = PyString_FromString(geta_string(argv[i]));
+				if(!pValue) {
+					post("%s: cannot convert argument",thisName());
+					continue;
+				}
 
-			if(!pValue) {
-				post("%s: cannot convert argument",thisName());
-				continue;
+				/* pValue reference stolen here: */
+				PyTuple_SetItem(pArgs, ix, pValue); 
+				++ix;
 			}
-
-			/* pValue reference stolen here: */
-			PyTuple_SetItem(pArgs, ix, pValue);
-			++ix;
 		}
+
+//		post("calling function with %i args",PyTuple_Size(pArgs));
 
 		pValue = PyObject_CallObject(pFunc, pArgs);
 		if (pValue != NULL) {
@@ -159,7 +180,7 @@ V py::m_method_m(I,const t_symbol *s,I argc,t_atom *argv)
 		else {
 			post("%s: python function call failed",thisName());
 		}
-		Py_DECREF(pArgs);
+		if(pArgs) Py_DECREF(pArgs);
 	}
 	else {
 		post("%s: no function defined",thisName());
