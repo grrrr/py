@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and MaxMSP
 
-Copyright (c)2002-2004 Thomas Grill (xovo@gmx.net)
+Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -19,7 +19,6 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #else
 #include <Python.h>
 #endif
-#include <map>
 
 #if FLEXT_OS == FLEXT_LINUX || FLEXT_OS == FLEXT_IRIX
 #include <unistd.h>
@@ -29,7 +28,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.4.6
 #endif
 
-#define PY__VERSION "0.1.4"
+#define PY__VERSION "0.2.0pre"
 
 
 #define PYEXT_MODULE "pyext" // name for module
@@ -49,10 +48,6 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 
 #include "main.h"
-
-#ifdef FLEXT_THREADS
-typedef std::map<flext::thrid_t,PyThreadState *> PyThrMap;
-#endif
 
 class py:
 	public flext_base
@@ -134,9 +129,6 @@ protected:
 public:
 
 #ifdef FLEXT_THREADS
-	static PyInterpreterState *pystate;
-	static PyThreadState *pythrmain;
-    static PyThrMap pythrmap;
 	ThrMutex mutex;
 	inline V Lock() { mutex.Unlock(); }
 	inline V Unlock() { mutex.Unlock(); }
@@ -161,14 +153,13 @@ protected:
 
 #ifdef FLEXT_THREADS
 
-// if thread is not found in the thread map, the state of the system thread is used
-// we have yet to see if this has bad side-effects
+PyThreadState *FindThreadState();
+void FreeThreadState();
 
 #define PY_LOCK \
 	{ \
     PyEval_AcquireLock(); \
-	PyThrMap::iterator it = pythrmap.find(GetThreadId()); \
-	PyThreadState *__st = it != pythrmap.end()?it->second:pythrmain; \
+	PyThreadState *__st = FindThreadState(); \
 	PyThreadState *__oldst = PyThreadState_Swap(__st);
 
 #define PY_UNLOCK \

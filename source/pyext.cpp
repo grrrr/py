@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2004 Thomas Grill (xovo@gmx.net)
+Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -256,10 +256,14 @@ pyext::~pyext()
 	PY_LOCK
 
 	ClearBinding();
-	Unregister("_pyext");
-	UnimportModule();
+    
+    if(pyobj) {
+        if(pyobj->ob_refcnt > 1) post("%s - Python object is still referenced",thisName());
+    	Py_DECREF(pyobj);  // opposite of SetClssMeth
+    }
 
-	Py_XDECREF(pyobj);  // opposite of SetClssMeth
+    Unregister("_pyext");
+	UnimportModule();
 
 	PY_UNLOCK
 }
@@ -495,13 +499,9 @@ V pyext::work_wrapper(V *data)
         // get the global lock
         PyEval_AcquireLock();
         // create a thread state object for this thread
-        PyThreadState *newthr = PyThreadState_New(pystate);
+        PyThreadState *newthr = FindThreadState();
         // free the lock
         PyEval_ReleaseLock();
-        // -----------------------------
-
-        // store new thread state
-        pythrmap[GetThreadId()] = newthr;
 #endif
         {
             // call worker
@@ -511,18 +511,13 @@ V pyext::work_wrapper(V *data)
         }
 
 #ifdef FLEXT_THREADS
-        // delete mapped thread state
-        pythrmap.erase(GetThreadId());
-
         // --- delete Python thread ---
         // grab the lock
         PyEval_AcquireLock();
         // swap my thread state out of the interpreter
         PyThreadState_Swap(NULL);
-        // clear out any cruft from thread state object
-        PyThreadState_Clear(newthr);
-        // delete my thread state object
-        PyThreadState_Delete(newthr);
+        // delete mapped thread state
+        FreeThreadState();
         // release the lock
         PyEval_ReleaseLock();
         // -----------------------------

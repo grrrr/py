@@ -1,6 +1,6 @@
 py/pyext - python script objects for PD (and MaxMSP... once, under MacOSX and Windows)
 
-Copyright (c)2002-2004 Thomas Grill (xovo@gmx.net)
+Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -45,8 +45,8 @@ You can send messages to named objects or receive (with pyext) with Python metho
 
 Known bugs:
 - The TCL/TK help patch is not usable under OSX.
-- With the standard PD distribution, threaded py scripts will cause "Stack overflows" under some circumstances
-	(the devel_0_37 cvs branch of PD contains the relevant fixes to avoid that)
+- With standard PD 0.37, threaded py scripts will cause "Stack overflows" under some circumstances
+  -> use PD 0.38 or the devel_0_37 cvs branch instead
 
 ----------------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ PD @ Windows:
 -------------
 o Borland C++ 5.5 (free): edit "config-pd-bcc.txt" & run "build-pd-bcc.bat" 
 
-o Microsoft Visual C++ 6: usr "py.dsp" or edit "config-pd-msvc.txt" & run "build-pd-msvc.bat" 
+o Microsoft Visual C++ 6/7: edit "config-pd-msvc.txt" & run "build-pd-msvc.bat"
 
 
 PD @ linux:
@@ -81,6 +81,9 @@ o GCC: edit "config-pd-darwin.txt" & run "sh build-pd-darwin.sh"
 ----------------------------------------------------------------------------
 
 Version history:
+
+0.1.5:
+- ADD: handling of Python threads
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)
@@ -158,5 +161,4 @@ tests:
 
 bugs:
 - named (keyword) arguments are not supported
-- currently no support for Python threads
 

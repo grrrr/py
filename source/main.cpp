@@ -2,20 +2,58 @@
 
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2004 Thomas Grill (xovo@gmx.net)
+Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
 */
 
 #include "main.h"
-
+#include <map>
 
 static PyMethodDef StdOut_Methods[] =
 {
 	{ "write", py::StdOut_Write, 1 },
 	{ NULL,    NULL,           }  
 };
+
+
+#ifdef FLEXT_THREADS
+typedef std::map<flext::thrid_t,PyThreadState *> PyThrMap;
+
+static PyInterpreterState *pystate = NULL;
+static PyThreadState *pythrmain = NULL;
+static PyThrMap pythrmap;
+
+PyThreadState *FindThreadState()
+{
+    flext::thrid_t id = flext::GetThreadId();
+	PyThrMap::iterator it = pythrmap.find(id);
+    if(it == pythrmap.end()) {
+        // Make new thread state
+        PyThreadState *st = PyThreadState_New(pystate);
+        pythrmap[id] = st;
+        return st;
+    }
+    else 
+        return it->second;
+}
+
+void FreeThreadState()
+{
+    flext::thrid_t id = flext::GetThreadId();
+	PyThrMap::iterator it = pythrmap.find(id);
+    if(it != pythrmap.end()) {
+        // clear out any cruft from thread state object
+        PyThreadState_Clear(it->second);
+        // delete my thread state object
+        PyThreadState_Delete(it->second);
+        // delete from map
+        pythrmap.erase(it);
+    }
+}
+#endif
+
 
 V py::lib_setup()
 {
@@ -71,12 +109,6 @@ V py::lib_setup()
 
 FLEXT_LIB_SETUP(py,py::lib_setup)
 
-
-#ifdef FLEXT_THREADS
-PyInterpreterState *py::pystate = NULL;
-PyThreadState *py::pythrmain = NULL;
-PyThrMap py::pythrmap;
-#endif
 
 PyObject *py::module_obj = NULL;
 PyObject *py::module_dict = NULL;
