@@ -35,7 +35,7 @@ void pyext::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
 	FLEXT_CADDATTR_GET(c,"dir+",mg_dir_);
 
-    FLEXT_CADDATTR_VAR(c,"args",args,ms_args);
+    FLEXT_CADDATTR_VAR(c,"args",initargs,ms_initargs);
 
 	FLEXT_CADDMETHOD_(c,0,"get",m_get);
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
@@ -129,7 +129,7 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
         apre += 2;
     }
 
-    const t_atom *clname = NULL;
+    const t_symbol *clname = NULL;
 
     PyThreadState *state = PyLockSys();
 
@@ -149,39 +149,40 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
 #else 
         #pragma message("Adding current dir to path is not implemented")
 #endif
-        const t_atom &scr = argv[apre];
-
-		if(!IsString(scr)) 
-			post("%s - script name argument is invalid",thisName());
-		else {
+        const t_symbol *scr = GetASymbol(argv[apre]);
+        if(scr) {
 		    GetModulePath(GetString(scr),dir,sizeof(dir));
 		    // add to path
 		    AddToPath(dir);
 
-			SetArgs(0,NULL);
+//			SetArgs(0,NULL);
 
 			ImportModule(GetString(scr));
 		}
+        else
+			post("%s - script name argument is invalid",thisName());
 
         ++apre;
 
         // check for alias creation names
-        if(strrchr(thisName(),'.')) clname = &scr;
+        if(strrchr(thisName(),'.')) clname = scr;
 	}
 
  	Register("_pyext");
 
 	if(argc > apre || clname) {
-        if(!clname) clname = &argv[apre++];
+        if(!clname) clname = GetASymbol(argv[apre++]);
     
 		// class name
-		if(!IsString(*clname)) 
+		if(!clname) 
 			post("%s - class name argument is invalid",thisName());
 		else
-			methname = GetSymbol(*clname);
+			methname = clname;
 	}
 
-	if(argc > apre) args(argc-apre,argv+apre);
+	if(argc > apre) initargs(argc-apre,argv+apre);
+
+    Report();
 
 	PyUnlock(state);
 }
@@ -231,23 +232,27 @@ bool pyext::DoInit()
 
     // call init now, after _this has been set, which is
 	// important for eventual callbacks from __init__ to c
-	PyObject *pargs = MakePyArgs(NULL,args.Count(),args.Atoms(),-1,true);
-	if(!pargs) PyErr_Print();
+	PyObject *pargs = MakePyArgs(NULL,initargs.Count(),initargs.Atoms(),-1,true);
+    if(pargs) {
+        bool ok = true;
 
-	PyObject *init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
-    if(init) {
-        if(PyMethod_Check(init)) {
-			PyObject *res = PyObject_CallObject(init,pargs);
-			if(!res)
-				PyErr_Print();
-			else
-				Py_DECREF(res);
-        }
-        Py_DECREF(init);
-	}
-    
-	Py_XDECREF(pargs);
-    return true;
+	    PyObject *init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
+        if(init) {
+            if(PyMethod_Check(init)) {
+			    PyObject *res = PyObject_CallObject(init,pargs);
+			    if(!res)
+				    ok = false;
+			    else
+				    Py_DECREF(res);
+            }
+            Py_DECREF(init);
+	    }
+        
+	    Py_DECREF(pargs);
+        return ok;
+    }
+    else
+        return false;
 }
 
 void pyext::DoExit()
@@ -269,6 +274,7 @@ void pyext::DoExit()
             Py_DECREF(objdel);
         }
         else
+            // _del has not been found - don't care
             PyErr_Clear();
 
         gcrun = pyobj->ob_refcnt > 1;
@@ -280,7 +286,7 @@ void pyext::DoExit()
     }
 }
 
-void pyext::InitInOut(int &inl,int &outl)
+bool pyext::InitInOut(int &inl,int &outl)
 {
     if(inl >= 0) {
         // set number of inlets
@@ -293,8 +299,9 @@ void pyext::InitInOut(int &inl,int &outl)
         FLEXT_ASSERT(!ret);
     }
 
-    DoInit(); // call __init__ constructor
     // __init__ can override the number of inlets and outlets
+    if(!DoInit()) // call __init__ constructor
+        return false;
 
     if(inl < 0) {
 		// get number of inlets
@@ -330,6 +337,8 @@ void pyext::InitInOut(int &inl,int &outl)
 		else
 			PyErr_Clear();
     }
+
+    return true;
 }
 
 bool pyext::MakeInstance()
@@ -358,22 +367,26 @@ bool pyext::MakeInstance()
 		return false;
 }
 
-void pyext::Reload()
+bool pyext::Reload()
 {
 	DoExit();
 
 	// by here, the Python class destructor should have been called!
 
-	SetArgs(0,NULL);
-	ReloadModule();
+//	SetArgs(0,NULL);
+	bool ok = ReloadModule();
 	
-	MakeInstance();
+	if(ok) ok = MakeInstance();
 
-    int inl = -1,outl = -1;
-    InitInOut(inl,outl);
+    if(ok) {
+        int inl = -1,outl = -1;
+        ok = InitInOut(inl,outl);
 
-    if(inl != inlets || outl != outlets)
-        post("%s - Inlet and outlet count can't be changed by reload",thisName());
+        if(inl != inlets || outl != outlets)
+            post("%s - Inlet and outlet count can't be changed by reload",thisName());
+    }
+
+    return ok;
 }
 
 
@@ -390,13 +403,9 @@ void pyext::m_reload()
 
     SetThis();
 
-	PyUnlock(state);
-}
+    Report();
 
-void pyext::m_reload_(int argc,const t_atom *argv)
-{
-	args(argc,argv);
-	m_reload();
+	PyUnlock(state);
 }
 
 void pyext::m_get(const t_symbol *s)
@@ -404,25 +413,18 @@ void pyext::m_get(const t_symbol *s)
     PyThreadState *state = PyLockSys();
 
 	PyObject *pvar  = PyObject_GetAttrString(pyobj,const_cast<char *>(GetString(s))); /* fetch bound method */
-	if(!pvar) {
-		PyErr_Clear(); // no method found
-        post("%s - get: Python variable %s not found",thisName(),GetString(s));
-	}
-	else {
-        AtomList *lst = GetPyArgs(pvar);
-        if(lst) {
+	if(pvar) {
+        AtomListStatic<16> lst;
+        if(GetPyArgs(lst,pvar,1)) {
             // dump value to attribute outlet
-            AtomAnything out(sym_get,lst->Count()+1);
-            SetSymbol(out[0],s);
-            out.Set(lst->Count(),lst->Atoms(),1);
-            delete lst;
-
-            ToOutAnything(GetOutAttr(),out);
+            SetSymbol(lst[0],s);
+            ToOutAnything(GetOutAttr(),sym_get,lst.Count(),lst.Atoms());
         }
-        else
-            post("%s - get: List could not be created",thisName());
+
         Py_DECREF(pvar);
     }
+
+    Report();
 
     PyUnlock(state);
 }
@@ -437,16 +439,9 @@ void pyext::m_set(int argc,const t_atom *argv)
         post("%s - set: variables with leading _ are reserved and can't be set",thisName());
     else {
         char *ch = const_cast<char *>(GetString(argv[0]));
-        if(!PyObject_HasAttrString(pyobj,ch)) {
-		    PyErr_Clear(); // no method found
-            post("%s - set: Python variable %s not found",thisName(),ch);
-	    }
-	    else {
+        if(PyObject_HasAttrString(pyobj,ch)) {
             PyObject *pval = MakePyArgs(NULL,argc-1,argv+1,-1,false);
-
-            if(!pval)
-			    PyErr_Print();
-		    else {
+            if(pval) {
                 if(PySequence_Size(pval) == 1) {
                     // reduce lists of one element to element itself
 
@@ -460,6 +455,8 @@ void pyext::m_set(int argc,const t_atom *argv)
             }
         }
     }
+
+    Report();
 
     PyUnlock(state);
 }

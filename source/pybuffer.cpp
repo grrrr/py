@@ -217,8 +217,10 @@ static PyObject *buffer_item(pySamplebuffer *self, int i)
             }
         }
     }
-    else
-        Py_INCREF(ret = Py_None);
+    else {
+        Py_INCREF(Py_None);
+        ret = Py_None;
+    }
 	return ret;
 }
 
@@ -274,8 +276,10 @@ static PyObject *buffer_slice(pySamplebuffer *self,int ilow = 0,int ihigh = 1<<(
             else
                 ret = nobj;
         }
-        else
-            Py_INCREF(ret = Py_None);
+        else {
+            Py_INCREF(Py_None);
+            ret = Py_None;
+        }
     }
     else 
 #endif

@@ -62,8 +62,8 @@ protected:
     void m_help();
 
 	void m_reload();
-	void m_reload_(int argc,const t_atom *argv);
-    void ms_args(const AtomList &a) { m_reload_(a.Count(),a.Atoms()); }
+    void m_reload_(int argc,const t_atom *argv) { initargs(argc,argv); m_reload(); }
+    void ms_initargs(const AtomList &a) { m_reload_(a.Count(),a.Atoms()); }
     void m_dir_() { m__dir(pyobj); }
     void mg_dir_(AtomList &lst) { GetDir(pyobj,lst); }
     void m_doc_() { m__doc(((PyInstanceObject *)pyobj)->in_class->cl_dict); }
@@ -76,7 +76,9 @@ protected:
 	int inlets,outlets;
     int siginlets,sigoutlets;
 
-	virtual void Reload();
+    AtomListStatic<16> initargs;
+
+	virtual bool Reload();
 	virtual bool DoInit();
 	virtual void DoExit();
 
@@ -91,9 +93,7 @@ private:
 
 	void ClearBinding();
 	bool MakeInstance();
-    void InitInOut(int &inlets,int &outlets);
-
-	AtomList args;
+    bool InitInOut(int &inlets,int &outlets);
 
 	static PyObject *class_obj,*class_dict;
 	static PyMethodDef attr_tbl[],meth_tbl[];
@@ -124,8 +124,8 @@ private:
 	FLEXT_CALLGET_V(mg_dir_)
 	FLEXT_CALLBACK(m_doc_)
 
-    FLEXT_ATTRGET_V(args)
-    FLEXT_CALLSET_V(ms_args)
+    FLEXT_ATTRGET_V(initargs)
+    FLEXT_CALLSET_V(ms_initargs)
 
 	FLEXT_CALLBACK_S(m_get)
 	FLEXT_CALLBACK_V(m_set)

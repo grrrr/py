@@ -52,7 +52,7 @@ public:
     void Exit();
 
 	static PyObject *MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet = -1,bool withself = false);
-	static AtomList *GetPyArgs(PyObject *pValue,PyObject **self = NULL);
+	static bool GetPyArgs(AtomList &lst,PyObject *pValue,int offs = 0,PyObject **self = NULL);
 
     static void lib_setup();
 
@@ -73,20 +73,24 @@ protected:
 
     void GetDir(PyObject *obj,AtomList &lst);
 
+	AtomListStatic<16> args;
+
 	void GetModulePath(const char *mod,char *dir,int len);
 	void AddToPath(const char *dir);
-	void SetArgs(int argc,const t_atom *argv);
-	void ImportModule(const char *name);
+	void SetArgs();
+	bool ImportModule(const char *name);
 	void UnimportModule();
-	void ReloadModule();
+	bool ReloadModule();
 
 	void Register(const char *reg);
 	void Unregister(const char *reg);
 	void Reregister(const char *reg);
-	virtual void Reload() = 0;
+	virtual bool Reload() = 0;
 
     void OpenEditor();
     void Respond(bool b);
+
+    void Report() { while(PyErr_Occurred()) PyErr_Print(); }
 
 	static bool IsAnything(const t_symbol *s) { return s && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 

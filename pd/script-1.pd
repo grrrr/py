@@ -1,4 +1,4 @@
-#N canvas 297 17 692 534 12;
+#N canvas 297 17 696 538 12;
 #X obj 39 278 print;
 #X obj 345 251 print;
 #X msg 499 149 freakhole;
@@ -38,6 +38,7 @@ file.;
 #X msg 509 178 a b c;
 #X text 556 181 too many args;
 #X text 505 372 just trigger without arguments;
+#X msg 386 371 set ret4;
 #X connect 2 0 25 1;
 #X connect 3 0 21 1;
 #X connect 4 0 21 1;
@@ -60,3 +61,4 @@ file.;
 #X connect 26 0 21 0;
 #X connect 28 0 21 0;
 #X connect 32 0 25 1;
+#X connect 35 0 23 0;

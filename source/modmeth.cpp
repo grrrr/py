@@ -126,22 +126,23 @@ PyObject *pybase::py_send(PyObject *,PyObject *args)
 		if(!tp)
 			val = PySequence_GetSlice(args,1,sz);  // new ref
 
-		AtomList *lst = GetPyArgs(val);
-		if(lst) {
+        AtomListStatic<16> lst;
+		if(GetPyArgs(lst,val)) {
 			bool ok;
-			if(lst->Count() && IsSymbol((*lst)[0]))
-				ok = Forward(recv,GetSymbol((*lst)[0]),lst->Count()-1,lst->Atoms()+1);
+			if(lst.Count() && IsSymbol(lst[0]))
+				ok = Forward(recv,GetSymbol(lst[0]),lst.Count()-1,lst.Atoms()+1);
 			else
-				ok = Forward(recv,*lst);
+				ok = Forward(recv,lst);
 
 #ifdef FLEXT_DEBUG
             if(!ok)
 				post("py/pyext - Receiver doesn't exist");
 #endif
 		}
-		else 
+		else if(PyErr_Occurred())
+            PyErr_Print();
+        else
 			post("py/pyext - No data to send");
-		if(lst) delete lst;
 
 		if(!tp) Py_DECREF(val);
 	}
@@ -183,14 +184,16 @@ PyObject *pybase::py_getvalue(PyObject *self,PyObject *args)
         float f;
         if(value_getfloat(const_cast<t_symbol *>(sym),&f)) {
 		    post("py/pyext - Could not get value '%s'",GetString(sym));
-            Py_INCREF(ret = Py_None);
+            Py_INCREF(Py_None);
+            ret = Py_None;
         }
         else
             ret = PyFloat_FromDouble(f);
     }
     else {
         post("py/pyext - Syntax: _getvalue [name]");
-        Py_INCREF(ret = Py_None);
+        Py_INCREF(Py_None);
+        ret = Py_None;
     }
     return ret;
 }

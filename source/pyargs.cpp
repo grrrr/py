@@ -84,10 +84,9 @@ PyObject *pybase::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int i
 	return pArgs;
 }
 
-flext::AtomList *pybase::GetPyArgs(PyObject *pValue,PyObject **self)
+bool pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs,PyObject **self)
 {
-	if(pValue == NULL) return NULL; 
-	AtomList *ret = NULL;
+	if(pValue == NULL) return false; 
 
 	// analyze return value or tuple
 
@@ -103,14 +102,14 @@ flext::AtomList *pybase::GetPyArgs(PyObject *pValue,PyObject **self)
 		rargc = PySequence_Size(pValue);
 		tp = sequ;
 	}
-    else if(pValue == Py_None)
-        Py_DECREF(pValue);
-    else {
+    else if(pValue != Py_None) {
 		rargc = 1;
 		tp = atom;
 	}
+//    else
+//        Py_DECREF(pValue);
 
-	ret = new AtomList(rargc);
+	lst(offs+rargc);
 
 	for(int ix = 0; ix < rargc; ++ix) {
 		PyObject *arg;
@@ -119,11 +118,12 @@ flext::AtomList *pybase::GetPyArgs(PyObject *pValue,PyObject **self)
 		else
             arg = pValue;
 
-		if(PyInt_Check(arg)) SetInt((*ret)[ix],PyInt_AsLong(arg));
-		else if(PyLong_Check(arg)) SetInt((*ret)[ix],PyLong_AsLong(arg));
-		else if(PyFloat_Check(arg)) SetFloat((*ret)[ix],(float)PyFloat_AsDouble(arg));
-		else if(pySymbol_Check(arg)) SetSymbol((*ret)[ix],pySymbol_AS_SYMBOL(arg));
-		else if(PyString_Check(arg)) SetString((*ret)[ix],PyString_AS_STRING(arg));
+        t_atom &at = lst[offs+ix];
+		if(PyInt_Check(arg)) SetInt(at,PyInt_AsLong(arg));
+		else if(PyLong_Check(arg)) SetInt(at,PyLong_AsLong(arg));
+		else if(PyFloat_Check(arg)) SetFloat(at,(float)PyFloat_AsDouble(arg));
+		else if(pySymbol_Check(arg)) SetSymbol(at,pySymbol_AS_SYMBOL(arg));
+		else if(PyString_Check(arg)) SetString(at,PyString_AS_STRING(arg));
 		else if(ix == 0 && self && PyInstance_Check(arg)) {
 			// assumed to be self ... that should be checked _somehow_ !!!
             Py_INCREF(arg);
@@ -140,13 +140,9 @@ flext::AtomList *pybase::GetPyArgs(PyObject *pValue,PyObject **self)
 			ok = false;
 		}
 
-		if(tp == sequ) Py_DECREF(arg);
+		if(tp == sequ) 
+            Py_DECREF(arg);
 	}
 
-	if(!ok) { 
-		delete ret; 
-		ret = NULL; 
-	}
-	return ret;
+    return ok;
 }
-

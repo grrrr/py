@@ -30,7 +30,7 @@ protected:
     void m_help();    
 
 	void m_reload();
-	void m_reload_(int argc,const t_atom *argv);
+    void m_reload_(int argc,const t_atom *argv) { args(argc,argv); m_reload(); }
 	void m_set(int argc,const t_atom *argv);
     void m_dir_() { m__dir(function); }
     void m_doc_() { m__doc(function); }
@@ -48,10 +48,10 @@ protected:
 	PyObject *function;
     bool withfunction;
 
-	virtual void Reload();
+	virtual bool Reload();
 
-	void SetFunction(const char *func);
-	void ResetFunction();
+	bool SetFunction(const char *func);
+	bool ResetFunction();
 
     virtual bool thrcall(void *data);
     virtual void DumpOut(const t_symbol *sym,int argc,const t_atom *argv);
@@ -133,20 +133,16 @@ pyobj::pyobj(int argc,const t_atom *argv):
     FLEXT_CALLMETHOD(threadworker);
 #endif
 
-	PyThreadState *state = PyLockSys();
+	if(argc > 2) args(argc-2,argv+2);
 
-	if(argc > 2) 
-		SetArgs(argc-2,argv+2);
-	else
-		SetArgs(0,NULL);
+	PyThreadState *state = PyLockSys();
 
 	// init script module
 	if(argc >= 1) {
-		if(!IsString(argv[0])) 
-			post("%s - script name argument is invalid",thisName());
-        else {
+	    const char *sn = GetAString(argv[0]);
+        if(sn) {
 		    char dir[1024];
-		    GetModulePath(GetString(argv[0]),dir,sizeof(dir));
+		    GetModulePath(sn,dir,sizeof(dir));
 		    // set script path
 		    AddToPath(dir);
 
@@ -163,25 +159,23 @@ pyobj::pyobj(int argc,const t_atom *argv):
 	        #pragma message("Adding current dir to path is not implemented")
 #endif
 
-			ImportModule(GetString(argv[0]));
+			ImportModule(sn);
         }
+        else
+            PyErr_SetString(PyExc_ValueError,"Invalid module name");
 	}
 
 	Register("_py");
 
-	if(argc >= 2) {
-        withfunction = true;
+    if(argc >= 2) {
+	    const char *fn = GetAString(argv[1]);
+        if(fn)
+	        SetFunction(fn);
+        else
+            PyErr_SetString(PyExc_ValueError,"Invalid function name");
+    }
 
-		// set function name
-		if(!IsString(argv[1])) 
-			post("%s - function name argument is invalid",thisName());
-		else {
-			// Set function
-			SetFunction(GetString(argv[1]));
-		}
-	}
-    else
-        withfunction = false;
+    Report();
 
 	PyUnlock(state);
 }
@@ -190,6 +184,7 @@ pyobj::~pyobj()
 {
 	PyThreadState *state = PyLockSys();
 	Unregister("_py");
+    Report();
 	PyUnlock(state);
 }
 
@@ -217,42 +212,38 @@ void pyobj::m_reload()
 	Register("_py");
 	SetFunction(funname?GetString(funname):NULL);
 
+    Report();
 	PyUnlock(state);
-}
-
-void pyobj::m_reload_(int argc,const t_atom *argv)
-{
-	PyThreadState *state = PyLockSys();
-	SetArgs(argc,argv);
-	PyUnlock(state);
-
-	m_reload();
 }
 
 void pyobj::m_set(int argc,const t_atom *argv)
 {
 	PyThreadState *state = PyLockSys();
 
-	int ix = 0;
+    // function name has precedence
 	if(argc >= 2) {
-		if(!IsString(argv[ix])) {
-			post("%s - script name is not valid",thisName());
-			return;
-		}
-		const char *sn = GetString(argv[ix]);
+	    const char *sn = GetAString(*argv);
+	    ++argv,--argc;
 
-		if(!module || !strcmp(sn,PyModule_GetName(module))) {
-			ImportModule(sn);
-			Register("_py");
-		}
-
-		++ix;
+        if(sn) {
+		    if(!module || !strcmp(sn,PyModule_GetName(module))) {
+			    ImportModule(sn);
+			    Register("_py");
+		    }
+        }
+        else
+            PyErr_SetString(PyExc_ValueError,"Invalid module name");
 	}
 
-	if(!IsString(argv[ix])) 
-		post("%s - function name is not valid",thisName());
-	else
-		SetFunction(GetString(argv[ix]));
+    if(argc) {
+	    const char *fn = GetAString(*argv);
+        if(fn)
+	        SetFunction(fn);
+        else
+            PyErr_SetString(PyExc_ValueError,"Invalid function name");
+    }
+
+    Report();
 
 	PyUnlock(state);
 }
@@ -287,43 +278,48 @@ void pyobj::m_help()
 	post("");
 }
 
-void pyobj::ResetFunction()
+bool pyobj::ResetFunction()
 {
-	if(!module || !dict) 
-	{ 
+    function = NULL;
+    
+    if(!module || !dict)
 		post("%s - No module loaded",thisName());
-		function = NULL; 
-		return; 
-	}
+    else {
+        if(funname) {
+	        function = PyDict_GetItemString(dict,(char *)GetString(funname)); // borrowed!!!
+            if(!function) 
+                PyErr_SetString(PyExc_AttributeError,"Function not found");
+            else if(!PyFunction_Check(function)) {
+    		    function = NULL;
+                PyErr_SetString(PyExc_TypeError,"Attribute is not a function");
+            }
+	    }
+    }
 
-	function = funname?PyDict_GetItemString(dict,(char *)GetString(funname)):NULL; // borrowed!!!
-	if(!function) {
-		PyErr_Clear();
-		if(funname) post("%s - Function %s could not be found",thisName(),GetString(funname));
-	}
-	else if(!PyFunction_Check(function)) {
-		post("%s - Object %s is not a function",thisName(),GetString(funname));
-		function = NULL;
-	}
+    // exception could be set here
+    return function != NULL;
 }
 
-void pyobj::SetFunction(const char *func)
+bool pyobj::SetFunction(const char *func)
 {
 	if(func) {
 		funname = MakeSymbol(func);
-        withfunction = true;
-		ResetFunction();
+        withfunction = ResetFunction();
 	}
     else {
-        withfunction = false;
 		function = NULL,funname = NULL;
+        withfunction = false;
     }
+
+    // exception could be set here
+    return withfunction;
 }
 
 
-void pyobj::Reload()
+bool pyobj::Reload()
 {
 	ResetFunction();
+    return true;
 }
 
 bool pyobj::callpy(PyObject *fun,PyObject *args)
@@ -335,15 +331,15 @@ bool pyobj::callpy(PyObject *fun,PyObject *args)
         return false;
     }
     else {
-        AtomList *rargs = GetPyArgs(ret);
-		if(!rargs) 
-            PyErr_Print();
-        else {
+        AtomListStatic<16> rargs;
+        if(GetPyArgs(rargs,ret)) {
             // call to outlet _outside_ the Mutex lock!
             // otherwise (if not detached) deadlock will occur
-            if(rargs->Count()) ToOutList(0,*rargs);
-            delete rargs;
+            if(rargs.Count()) ToOutList(0,rargs);
         }
+        else if(PyErr_Occurred())
+            PyErr_Print();
+
         Py_DECREF(ret);
         return true;
     }
@@ -362,18 +358,22 @@ void pyobj::callwork(const t_symbol *s,int argc,const t_atom *argv)
             ret = gencall(function,pargs);
         }
 	    else
-		    post("%s: no valid function defined",thisName());
+		    PyErr_SetString(PyExc_RuntimeError,"No function set");
     }
     else if(module) {
         // no function defined as creation argument -> use message tag
-        PyObject *func = PyObject_GetAttrString(module,const_cast<char *>(GetString(s)));
-        if(func) {
-		    PyObject *pargs = MakePyArgs(sym_list,argc,argv);
-            ret = gencall(func,pargs);
+        if(s) {
+            PyObject *func = PyObject_GetAttrString(module,const_cast<char *>(GetString(s)));
+            if(func) {
+		        PyObject *pargs = MakePyArgs(sym_list,argc,argv);
+                ret = gencall(func,pargs);
+            }
         }
         else
-            PyErr_Print();
+		    PyErr_SetString(PyExc_RuntimeError,"No function set");
     }
+
+    Report();
 
     PyUnlock(state);
 

@@ -205,11 +205,7 @@ void pybase::GetDir(PyObject *obj,AtomList &lst)
 	    if(!pvar)
 		    PyErr_Print(); // no method found
 	    else {
-            AtomList *l = GetPyArgs(pvar);
-            if(l) { 
-                lst = *l; delete l; 
-            }
-            else
+            if(!GetPyArgs(lst,pvar))
                 post("py/pyext - Argument list could not be created");
             Py_DECREF(pvar);
         }
@@ -267,9 +263,11 @@ void pybase::OpenEditor()
     // this should once open the editor....
 }
 
-void pybase::SetArgs(int argc,const t_atom *argv)
+void pybase::SetArgs()
 {
 	// script arguments
+    int argc = args.Count();
+    const t_atom *argv = args.Atoms();
 	char **sargv = new char *[argc+1];
 	for(int i = 0; i <= argc; ++i) {
 		sargv[i] = new char[256];
@@ -286,17 +284,15 @@ void pybase::SetArgs(int argc,const t_atom *argv)
 	delete[] sargv;
 }
 
-void pybase::ImportModule(const char *name)
+bool pybase::ImportModule(const char *name)
 {
-	if(!name) return;
+	if(!name) return false;
 
+    SetArgs();
 	module = PyImport_ImportModule((char *)name);  // increases module_obj ref count by one
-	if(!module) {
-		PyErr_Print();
-		dict = NULL;
-	}
-	else
-		dict = PyModule_GetDict(module);
+    dict = module?PyModule_GetDict(module):NULL;
+
+    return module != NULL;
 }
 
 void pybase::UnimportModule()
@@ -315,12 +311,13 @@ void pybase::UnimportModule()
 	dict = NULL;
 }
 
-void pybase::ReloadModule()
+bool pybase::ReloadModule()
 {
+    bool ok = false;
 	if(module) {
+        SetArgs();
 		PyObject *newmod = PyImport_ReloadModule(module);
 		if(!newmod) {
-			PyErr_Print();
 			// old module still exists?!
 //			dict = NULL;
 		}
@@ -328,10 +325,12 @@ void pybase::ReloadModule()
 			Py_XDECREF(module);
 			module = newmod;
 			dict = PyModule_GetDict(module); // borrowed
+            ok = true;
 		}
 	}
-	else 
+    else
 		post("py/pyext - No module to reload");
+    return ok;
 }
 
 void pybase::GetModulePath(const char *mod,char *dir,int len)

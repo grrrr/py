@@ -173,8 +173,8 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 		if(!tp)
 			val = PySequence_GetSlice(args,2,sz);  // new ref
 
-		AtomList *lst = GetPyArgs(val);
-		if(lst) {
+        AtomListStatic<16> lst;
+		if(GetPyArgs(lst,val)) {
 			int o = PyInt_AsLong(outl);
 			if(o >= 1 && o <= ext->Outlets()) {
                 // offset outlet by signal outlets
@@ -182,12 +182,12 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 
 				// by using the queue there is no immediate call of the next object
 				// deadlock would occur if this was another py/pyext object!
-				if(lst->Count() && IsSymbol((*lst)[0]))
-					ext->ToOutAnything(o-1,GetSymbol((*lst)[0]),lst->Count()-1,lst->Atoms()+1);
-				else if(lst->Count() > 1)
-					ext->ToOutList(o-1,*lst);
+				if(lst.Count() && IsSymbol(lst[0]))
+					ext->ToOutAnything(o-1,GetSymbol(lst[0]),lst.Count()-1,lst.Atoms()+1);
+				else if(lst.Count() > 1)
+					ext->ToOutList(o-1,lst);
                 else
-                    ext->ToOutAtom(o-1,*lst->Atoms());
+                    ext->ToOutAtom(o-1,*lst.Atoms());
 			}
 			else
 				post("pyext: outlet index out of range");
@@ -196,7 +196,6 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 		}
 		else 
 			post("py/pyext - No data to send");
-		if(lst) delete lst;
 
 		if(!tp) Py_DECREF(val);
 	}
@@ -296,13 +295,12 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 		if(!tp)
 			val = PyTuple_GetSlice(args,1,sz);  // new ref
 
-		AtomList *lst = GetPyArgs(val);
-		if(lst) {
+		AtomListStatic<16> lst;
+        if(GetPyArgs(lst,val)) {
 			t_glist *gl = ext->thisCanvas(); //canvas_getcurrent();
 			t_class **cl = (t_pd *)gl;
-			if(cl) {
-				pd_forwardmess(cl,lst->Count(),lst->Atoms());
-			}
+			if(cl)
+				pd_forwardmess(cl,lst.Count(),lst.Atoms());
 #ifdef FLEXT_DEBUG
 			else
 				post("pyext - no parent canvas?!");
@@ -311,7 +309,6 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 		}
 		else 
 			post("py/pyext - No data to send");
-		if(lst) delete lst;
 
 		if(!tp) Py_DECREF(val);
 	}
