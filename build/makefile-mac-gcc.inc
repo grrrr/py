@@ -1,0 +1,4 @@
+#
+
+LIBS += -framework Python
+

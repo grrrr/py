@@ -1,0 +1,5 @@
+# what is the base prefix of the Python installation?
+PYTHONPREFIX=/usr
+
+# which Python version do you want to compile against?
+PYTHONVERSION=2.3

@@ -1,6 +1,0 @@
-# Your settings are defined in the files
-# ../flext/build/config-mac-pd-gcc.txt
-# and
-# ../flext/build/config-mac-max-gcc.txt
-#
-# You can override them here.

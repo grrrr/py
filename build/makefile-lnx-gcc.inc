@@ -1,0 +1,2 @@
+INCPATH += -I$(PYTHONPREFIX)/include/python$(PYTHONVERSION)
+LIBS += -lpython$(PYTHONVERSION)

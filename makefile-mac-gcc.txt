@@ -1,8 +1,0 @@
-# usage:
-# to build run "sh build-mac-max-gcc.sh" or "sh build-mac-pd-gcc.sh"
-#
-
-LIBS += -framework Python
-
-# multithreaded build
-THREADED=1
