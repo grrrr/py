@@ -58,7 +58,7 @@ Version history:
 - added pyext for full-featured objects
 - py/pyext now get full python path
 - make external name python argv[0]
-- enabled threads - Python is not thread-safe (?) -> mutex protection
+- enabled threads and made everything thread-safe ... phew!
 
 0.0.2:
 - fixed bug when calling script with no function defined (thanks to Ben Saylor)
@@ -77,8 +77,10 @@ general:
 - Documentation and better example patches
 
 features:
+- enable multiple interpreters?
 
 tests:
-- test whether parallel threads are possible
 
 bugs:
+- the python interpreter isn't unloaded because to some bug at re-initialization
+

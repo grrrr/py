@@ -21,10 +21,11 @@ V lib_setup()
 
 FLEXT_LIB_SETUP(py,lib_setup)
 
+PyInterpreterState *py::pystate = NULL;
 
 py::py(): 
 	sName(NULL),hName(0),
-	detach(false),waittime(100)
+	detach(false),thrcount(0)
 {
 	Lock();
 	// under Max/MSP: doesn't survive next line.....
@@ -33,6 +34,10 @@ py::py():
 		Py_Initialize();
 #ifdef FLEXT_THREADS
 		PyEval_InitThreads();
+		pythrmain = PyThreadState_Get();
+		pystate = pythrmain->interp;
+
+		PyEval_ReleaseLock();
 #endif
 	}
 
@@ -41,13 +46,21 @@ py::py():
 
 py::~py()
 {
+	if(thrcount) {
+		post("%s - Waiting for thread termination",thisName());
+		while(thrcount) Sleep(0.2f);
+	}
+		
 	Lock();
 
-    if(!(--pyref)) {
+//    if(!(--pyref)) {
+    if(false) {
 		delete modules; modules = NULL;
-#ifdef FLEXT_THREADS
-		PyEval_ReleaseLock();
-#endif
+
+		PyEval_AcquireLock();
+	    PyThreadState *new_state = PyThreadState_New(pystate); /* must have lock */
+		PyThreadState *prev_state = PyThreadState_Swap(new_state);
+
 		Py_Finalize();
 	}
 
@@ -68,13 +81,13 @@ py::lookup::lookup(I hname,PyObject *mod,py *_th):
 
 py::lookup::~lookup()
 {
-	if(module) Py_DECREF(module);
+	Py_XDECREF(module);
 	if(nxt) delete nxt;
 }
 
 V py::lookup::Set(PyObject *mod,py *_th)
 {
-    if(module) Py_DECREF(module);
+    Py_XDECREF(module);
 	dict = PyModule_GetDict(module = mod);
 	th = _th;
 }
@@ -107,12 +120,9 @@ C *py::strdup(const C *s)
 
 V py::SetArgs(I argc,t_atom *argv)
 {
-	// Py_BEGIN_ALLOW_THREADS
-
 	// script arguments
-	I i;
 	C **sargv = new C *[argc+1];
-	for(i = 0; i <= argc; ++i) {
+	for(int i = 0; i <= argc; ++i) {
 		sargv[i] = new C[256];
 		if(!i) 
 			strcpy(sargv[i],thisName());
@@ -123,9 +133,7 @@ V py::SetArgs(I argc,t_atom *argv)
 	// the arguments to the module are only recognized once! (at first use in a patcher)
 	PySys_SetArgv(argc+1,sargv);
 
-	// Py_END_ALLOW_THREADS
-
-	for(i = 0; i <= argc; ++i) delete[] sargv[i];
+	for(int j = 0; j <= argc; ++j) delete[] sargv[j];
 	delete[] sargv;
 }
 
@@ -135,8 +143,6 @@ V py::ImportModule(const C *name)
 
 	if(sName) delete[] sName;
 	sName = strdup(name);
-
-	// Py_BEGIN_ALLOW_THREADS
 
 	PyObject *pName = PyString_FromString(sName);
 	hName = PyObject_Hash(pName);
@@ -151,12 +157,10 @@ V py::ImportModule(const C *name)
 	}
 
 	Py_DECREF(pName);
-	// Py_END_ALLOW_THREADS
 }
 
 V py::SetModule(I hname,PyObject *module)
 {
-	// Py_BEGIN_ALLOW_THREADS
 	Lock();
 
 	lookup *l;
@@ -171,12 +175,10 @@ V py::SetModule(I hname,PyObject *module)
 	}
 
 	Unlock();
-	// Py_END_ALLOW_THREADS
 }
 
 V py::ReloadModule()
 {
-	// Py_BEGIN_ALLOW_THREADS
 	Lock();
 
 	lookup *l;
@@ -191,7 +193,6 @@ V py::ReloadModule()
 	}
 
 	Unlock();
-	// Py_END_ALLOW_THREADS
 }
 
 PyObject *py::GetModule()
@@ -220,9 +221,8 @@ PyObject *py::GetDict()
 
 PyObject *py::GetFunction(const C *func)
 {
-	// Py_BEGIN_ALLOW_THREADS
-
 	PyObject *ret = NULL;
+
 	if(func) {
 		Lock();
 
@@ -233,17 +233,15 @@ PyObject *py::GetFunction(const C *func)
 		Unlock();
 	}
 
-	// Py_END_ALLOW_THREADS
 	return ret;
 }
 
 PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet)
 {
-	// Py_BEGIN_ALLOW_THREADS
+	PyObject *pArgs;
 
 	BL any = IsAnything(s);
-
-	PyObject *pArgs = PyTuple_New(argc+(any?1:0)+(inlet >= 0?1:0));
+	pArgs = PyTuple_New(argc+(any?1:0)+(inlet >= 0?1:0));
 
 	I pix = 0;
 
@@ -287,16 +285,13 @@ PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet)
 		_PyTuple_Resize(&pArgs,pix);
 	}
 
-	// Py_END_ALLOW_THREADS
-
 	return pArgs;
 }
 
 t_atom *py::GetPyArgs(int &argc,PyObject *pValue,PyObject **self)
 {
 	if(pValue == NULL) { argc = 0; return NULL; }
-
-	// Py_END_ALLOW_THREADS
+	t_atom *ret = NULL;
 
 	// analyze return value or tuple
 
@@ -319,7 +314,7 @@ t_atom *py::GetPyArgs(int &argc,PyObject *pValue,PyObject **self)
 		}
 	}
 
-	t_atom *ret = new t_atom[rargc];
+	ret = new t_atom[rargc];
 
 	for(I ix = 0; ix < rargc; ++ix) {
 		PyObject *arg;
@@ -351,8 +346,6 @@ t_atom *py::GetPyArgs(int &argc,PyObject *pValue,PyObject **self)
 	else 
 		argc = rargc;
 
-	// Py_END_ALLOW_THREADS
-
 	return ret;
 }
 
@@ -377,22 +370,19 @@ V py::GetModulePath(const C *mod,C *dir,I len)
 V py::AddToPath(const C *dir)
 {
 	if(dir && *dir) {
-		// Py_END_ALLOW_THREADS
-
 		PyObject *pobj = PySys_GetObject("path");
 		if(pobj && PyList_Check(pobj)) {
 			PyObject *ps = PyString_FromString(dir);
 			PyList_Append(pobj,ps);
 		}
 		PySys_SetObject("path",pobj);
-
-		// Py_END_ALLOW_THREADS
 	}
 }
 
 
 //flext_base::ThrMutex py::mutex;
 
+/*
 #ifdef FLEXT_THREADS
 BL py::Trylock(I wait) 
 {
@@ -407,3 +397,4 @@ BL py::Trylock(I wait)
 	return true;
 }	
 #endif
+*/

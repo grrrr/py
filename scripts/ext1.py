@@ -1,8 +1,8 @@
-import time,random,pyext
-#from pyext import *
+import time,random
+from pyext import *
 
 # derive class from pyext.pyext
-class testcl1(pyext.pybase): 
+class testcl1(pyext): 
 	  
 # how many inlets?
 	def _inlets(self):
@@ -14,13 +14,9 @@ class testcl1(pyext.pybase):
 
 # method for bang into inlet 1
 	def _bang_1(self):
-
-		print "Waiting...."
-		print "Type: ",type(random)
-		print random.uniform(1,5)
-#		print time.time()
-		print "Wake up..."
-		self._outlet(1,"bang")
+		print "Hello"
+		print time.time()
+#		self._outlet(1,"bang")
 
 # method for float into inlet 1
 	def _float_1(self,f):
@@ -42,4 +38,6 @@ class testcl1(pyext.pybase):
 class testcl2(pyext):
 
 	def _anything_(self,ix,arg):
-		print "HI! - ",arg
+		for i in range(1,40):
+			print i
+			time.sleep(0.2)

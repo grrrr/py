@@ -50,7 +50,6 @@ private:
 	FLEXT_CALLBACK_V(m_reload)
 	FLEXT_CALLBACK_V(m_set)
 	FLEXT_CALLBACK_B(m_detach)
-	FLEXT_CALLBACK_I(m_wait)
 
 	FLEXT_CALLBACK_V(m_py_float)
 	FLEXT_CALLBACK_V(m_py_list)
@@ -70,7 +69,7 @@ FLEXT_LIB_V("py",pyobj)
 pyobj::pyobj(I argc,t_atom *argv):
 	sFunc(NULL)
 { 
-//	py_BEGIN_ALLOW_THREADS
+	PY_LOCK
 
 	AddInAnything(2);  
 	AddOutAnything();  
@@ -79,8 +78,9 @@ pyobj::pyobj(I argc,t_atom *argv):
 	FLEXT_ADDBANG(0,m_bang);
 	FLEXT_ADDMETHOD_(0,"reload",m_reload);
 	FLEXT_ADDMETHOD_(0,"set",m_set);
+#ifdef FLEXT_THREADS
 	FLEXT_ADDMETHOD_(0,"detach",m_detach);
-	FLEXT_ADDMETHOD_(0,"wait",m_wait);
+#endif
 
 	FLEXT_ADDMETHOD_(1,"float",m_py_float);
 	FLEXT_ADDMETHOD_(1,"int",m_py_int);
@@ -113,7 +113,7 @@ pyobj::pyobj(I argc,t_atom *argv):
 			sFunc = GetSymbol(argv[1]);
 	}
 
-//	py_END_ALLOW_THREADS
+	PY_UNLOCK
 }
 
 
@@ -127,13 +127,17 @@ BL pyobj::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 
 V pyobj::m_reload(I argc,t_atom *argv)
 {
+	PY_LOCK
 	if(argc > 2) SetArgs(argc,argv);
 
 	ReloadModule();
+	PY_UNLOCK
 }
 
 V pyobj::m_set(I argc,t_atom *argv)
 {
+	PY_LOCK
+
 	I ix = 0;
 	if(argc >= 2) {
 		if(!IsString(argv[ix])) {
@@ -149,6 +153,8 @@ V pyobj::m_set(I argc,t_atom *argv)
 		post("%s - function name is not valid",thisName());
 	else
 		sFunc = GetSymbol(argv[ix]);
+
+	PY_UNLOCK
 }
 
 V pyobj::m_help()
@@ -168,15 +174,17 @@ V pyobj::m_help()
 	post("\tbang: call script without arguments");
 	post("\tset [script name] [function name]: set (script and) function name");
 	post("\treload [args...]: reload python script");
+#ifdef FLEXT_THREADS
 	post("\tdetach 0/1: detach threads");
-	post("\twait [int]: wait time for thread termination (in ms)");
+#endif
 	post("");
 }
 
 
 V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 {
-//	py_BEGIN_ALLOW_THREADS
+	++thrcount;
+	PY_LOCK
 
 	PyObject *pFunc = GetFunction(sFunc?GetString(sFunc):NULL);
 
@@ -202,8 +210,8 @@ V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 		post("%s: no function defined",thisName());
 	}
 
-//	py_END_ALLOW_THREADS
-
+	PY_UNLOCK
+	--thrcount;
 }
 
 V pyobj::callwork(const t_symbol *s,I argc,t_atom *argv)

@@ -23,7 +23,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.3.2
 #endif
 
-#define PY__VERSION "0.1.0"
+#define PY__VERSION "0.1.0pre"
 
 
 #define I int
@@ -90,23 +90,40 @@ protected:
 	// ----------------------------------
 
 	V m_detach(BL det) { detach = det; }
-	V m_wait(I wait) { waittime = wait; }
 
 	BL detach;
-	I waittime;
+	I thrcount;
+
+	static PyInterpreterState *pystate;
+	PyThreadState *pythrmain;
 
 #ifdef FLEXT_THREADS
-	// for python thread protection
-	/*static*/ ThrMutex mutex;
-
-	BL Trylock(I wait = -1);
+	ThrMutex mutex;
 	V Lock() { mutex.Unlock(); }
 	V Unlock() { mutex.Unlock(); }
 #else
-	BL Trylock(I) { return true; }
 	V Lock() {}
 	V Unlock() {}
 #endif
 };
+
+#ifdef FLEXT_THREADS
+#define PY_LOCK \
+	{ \
+	PyEval_AcquireLock(); \
+    PyThreadState *new_state = PyThreadState_New(pystate); /* must have lock */ \
+    PyThreadState *prev_state = PyThreadState_Swap(new_state);
+
+#define PY_UNLOCK \
+	new_state = PyThreadState_Swap(prev_state); \
+    PyThreadState_Clear(new_state);        /* must have lock */ \
+    PyEval_ReleaseLock(); \
+    PyThreadState_Delete(new_state);       /* needn't have lock */ \
+	}
+
+#else
+#define PY_LOCK 
+#define PY_UNLOCK 
+#endif
 
 #endif

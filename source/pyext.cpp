@@ -12,6 +12,9 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+#define PYEXT_MODULE "pyext"
+#define PYEXT_CLASS "pyext"
+
 class pyext:
 	public py
 {
@@ -52,7 +55,6 @@ private:
 
 	FLEXT_CALLBACK_V(m_reload)
 	FLEXT_CALLBACK_B(m_detach)
-	FLEXT_CALLBACK_I(m_wait)
 
 	V work_wrapper(void *data); 
 	BL callwork(I n,const t_symbol *s,I argc,t_atom *argv); 
@@ -76,7 +78,7 @@ private:
 
 FLEXT_LIB_V("pyext",pyext)
 
-
+#if 0
 PyObject* pyext::py__init__(PyObject *sl, PyObject *args)
 {
 //    post("pyext.__init__ called");
@@ -140,35 +142,11 @@ PyObject* pyext::py_getattr(PyObject *sl, PyObject *args)
     Py_INCREF(Py_None);
     return Py_None;
 }
-
-PyObject* pyext::py__getitem__(PyObject *sl, PyObject *args)
-{
-    PyObject *selfobj, *arg0;
-    if(!PyArg_ParseTuple(args, "OO:test_foo", &selfobj, &arg0)) {
-        // handle error
-		error("pyext - parsetuple failed");
-    }
-    if (!PyString_Check(arg0)) {
-        return NULL;
-    }    
-    char* name = PyString_AsString(arg0);
-    if (!name) return NULL;
-
-	post("pyext::getitem %s",name);
-/*
-    if (strcmp(name, "id")==0) {
-        return Py_BuildValue("i", 42);
-    }
-*/
-    // throw attribute not found and and ...
-
-    Py_INCREF(Py_None);
-    return Py_None;
-}
+#endif
 
 PyObject *pyext::py_outlet(PyObject *sl,PyObject *args) 
 {
-//	py_BEGIN_ALLOW_THREADS
+	PY_LOCK
 
 	I rargc;
 	PyObject *self;
@@ -207,16 +185,14 @@ PyObject *pyext::py_outlet(PyObject *sl,PyObject *args)
 
     Py_INCREF(Py_None);
 
-//	py_END_ALLOW_THREADS
+	PY_UNLOCK
     return Py_None;
 }
 
 
 static PyMethodDef pyext_meths[] = 
 {
-//    {"new", pyext::py_new, METH_VARARGS, "pyext new"},
-    {"__init__", pyext::py__init__, METH_VARARGS, "pyext init"},
-//    {"__getitem__", pyext::py__getitem__, METH_VARARGS, "pyext getitem"},
+//    {"__init__", pyext::py__init__, METH_VARARGS, "pyext init"},
     {"_outlet", pyext::py_outlet, METH_VARARGS,"pyext outlet"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
@@ -239,14 +215,14 @@ pyext::pyext(I argc,t_atom *argv):
 	pyobj(NULL),pythr(NULL),
 	inlets(0),outlets(0)
 { 
-//	py_BEGIN_ALLOW_THREADS
+	PY_LOCK
 
 	if(!(ref++)) {
-		PyObject *module = Py_InitModule("pyext", pyext_mod_meths);
+		PyObject *module = Py_InitModule(PYEXT_MODULE, pyext_mod_meths);
 
 		PyObject *moduleDict = PyModule_GetDict(module);
 		PyObject *classDict = PyDict_New();
-		PyObject *className = PyString_FromString("pybase");
+		PyObject *className = PyString_FromString(PYEXT_CLASS);
 /*
 		// add setattr/getattr to class 
 		for(PyMethodDef* _def = pyext_attrs; _def->ml_name; _def++) {
@@ -256,11 +232,8 @@ pyext::pyext(I argc,t_atom *argv):
 		}
 */
 
-//		PyDict_SetItemString(moduleDict, "__builtins__",PyEval_GetBuiltins());
-//		PyDict_SetItemString(classDict, "__builtins__",PyEval_GetBuiltins());
-
 		PyObject *fooClass = PyClass_New(NULL, classDict, className);
-		PyDict_SetItemString(moduleDict, "pybase", fooClass);
+		PyDict_SetItemString(moduleDict, PYEXT_CLASS, fooClass);
 		Py_DECREF(classDict);
 		Py_DECREF(className);
 		Py_DECREF(fooClass);
@@ -304,11 +277,10 @@ pyext::pyext(I argc,t_atom *argv):
 		else
 			SetArgs(0,NULL);
 
-		PyObject *pmod = GetModule();
+		PyObject *pmod = GetModule(); // stolen reference!
 		
 		if(pmod) {
 			PyObject *pclass = PyObject_GetAttrString(pmod,const_cast<C *>(GetString(sobj)));   /* fetch module.class */
-			Py_DECREF(pmod);
 			if (!pclass) 
 				PyErr_Print();
 			else {
@@ -341,29 +313,37 @@ pyext::pyext(I argc,t_atom *argv):
 			}
 		}
 	}
-		
+
+	PY_UNLOCK
+	
 	AddInAnything(1+inlets);  
 	AddOutAnything(outlets);  
 	SetupInOut();  // set up inlets and outlets
 
 	FLEXT_ADDMETHOD_(0,"reload",m_reload);
-	FLEXT_ADDMETHOD_(0,"detach",m_detach);
-	FLEXT_ADDMETHOD_(0,"wait",m_wait);
 
-//	py_END_ALLOW_THREADS
+#ifdef FLEXT_THREADS
+	FLEXT_ADDMETHOD_(0,"detach",m_detach);
+#endif
 }
 
 pyext::~pyext()
 {
+	PY_LOCK
+	
 	--ref;
-	if(pyobj) Py_DECREF(pyobj);
+	Py_XDECREF(pyobj);
+
+	PY_UNLOCK
 }
 
 V pyext::m_reload(I argc,t_atom *argv)
 {
+	PY_LOCK
 	if(argc > 2) SetArgs(argc,argv);
 
 	ReloadModule();
+	PY_UNLOCK
 }
 
 
@@ -394,16 +374,16 @@ V pyext::m_help()
 	post("Methods:");
 	post("\thelp: shows this help");
 	post("\treload [args...]: reload python script");
+#ifdef FLEXT_THREADS
 	post("\tdetach 0/1: detach threads");
-	post("\twait [int]: wait time for thread termination (in ms)");
+#endif
 	post("");
 }
 
 PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *argv) 
 {
-//	py_BEGIN_ALLOW_THREADS
-
 	PyObject *ret = NULL;
+
 	PyObject *pmeth  = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
 	if(pmeth == NULL) {
 		PyErr_Clear(); // no method found
@@ -425,16 +405,13 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *arg
 		Py_DECREF(pmeth);
 	}
 
-//	py_END_ALLOW_THREADS
-
 	return ret;
 }
 
 PyObject *pyext::call(const C *meth) 
 {
-//	py_BEGIN_ALLOW_THREADS
-
 	PyObject *pres = NULL;
+
 	PyObject *pmeth  = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
 	if(pmeth == NULL) {
 		PyErr_Clear(); // no method found
@@ -453,16 +430,16 @@ PyObject *pyext::call(const C *meth)
 //		Py_DECREF(sf);
 	}
 
-//	py_END_ALLOW_THREADS
-
 	return pres;
 }
 
 V pyext::work_wrapper(V *data)
 {
+	++thrcount;
 	work_data *w = (work_data *)data;
 	work(w->n,w->Header(),w->Count(),w->Atoms());
 	delete w;
+	--thrcount;
 }
 
 BL pyext::callwork(I n,const t_symbol *s,I argc,t_atom *argv)
@@ -478,6 +455,8 @@ BL pyext::callwork(I n,const t_symbol *s,I argc,t_atom *argv)
 BL pyext::work(I n,const t_symbol *s,I argc,t_atom *argv)
 {
 	BL retv = false;
+
+	PY_LOCK
 
 	PyObject *ret = NULL;
 	char *str = new char[strlen(GetString(s))+10];
@@ -523,12 +502,12 @@ BL pyext::work(I n,const t_symbol *s,I argc,t_atom *argv)
 	if(str) delete[] str;
 
 	if(ret) {
-//		Py_BEGIN_ALLOW_THREADS
 		if(!PyObject_Not(ret)) post("%s - returned value is ignored",thisName());
 		Py_DECREF(ret);
 		retv = true;
-//		Py_END_ALLOW_THREADS
 	}
+
+	PY_UNLOCK
 
 	return retv;
 }
