@@ -90,6 +90,8 @@ protected:
 	V Reregister(const C *reg);
 	virtual V Reload() = 0;
 
+    V Respond(BL b) { if(respond) { t_atom a[1]; SetBool(a[0],b); ToOutAnything(GetOutAttr(),MakeSymbol("response"),1,a); } }
+
 	static BL IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 
 	enum retval { nothing,atom,sequ /*,tuple,list*/ };
@@ -114,7 +116,7 @@ protected:
 
 	virtual V m_stop(int argc,const t_atom *argv);
 
-	BL detach,shouldexit;
+	BL detach,shouldexit,respond;
 	I thrcount;
 	I stoptick;
     Timer stoptmr;
@@ -138,6 +140,7 @@ protected:
 	// callbacks
 
 	FLEXT_ATTRVAR_B(detach)
+	FLEXT_ATTRVAR_B(respond)
 	FLEXT_CALLBACK_V(m_stop)
 	FLEXT_CALLBACK(m_dir)
 	FLEXT_CALLGET_V(mg_dir)

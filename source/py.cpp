@@ -1,8 +1,8 @@
 /* 
 
-py/pyext - python script object for PD and MaxMSP
+py/pyext - python script object for PD and Max/MSP
 
-Copyright (c) 2002-2003 Thomas Grill (xovo@gmx.net)
+Copyright (c) 2002-2004 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -23,9 +23,9 @@ public:
 protected:
 	BL m_method_(I n,const t_symbol *s,I argc,const t_atom *argv);
 
-	V work(const t_symbol *s,I argc,const t_atom *argv); 
+	BL work(const t_symbol *s,I argc,const t_atom *argv); 
 
-	V m_bang() { work(sym_bang,0,NULL); }
+	V m_bang() { callwork(sym_bang,0,NULL); }
 	V m_reload();
 	V m_reload_(I argc,const t_atom *argv);
 	V m_set(I argc,const t_atom *argv);
@@ -94,6 +94,8 @@ void pyobj::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,1,"int",m_py_int);
 	FLEXT_CADDMETHOD(c,1,m_py_list);
 	FLEXT_CADDMETHOD(c,1,m_py_any);
+
+  	FLEXT_CADDATTR_VAR1(c,"respond",respond);
 }
 
 pyobj::pyobj(I argc,const t_atom *argv):
@@ -227,6 +229,8 @@ V pyobj::m_help()
 	post("\treload. : reload with former arguments");
 	post("\tdoc: display module doc string");
 	post("\tdoc+: display function doc string");
+	post("\tdir: dump module dictionary");
+	post("\tdir+: dump function dictionary");
 #ifdef FLEXT_THREADS
 	post("\tdetach 0/1: detach threads");
 	post("\tstop {wait time (ms)}: stop threads");
@@ -271,9 +275,10 @@ V pyobj::Reload()
 }
 
 
-V pyobj::work(const t_symbol *s,I argc,const t_atom *argv)
+BL pyobj::work(const t_symbol *s,I argc,const t_atom *argv)
 {
 	AtomList *rargs = NULL;
+    BL ret;
 
 	++thrcount;
 	PY_LOCK
@@ -287,9 +292,11 @@ V pyobj::work(const t_symbol *s,I argc,const t_atom *argv)
 
 		Py_XDECREF(pArgs);
 		Py_XDECREF(pValue);
+        ret = true;
 	}
 	else {
 		post("%s: no function defined",thisName());
+        ret = false;
 	}
 
 	PY_UNLOCK
@@ -301,19 +308,24 @@ V pyobj::work(const t_symbol *s,I argc,const t_atom *argv)
 		ToOutList(0,*rargs);
 		delete rargs;
 	}
+
+    return ret;
 }
 
 V pyobj::callwork(const t_symbol *s,I argc,const t_atom *argv)
 {
+    BL ret = false;
 	if(detach) {
 		if(shouldexit)
 			post("%s - New threads can't be launched now!",thisName());
-		else
-			if(!FLEXT_CALLMETHOD_A(work,s,argc,argv))
-				post("%s - Failed to launch thread!",thisName());
+		else {
+			ret = FLEXT_CALLMETHOD_A(work,s,argc,argv);
+			if(!ret) post("%s - Failed to launch thread!",thisName());
+        }
 	}
-	else
-		work(s,argc,argv);
+    else
+		ret = work(s,argc,argv);
+    Respond(ret);
 }
 
 

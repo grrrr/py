@@ -1,8 +1,8 @@
 /* 
 
-py/pyext - python external object for PD and MaxMSP
+py/pyext - python external object for PD and Max/MSP
 
-Copyright (c) 2002-2003 Thomas Grill (xovo@gmx.net)
+Copyright (c) 2002-2004 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -40,16 +40,20 @@ PyMethodDef pyext::attr_tbl[] =
 
 
 const C *pyext::pyext_doc =
-	"py/pyext - python external object for PD and MaxMSP, (C)2002 Thomas Grill\n"
+	"py/pyext - python external object for PD and Max/MSP, (C)2002-2004 Thomas Grill\n"
 	"\n"
 	"This is the pyext base class. Available methods:\n"
 	"_outlet(self,ix,args...): Send a message to an indexed outlet\n"
+#if FLEXT_SYS == FLEXT_SYS_PD
 	"_tocanvas(self,args...): Send a message to the parent canvas\n"
-#ifdef FLEXT_THREADS
-	"_detach(self,int): Define whether a called Python method has its own thread\n"
 #endif
 	"_bind(self,name,func): Bind a python function to a symbol\n"
 	"_unbind(self,name,func): Unbind a python function from a symbol\n"
+#ifdef FLEXT_THREADS
+	"_detach(self,int): Define whether a called Python method has its own thread\n"
+	"_stop(self): Stop running threads\n"
+#endif
+	"_isthreaded(self): Query whether threading is enabled\n"
 ;
 
 PyObject* pyext::pyext__init__(PyObject *,PyObject *args)
