@@ -40,7 +40,8 @@ protected:
 	V m_py_int(I argc,t_atom *argv) { callwork(sym_int,argc,argv); }
 	V m_py_any(const t_symbol *s,I argc,t_atom *argv) { callwork(s,argc,argv); }
 
-	t_symbol *sFunc;
+	V SetFunction(const C *func);
+	PyObject *function;
 
 private:
 
@@ -64,7 +65,7 @@ FLEXT_LIB_V("py",pyobj)
 
 
 pyobj::pyobj(I argc,t_atom *argv):
-	sFunc(NULL)
+	function(NULL)
 { 
 	PY_LOCK
 
@@ -107,8 +108,10 @@ pyobj::pyobj(I argc,t_atom *argv):
 		// set function name
 		if(!IsString(argv[1])) 
 			post("%s - function name argument is invalid",thisName());
-		else
-			sFunc = GetSymbol(argv[1]);
+		else {
+			// Set function
+			SetFunction(GetString(argv[1]));
+		}
 	}
 
 	PY_UNLOCK
@@ -143,14 +146,17 @@ V pyobj::m_set(I argc,t_atom *argv)
 			return;
 		}
 		const C *sn = GetString(argv[ix]);
-		if(strcmp(sn,sName)) ImportModule(sn);
+
+		if(!module || !strcmp(sn,PyModule_GetName(module)))
+			ImportModule(sn);
+
 		++ix;
 	}
 
 	if(!IsString(argv[ix])) 
 		post("%s - function name is not valid",thisName());
 	else
-		sFunc = GetSymbol(argv[ix]);
+		SetFunction(GetString(argv[ix]));
 
 	PY_UNLOCK
 }
@@ -179,17 +185,30 @@ V pyobj::m_help()
 	post("");
 }
 
+V pyobj::SetFunction(const C *func)
+{
+	Py_XDECREF(function);
+
+	if(func) {
+		PyObject *dict = PyModule_GetDict(module); // borrowed
+		function = PyDict_GetItemString(dict,const_cast<C *>(func));
+		if(!PyFunction_Check(function)) {
+			post("%s - Object %s is not a function",thisName());
+			Py_DECREF(function);
+			function = NULL;
+		}
+	}
+	else function = NULL;
+}
 
 V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 {
 	++thrcount;
 	PY_LOCK
 
-	PyObject *pFunc = GetFunction(sFunc?GetString(sFunc):NULL);
-
-	if(pFunc && PyCallable_Check(pFunc)) {
+	if(function) {
 		PyObject *pArgs = MakePyArgs(s,argc,argv);
-		PyObject *pValue = PyObject_CallObject(pFunc, pArgs);
+		PyObject *pValue = PyObject_CallObject(function, pArgs);
 
 		I rargc;
 		t_atom *rargv = GetPyArgs(rargc,pValue);

@@ -13,16 +13,18 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #define STOP_WAIT 1000  // ms
 #define STOP_TICK 10  // ms
 
-V lib_setup()
+V py::lib_setup()
 {
 	post("py/pyext %s - python script objects, (C)2002 Thomas Grill",PY__VERSION);
 	post("");
 
 	FLEXT_SETUP(pyobj);
 	FLEXT_SETUP(pyext);
+
+	py::pyref = 0;
 }
 
-FLEXT_LIB_SETUP(py,lib_setup)
+FLEXT_LIB_SETUP(py,py::lib_setup)
 
 PyInterpreterState *py::pystate = NULL;
 
@@ -35,12 +37,11 @@ PyMethodDef py::func_tbl[] =
 	{NULL, NULL, 0, NULL}
 };
 
+I py::pyref = 0;
 PyObject *py::module_obj = NULL;
 PyObject *py::module_dict = NULL;
 
-
 py::py(): 
-	sName(NULL),hName(0),
 	module(NULL),
 	detach(false),shouldexit(false),thrcount(0),
 	clk(NULL),stoptick(0)
@@ -115,50 +116,6 @@ py::~py()
 }
 
 
-I py::pyref = 0;
-
-#if 0
-py::lookup *py::modules = NULL;
-
-py::lookup::lookup(I hname,PyObject *mod,py *_th):
-	modhash(hname),
-	module(NULL),dict(NULL),
-	nxt(NULL)
-{
-	Set(mod,_th);
-}
-
-py::lookup::~lookup()
-{
-	Py_XDECREF(module);
-	if(nxt) delete nxt;
-}
-
-V py::lookup::Set(PyObject *mod,py *_th)
-{
-    Py_XDECREF(module);
-    Py_XDECREF(dict);
-	dict = PyModule_GetDict(module = mod);
-	th = _th;
-}
-
-V py::lookup::Add(lookup *l)
-{
-	if(nxt) nxt->Add(l);
-	else nxt = l;
-}
-
-/*
-py *py::lookup::GetThis(PyObject *mod)
-{
-    if(module == mod) return th;
-	else
-		return nxt?nxt->GetThis(mod):NULL;
-}
-*/
-
-#endif
-
 V py::SetArgs(I argc,t_atom *argv)
 {
 	// script arguments
@@ -182,100 +139,25 @@ V py::ImportModule(const C *name)
 {
 	if(!name) return;
 
-	if(sName) delete[] sName;
-	sName = (C *)flext::strdup(name);
-
-	PyObject *pName = PyString_FromString(sName);
-	hName = PyObject_Hash(pName);
-
-	PyObject *pModule = PyImport_Import(pName);
-	if (!pModule) {
-//		post("%s: python script %s not found or init error",thisName(),sName);
+	module = PyImport_ImportModule((C *)name);
+	if (!module)
 		PyErr_Print();
-	}
-	else {
-		SetModule(hName,pModule);
-	}
-
-	Py_DECREF(pName);
 }
 
-
-V py::SetModule(I hname,PyObject *module)
-{
-	Lock();
-
-	lookup *l;
-	for(l = modules; l && l->modhash != hname; l = l->nxt);
-
-	if(l) 
-		l->Set(module,this);
-	else {
-		lookup *mod = new lookup(hname,module,this); 
-		if(modules) modules->Add(mod);
-		else modules = mod;
-	}
-
-	Unlock();
-}
 
 V py::ReloadModule()
 {
-	Lock();
-
-	lookup *l;
-	for(l = modules; l && l->modhash != hName; l = l->nxt);
-	if(l && l->module) {
-		PyObject *newmod = PyImport_ReloadModule(l->module);
+	if(module) {
+		PyObject *newmod = PyImport_ReloadModule(module);
 		if(!newmod) 
 			PyErr_Print();
 		else {
-			l->Set(newmod,this);
+			Py_XDECREF(module);
+			module = newmod;
 		}
 	}
-
-	Unlock();
-}
-
-PyObject *py::GetModule()
-{
-	Lock();
-
-	lookup *l;
-	for(l = modules; l && l->modhash != hName; l = l->nxt);
-	PyObject *ret = l?l->module:NULL;
-
-	Unlock();
-	return ret;
-}
-
-PyObject *py::GetDict()
-{
-	Lock();
-
-	lookup *l;
-	for(l = modules; l && l->modhash != hName; l = l->nxt);
-	PyObject *ret = l?l->dict:NULL;
-
-	Unlock();
-	return ret;
-}
-
-PyObject *py::GetFunction(const C *func)
-{
-	PyObject *ret = NULL;
-
-	if(func) {
-		Lock();
-
-		lookup *l;
-		for(l = modules; l && l->modhash != hName; l = l->nxt);
-		ret = l?PyDict_GetItemString(l->dict,const_cast<C *>(func)):NULL;
-
-		Unlock();
-	}
-
-	return ret;
+	else 
+		post("%s - No module to reload",thisName());
 }
 
 PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet,BL withself)

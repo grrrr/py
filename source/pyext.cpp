@@ -263,10 +263,8 @@ pyext::pyext(I argc,t_atom *argv):
 		else
 			SetArgs(0,NULL);
 
-		PyObject *pmod = GetModule(); // stolen reference!
-		
-		if(pmod) {
-			PyObject *pref = PyObject_GetAttrString(pmod,const_cast<C *>(GetString(sobj)));  
+		if(module) {
+			PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(sobj)));  
 			if (!pref) 
 				PyErr_Print();
 			else if(PyClass_Check(pref)) {

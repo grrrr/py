@@ -46,49 +46,24 @@ class py:
 public:
 	py();
 	~py();
+	static V lib_setup();
 
 protected:
-	C *sName;
-	I hName;
+
 	PyObject *module;
 
-#if 0
-	class lookup {
-	public:
-		lookup(I hash,PyObject *mod,py *_th);
-		~lookup();
-
-		V Set(PyObject *mod,py *_th);
-		V Add(lookup *l);
-//		py *GetThis(PyObject *mod);
-
-		I modhash;
-		PyObject *module,*dict;
-		lookup *nxt;
-		py *th;
-	};
-
-	static lookup *modules;
-#endif
-
 	static I pyref;
-
-//	static py *GetThis(PyObject *mod) { return modules?modules->GetThis(mod):NULL; }
 
 	V GetModulePath(const C *mod,C *dir,I len);
 	V AddToPath(const C *dir);
 	V SetArgs(I argc,t_atom *argv);
 	V ImportModule(const C *name);
-	V SetModule(I hname,PyObject *module);
 	V ReloadModule();
-	PyObject *GetModule();
-	PyObject *GetDict();
-	PyObject *GetFunction(const C *func);
+
 	static PyObject *MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet = -1,BL withself = false);
 	static t_atom *GetPyArgs(int &argc,PyObject *pValue,PyObject **self = NULL);
 
 	static BL IsAnything(const t_symbol *s) { return s && s != sym_bang && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
-
 
 	enum retval { nothing,atom,tuple,list };
 
