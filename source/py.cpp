@@ -191,14 +191,13 @@ V pyobj::m_help()
 
 V pyobj::SetFunction(const C *func)
 {
-	Py_XDECREF(function);
-
 	if(func) {
 		PyObject *dict = PyModule_GetDict(module); // borrowed
-		function = PyDict_GetItemString(dict,const_cast<C *>(func));
-		if(!PyFunction_Check(function)) {
+		function = PyDict_GetItemString(dict,const_cast<C *>(func)); // borrowed!!!
+		if(!function)
+			PyErr_Clear();
+		else if(!PyFunction_Check(function)) {
 			post("%s - Object %s is not a function",thisName());
-			Py_DECREF(function);
 			function = NULL;
 		}
 	}

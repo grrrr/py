@@ -54,16 +54,19 @@ class testcl2(pyext._class):
 #		self._unbind(self.recvname,testcl2.recv1)
 
 	def _anything_1(self,arg):
-		for i in range(1,40):
+		self._priority(-1)
+		for i in range(1,50):
 			if self._shouldexit: break
 			print i
-			time.sleep(0.2)
+			time.sleep(0.5)
 
 	def _anything_2(self,arg):
-		self._outlet(1,pyext._samplerate())
-		self._outlet(2,pyext._blocksize())
-		print "CLASS:",dir(self)
-		print "MODULE:",dir(pyext)
+		self._priority(-2)
+		for i in range(1,50):
+			if self._shouldexit: break
+			print i
+			time.sleep(0.5)
 
 	def _anything_3(self,arg):
+		self._priority(1)
 		self._send("send1",("hey",1,2))

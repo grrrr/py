@@ -1,6 +1,7 @@
 #include "pyext.h"
 #include <flinternal.h>
 
+#include <windows.h>
 
 FLEXT_LIB_V("pyext",pyext)
 
@@ -113,13 +114,13 @@ pyext::pyext(I argc,t_atom *argv):
 				else {
 					// remember the this pointer
 					PyObject *th = PyLong_FromVoidPtr(this); 
-					int ret = PyObject_SetAttrString(pyobj,"_this",th);
+					int ret = PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
 
 					// now get number of inlets and outlets
 					inlets = 1,outlets = 1;
 
 					PyObject *res;
-					res = PyObject_GetAttrString(pyobj,"_inlets"); 
+					res = PyObject_GetAttrString(pyobj,"_inlets"); // get ref
 					if(res) {
 						if(PyCallable_Check(res)) {
 							PyObject *fres = PyEval_CallObject(res,NULL);
@@ -133,7 +134,7 @@ pyext::pyext(I argc,t_atom *argv):
 					else 
 						PyErr_Clear();
 
-					res = PyObject_GetAttrString(pyobj,"_outlets"); 
+					res = PyObject_GetAttrString(pyobj,"_outlets"); // get ref
 					if(res) {
 						if(PyCallable_Check(res)) {
 							PyObject *fres = PyEval_CallObject(res,NULL);
@@ -266,11 +267,20 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *arg
 
 V pyext::work_wrapper(V *data)
 {
+//	post("WORKIN %x",GetCurrentThreadId());
 	++thrcount;
-	work_data *w = (work_data *)data;
-	work(w->n,w->Header(),w->Count(),w->Atoms());
-	delete w;
+#ifdef _DEBUG
+	if(!data) 
+		post("%s - no data!",thisName());
+	else
+#endif
+	{
+		work_data *w = (work_data *)data;
+		work(w->n,w->Header(),w->Count(),w->Atoms());
+//		delete w;
+	}
 	--thrcount;
+//	post("WORKOUT %x",GetCurrentThreadId());
 }
 
 BL pyext::callwork(I n,const t_symbol *s,I argc,t_atom *argv)

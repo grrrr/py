@@ -73,6 +73,9 @@ protected:
 	static PyMethodDef func_tbl[];
 
 	static PyObject *py_send(PyObject *self,PyObject *args);
+#ifdef FLEXT_THREADS
+	static PyObject *py_priority(PyObject *self,PyObject *args);
+#endif
 
 	static PyObject *py_samplerate(PyObject *self,PyObject *args);
 	static PyObject *py_blocksize(PyObject *self,PyObject *args);
@@ -112,8 +115,10 @@ protected:
 };
 
 #ifdef FLEXT_THREADS
+#if 0
 #define PY_LOCK \
 	{ \
+	PyThreadState *thrst = PyThreadState_New(pystate); \
 	PyEval_AcquireLock(); \
     PyThreadState *new_state = PyThreadState_New(pystate); /* must have lock */ \
     PyThreadState *prev_state = PyThreadState_Swap(new_state);
@@ -124,7 +129,19 @@ protected:
     PyEval_ReleaseLock(); \
     PyThreadState_Delete(new_state);       /* needn't have lock */ \
 	}
+#else
+#define PY_LOCK \
+	{ \
+	PyThreadState *thrst = PyThreadState_New(pystate); \
+	PyEval_AcquireThread(thrst); 
 
+#define PY_UNLOCK \
+	/*PyEval_AcquireThread(thrst);*/ \
+    PyThreadState_Clear(thrst);        /* must have lock */ \
+    PyEval_ReleaseThread(thrst);  \
+    PyThreadState_Delete(thrst);       /* needn't have lock */ \
+	}
+#endif
 #else
 #define PY_LOCK 
 #define PY_UNLOCK 

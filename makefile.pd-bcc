@@ -3,30 +3,19 @@
 #
 # Makefile for BorlandC++ 
 #
-# usage: make -f makefile.bcc
+# usage: make -f makefile.pd-bcc
 #
 # ... no threads!
 #
 # ---------------------------------------------
 
+include config-pd-bcc.txt
+
 NAME=py
 SETUPFUNCTION=$(NAME)_setup
 
-# where to put the build
-OUTPATH=.\bcc
-
 # flext stuff
-FLEXTPATH=..\flext	### EDIT! ##
 TARGET=pdwin
-
-# python stuff
-PYTHONVER=python22		### EDIT! ##
-PYTHONPATH=c:\programme\prog\python22	### EDIT! ##
-PYTHONBIN=c:\winnt\system32\$(PYTHONVER).dll  	### EDIT! ##
-
-# paths
-BCCPATH=c:\programme\prog\bcc55		### EDIT! ##
-PDPATH=c:\programme\audio\pd		### EDIT! ##
 
 # includes, libs
 INCPATH=-I$(BCCPATH)\include -I$(PYTHONPATH)\include -I$(PDPATH)\src -I$(FLEXTPATH)

@@ -1,4 +1,4 @@
-py - python script object for PD and MaxMSP
+py/pyext - python script objects for PD and MaxMSP
 Copyright (C) 2002 Thomas Grill
 
 This program is free software; you can redistribute it and/or

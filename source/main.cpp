@@ -32,6 +32,9 @@ PyInterpreterState *py::pystate = NULL;
 PyMethodDef py::func_tbl[] = 
 {
 	{ "_send", py::py_send, METH_VARARGS,"Send message to a named object" },
+#ifdef FLEXT_THREADS
+	{ "_priority", py::py_priority, METH_VARARGS,"Set priority of current thread" },
+#endif
 
 	{ "_samplerate", py::py_samplerate, NULL,"Get system sample rate" },
 	{ "_blocksize", py::py_blocksize, NULL,"Get system block size" },
@@ -55,17 +58,38 @@ py::py():
 
 	if(!(pyref++)) {
 		Py_Initialize();
-#ifdef FLEXT_THREADS
+#if 0
+
+	#ifdef FLEXT_THREADS
 		PyEval_InitThreads();
+
 		pythrmain = PyThreadState_Get();
 		pystate = pythrmain->interp;
-#endif
+	#endif
 		// register/initialize pyext module only once!
 		module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
 		module_dict = PyModule_GetDict(module_obj);
 
-#ifdef FLEXT_THREADS
+	#ifdef FLEXT_THREADS
 		PyEval_ReleaseLock();
+	#endif
+
+#else
+
+	#ifdef FLEXT_THREADS
+		PyEval_InitThreads();
+
+		pystate = PyThreadState_Get()->interp;
+	#endif
+		// register/initialize pyext module only once!
+		module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
+		module_dict = PyModule_GetDict(module_obj);
+
+	#ifdef FLEXT_THREADS
+		pythrmain = PyEval_SaveThread();
+	#endif
+
+
 #endif
 	}
 	else {
@@ -107,7 +131,11 @@ py::~py()
 
 		delete modules; modules = NULL;
 
+#if 0
 		PyEval_AcquireLock();
+#else
+		PyEval_AcquireThread(pythrmain); 
+#endif
 	    PyThreadState *new_state = PyThreadState_New(pystate); // must have lock 
 		PyThreadState *prev_state = PyThreadState_Swap(new_state);
 
@@ -426,4 +454,18 @@ PyObject *py::py_send(PyObject *,PyObject *args)
     return Py_None;
 }
 
+#ifdef FLEXT_THREADS
+PyObject *py::py_priority(PyObject *self,PyObject *args)
+{
+	int val;
+    if(!PyArg_ParseTuple(args, "i:py_priority", &val)) {
+        // handle error
+		error("py/pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
+    }
+	else
+		ChangePriority(val);
 
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+#endif
