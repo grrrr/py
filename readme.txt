@@ -26,9 +26,11 @@ o Borland C++ 5.5 (free): edit & run "make -f makefile.bcc"
 o Microsoft Visual C++ 6: edit "py.dsp" project file 
 
 - pd - linux:
+Python doesn't provide a shared lib by default - static linking produces huge externals...
 o GCC for linux: edit & run "make -f makefile.pd-linux" 
 
 - Max/MSP - MacOS:
+The source compiles and links but Max dies on first call of the Python API
 o CodeWarrior Pro: 
 o MPW-PR and GUSI: #undef HAVE_USABLE_WCHAR_T and HAVE_WCHAR_H in pyconfig.h
 
