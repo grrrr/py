@@ -1,0 +1,32 @@
+#N canvas 114 127 683 413 12;
+#X obj 224 370 pyext simple ex3;
+#X obj 365 370 print A;
+#X msg 252 180 get tmp;
+#X msg 369 210 get _inlets;
+#X msg 253 204 set tmp 3;
+#X msg 368 234 set _inlets 4;
+#X msg 18 179 dir;
+#X msg 15 282 getattributes;
+#X msg 15 309 getmethods;
+#X msg 18 207 dir+;
+#X text 15 48 This demonstrates the usage of attributes. See the simple.py
+file.;
+#X text 252 161 access a class variable;
+#X text 368 191 try to get/set internal stuff;
+#X text 479 234 (NOT allowed!);
+#X text 16 15 py/pyext - Python script objects \, (C)2003 Thomas Grill
+;
+#X text 16 261 get attributes and methods;
+#X text 51 178 Python module dict;
+#X text 59 208 Python class dict;
+#X text 17 101 All attribute-related methods dump eventual output to
+the attribute outlet (which is the right-most one);
+#X connect 0 1 1 0;
+#X connect 2 0 0 0;
+#X connect 3 0 0 0;
+#X connect 4 0 0 0;
+#X connect 5 0 0 0;
+#X connect 6 0 0 0;
+#X connect 7 0 0 0;
+#X connect 8 0 0 0;
+#X connect 9 0 0 0;

@@ -123,6 +123,9 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 
 V pyext::ClearBinding()
 {
+    // in case the object couldn't be constructed...
+    if(!pyobj) return;
+
     void *data = NULL;
     const t_symbol *sym = NULL;
 
