@@ -172,58 +172,8 @@ pyext::pyext(int argc,const t_atom *argv):
 	if(methname) {
 		MakeInstance();
 
-        if(pyobj) {
-            if(inlets >= 0) {
-                // set number of inlets
-			    PyObject *res = PyInt_FromLong(inlets);
-                int ret = PyObject_SetAttrString(pyobj,"_inlets",res);
-                FLEXT_ASSERT(!ret);
-            }
-            if(outlets >= 0) {
-                // set number of outlets
-			    PyObject *res = PyInt_FromLong(outlets);
-			    int ret = PyObject_SetAttrString(pyobj,"_outlets",res);
-                FLEXT_ASSERT(!ret);
-            }
-
-            DoInit(); // call __init__ constructor
-            // __init__ can override the number of inlets and outlets
-
-            if(inlets < 0) {
-		        // get number of inlets
-		        inlets = 1;
-			    PyObject *res = PyObject_GetAttrString(pyobj,"_inlets"); // get ref
-			    if(res) {
-				    if(PyCallable_Check(res)) {
-					    PyObject *fres = PyEval_CallObject(res,NULL);
-					    Py_DECREF(res);
-					    res = fres;
-				    }
-				    if(PyInt_Check(res)) 
-					    inlets = PyInt_AsLong(res);
-				    Py_DECREF(res);
-			    }
-			    else 
-				    PyErr_Clear();
-            }
-            if(outlets < 0) {
-                // get number of outlets
-                outlets = 1;
-			    PyObject *res = PyObject_GetAttrString(pyobj,"_outlets"); // get ref
-			    if(res) {
-				    if(PyCallable_Check(res)) {
-					    PyObject *fres = PyEval_CallObject(res,NULL);
-					    Py_DECREF(res);
-					    res = fres;
-				    }
-				    if(PyInt_Check(res))
-					    outlets = PyInt_AsLong(res);
-				    Py_DECREF(res);
-			    }
-			    else
-				    PyErr_Clear();
-            }
-        }
+        if(pyobj) 
+            InitInOut(inlets,outlets);
 	}
     else 
         inlets = outlets = 0;
@@ -283,6 +233,60 @@ bool pyext::DoInit()
     return true;
 }
 
+void pyext::InitInOut(int &inl,int &outl)
+{
+    if(inl >= 0) {
+        // set number of inlets
+		PyObject *res = PyInt_FromLong(inl);
+        int ret = PyObject_SetAttrString(pyobj,"_inlets",res);
+        FLEXT_ASSERT(!ret);
+    }
+    if(outl >= 0) {
+        // set number of outlets
+		PyObject *res = PyInt_FromLong(outl);
+		int ret = PyObject_SetAttrString(pyobj,"_outlets",res);
+        FLEXT_ASSERT(!ret);
+    }
+
+    DoInit(); // call __init__ constructor
+    // __init__ can override the number of inlets and outlets
+
+    if(inl < 0) {
+		// get number of inlets
+		inl = 1;
+		PyObject *res = PyObject_GetAttrString(pyobj,"_inlets"); // get ref
+		if(res) {
+			if(PyCallable_Check(res)) {
+				PyObject *fres = PyEval_CallObject(res,NULL);
+				Py_DECREF(res);
+				res = fres;
+			}
+			if(PyInt_Check(res)) 
+				inl = PyInt_AsLong(res);
+			Py_DECREF(res);
+		}
+		else 
+			PyErr_Clear();
+    }
+    if(outl < 0) {
+        // get number of outlets
+        outl = 1;
+		PyObject *res = PyObject_GetAttrString(pyobj,"_outlets"); // get ref
+		if(res) {
+			if(PyCallable_Check(res)) {
+				PyObject *fres = PyEval_CallObject(res,NULL);
+				Py_DECREF(res);
+				res = fres;
+			}
+			if(PyInt_Check(res))
+				outl = PyInt_AsLong(res);
+			Py_DECREF(res);
+		}
+		else
+			PyErr_Clear();
+    }
+}
+
 bool pyext::MakeInstance()
 {
 	// pyobj should already have been decref'd / cleared before getting here!!
@@ -320,6 +324,12 @@ void pyext::Reload()
 	ReloadModule();
 	
 	MakeInstance();
+
+    int inl = -1,outl = -1;
+    InitInOut(inl,outl);
+
+    if(inl != inlets || outl != outlets)
+        post("%s - Inlet and outlet count can't be changed by reload",thisName());
 }
 
 

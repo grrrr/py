@@ -43,7 +43,7 @@ class ex1(pyext._class):
 
 
 	# no inlets and outlets
-	_inlets=0
+	_inlets=1
 	_outlets=0
 
 	recvname=""   
@@ -66,21 +66,22 @@ class ex1(pyext._class):
 		if len(args) >= 1: self.recvname = args[0]
 		if len(args) >= 2: self.sendname = args[1]
 
+                self.bind_1()
+
+        def bind_1(self):
 		# bind functions to receiver names
 		# both are called upon message 
 		self._bind(self.recvname,self.recv)
 		self._bind(self.recvname,recv_gl)
-
+            
+        def unbind_1(self):
+		self._unbind(self.recvname,self.recv)
+		self._unbind(self.recvname,recv_gl)
 
 	def __del__(self):
 		"""Class destructor"""
 
-		# you can but you don't need to
 		# unbinding is automatically done at destruction
-		# you can also comment out the _unbind lines
-		self._unbind(self.recvname,self.recv)
-		self._unbind(self.recvname,recv_gl)
-
 		pass
 
 

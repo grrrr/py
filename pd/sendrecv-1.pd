@@ -1,5 +1,5 @@
-#N canvas 145 126 642 317 12;
-#X msg 125 117 reload mi ma;
+#N canvas 145 126 650 325 12;
+#X msg 125 81 reload mi ma;
 #X floatatom 48 238 5 0 0 0 - - -;
 #X floatatom 297 239 5 0 0 0 - - -;
 #X obj 297 263 s mi;
@@ -8,7 +8,7 @@
 #X obj 382 240 r ma;
 #X obj 48 262 s he;
 #X obj 143 238 r hu;
-#X text 233 116 reload with different args;
+#X text 233 80 reload with different args;
 #X msg 20 82 help;
 #X msg 19 114 doc;
 #X msg 58 114 doc+;
@@ -19,6 +19,8 @@
 -1 0;
 #X text 213 32 http://www.parasitaere-kapazitaeten.net;
 #X text 213 16 Python script objects \, (C)2003-2004 Thomas Grill;
+#X msg 202 128 bind;
+#X msg 249 129 unbind;
 #X connect 0 0 13 0;
 #X connect 1 0 7 0;
 #X connect 2 0 3 0;
@@ -27,3 +29,5 @@
 #X connect 10 0 13 0;
 #X connect 11 0 13 0;
 #X connect 12 0 13 0;
+#X connect 19 0 13 1;
+#X connect 20 0 13 1;

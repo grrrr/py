@@ -13,7 +13,45 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include <set>
 
-typedef std::set<PyObject *> FuncSet;
+class MethodCompare:
+    public std::less<PyObject *>
+{
+public:
+    bool operator()(PyObject *a,PyObject *b) const
+    {
+        if(PyMethod_Check(a))
+            if(PyMethod_Check(b)) {
+                // both are methods
+                PyObject *sa = PyMethod_GET_SELF(a);
+                PyObject *sb = PyMethod_GET_SELF(b);
+                if(sa)
+                    if(sb) {
+                        // both have self
+                        if(sa == sb)
+                            return PyMethod_GET_FUNCTION(a) < PyMethod_GET_FUNCTION(b);
+                        else
+                            return sa < sb;
+                    }
+                    else 
+                        return false;
+                else
+                    if(sb)
+                        return true;
+                    else 
+                        return PyMethod_GET_FUNCTION(a) < PyMethod_GET_FUNCTION(b);
+            }
+            else
+                return false;
+        else
+            if(PyMethod_Check(b))
+                return true;
+            else
+                // both are functions
+                return a < b;
+    }
+};
+
+typedef std::set<PyObject *,MethodCompare> FuncSet;
 
 struct bounddata 
 { 
@@ -33,10 +71,10 @@ bool pyext::boundmeth(flext_base *th,t_symbol *sym,int argc,t_atom *argv,void *d
     // call all functions bound by this symbol
     for(FuncSet::iterator it = obj->funcs.begin(); it != obj->funcs.end(); ++it) {
 	    PyObject *ret = PyObject_CallObject(*it,args);
-	    if(!ret) {
+	    if(!ret)
 		    PyErr_Print();
-	    }
-    	Py_XDECREF(ret);
+        else
+    	    Py_DECREF(ret);
     }
 
     Py_XDECREF(args);
@@ -55,33 +93,32 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 		post("py/pyext - Wrong argument types!");
     }
 	else {
-		const t_symbol *recv = MakeSymbol(name);
-/*
-		if(GetBound(recv))
-			post("py/pyext - Symbol \"%s\" is already hooked",GetString(recv));
-*/		
-		// make a proxy object
+        py *th = GetThis(self);
+        FLEXT_ASSERT(th);
 
-		if(PyMethod_Check(meth)) {
-			PyObject *no = PyObject_GetAttrString(meth,"__name__");
-			meth  = PyObject_GetAttr(self,no); 
-			Py_DECREF(no);
-		}
+		const t_symbol *recv = MakeSymbol(name);
 
         void *data = NULL;
-        if(GetThis(self)->GetBoundMethod(recv,boundmeth,data)) {
+        if(th->GetBoundMethod(recv,boundmeth,data)) {
             // already bound to that symbol and function
             bounddata *bdt = (bounddata *)data;
             FLEXT_ASSERT(bdt != NULL && bdt->self == self);
-            bdt->funcs.insert(meth);
+
+            FuncSet::iterator it = bdt->funcs.find(meth);
+            if(it == bdt->funcs.end()) {
+                bdt->funcs.insert(meth);
+                Py_INCREF(meth);
+            }
         }
         else {
+    		Py_INCREF(self); // self is borrowed reference
+            Py_INCREF(meth);
+
             bounddata *data = new bounddata;
             data->self = self;
             data->funcs.insert(meth);
-            GetThis(self)->BindMethod(recv,boundmeth,data);
 
-    		Py_INCREF(self); // self is borrowed reference
+            th->BindMethod(recv,boundmeth,data);
         }
 	}
 
@@ -99,26 +136,32 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 		post("py/pyext - Wrong argument types!");
     }
 	else {
+        py *th = GetThis(self);
+        FLEXT_ASSERT(th);
+
 		const t_symbol *recv = MakeSymbol(name);
-		if(PyMethod_Check(meth)) {
-			PyObject *no = PyObject_GetAttrString(meth,"__name__");
-			meth  = PyObject_GetAttr(self,no); // meth is given a new reference!
-			Py_DECREF(no);
-		}
 
         void *data = NULL;
-        if(GetThis(self)->UnbindMethod(recv,boundmeth,&data)) {
+        if(th->GetBoundMethod(recv,boundmeth,data)) {
             bounddata *bdt = (bounddata *)data;
             FLEXT_ASSERT(bdt != NULL);
 
-    	    if(PyMethod_Check(meth)) Py_DECREF(meth);
-
             // erase from map
-            bdt->funcs.erase(meth);
+            // ATTENTION: meth is different from the element found in the map
+            // it just points to the same instance method
+            FuncSet::iterator it = bdt->funcs.find(meth);
+            if(it != bdt->funcs.end()) {
+    	        Py_DECREF(*it);
+                bdt->funcs.erase(it);               
+            }
+            else
+                post("%s - Function to unbind couldn't be found",thisName());
 
             if(bdt->funcs.empty()) {
     		    Py_DECREF(bdt->self);
                 delete bdt; 
+
+                th->UnbindMethod(recv,boundmeth,NULL);
             }
         }
 	}
@@ -142,13 +185,11 @@ void pyext::ClearBinding()
     while(GetThis(pyobj)->UnbindMethod(sym,NULL,&data)) {
         bounddata *bdt = (bounddata *)data; 
         if(bdt) {
-            for(FuncSet::iterator it = bdt->funcs.begin(); it != bdt->funcs.end(); ++it) {
-                PyObject *func = *it;
-		        if(PyMethod_Check(func)) Py_DECREF(func);
-            }
+            for(FuncSet::iterator it = bdt->funcs.begin(); it != bdt->funcs.end(); ++it) 
+                Py_DECREF(*it);
 
 		    Py_DECREF(bdt->self);
-            if(data) delete bdt; 
+            delete bdt; 
         }
     }
 }
