@@ -100,8 +100,8 @@ flext_base::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 			default: arg = pValue;
 		}
 
-		if(PyInt_Check(arg)) SetFlint((*ret)[ix],PyInt_AsLong(arg));
-		else if(PyLong_Check(arg)) SetFlint((*ret)[ix],PyLong_AsLong(arg));
+		if(PyInt_Check(arg)) SetInt((*ret)[ix],PyInt_AsLong(arg));
+		else if(PyLong_Check(arg)) SetInt((*ret)[ix],PyLong_AsLong(arg));
 		else if(PyFloat_Check(arg)) SetFloat((*ret)[ix],(F)PyFloat_AsDouble(arg));
 		else if(PyString_Check(arg)) SetString((*ret)[ix],PyString_AsString(arg));
 		else if(ix == 0 && self && PyInstance_Check(arg)) {

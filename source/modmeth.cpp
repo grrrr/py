@@ -135,7 +135,8 @@ PyObject *py::py_send(PyObject *,PyObject *args)
 
 			AtomList *lst = GetPyArgs(val);
 			if(lst) {
-				t_class **cl = (t_class **)GetBound(recv);
+//				t_class **cl = (t_class **)GetBound(recv);
+				t_class **cl = (t_class **)recv->s_thing;
 				if(cl) {
 #ifdef PD
 					pd_forwardmess(cl,lst->Count(),lst->Atoms());
