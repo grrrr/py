@@ -17,11 +17,11 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <unistd.h>
 #endif
 
-#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 302)
-#error You need at least flext version 0.3.2
+#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 400)
+#error You need at least flext version 0.4.0
 #endif
 
-#define PY__VERSION "0.1.1pre2"
+#define PY__VERSION "0.1.1pre3"
 
 
 #define PYEXT_MODULE "pyext" // name for module
