@@ -9,7 +9,7 @@ PDPATH=c:\programme\audio\pd
 FLEXTPATH=$(PDPATH)\flext
 
 # where is MS VC++?
-MSVCPATH="c:\programme\prog\microsoft visual studio\VC98"
+MSVCPATH=c:\programme\prog\microsoft visual studio\VC98
 
 # which version of Python?
 PYTHONVER=python22
@@ -23,8 +23,6 @@ PYTHONLIB=c:\programme\prog\$(PYTHONVER)\libs\$(PYTHONVER).lib
 # where should the external be built?
 OUTPATH=pd-msvc
 
-# should the external be installed? (yes/no)
-INSTALL=yes
-
 # where should the external be installed?
+# (leave blank to omit installation)
 INSTDIR=$(PDPATH)\extra

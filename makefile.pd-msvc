@@ -1,0 +1,58 @@
+# py/pyext - python script object for PD and Max/MSP
+# Copyright (C) 2002 Thomas Grill (xovo@gmx.net)
+#
+# Makefile for MSVC++ 6
+#
+# usage:
+# to build run "make -f makefile.pd-msvc"
+#
+
+!include config-pd-msvc.txt
+
+# includes
+INCPATH=/I"$(MSVCPATH)\include" /I"$(PYTHONINCLUDE)" /I"$(PDPATH)\src" /I"$(FLEXTPATH)"
+LIBPATH=/LIBPATH:"$(MSVCPATH)\lib" /LIBPATH:"$(PDPATH)\bin" /LIBPATH:"$(FLEXTPATH)"
+LIBS=pd.lib pthreadVC.lib flext_t-pdwin.lib $(PYTHONLIB)
+
+# compiler definitions and flags
+DEFS=/DPD /DNT /DFLEXT_THREADS
+
+CFLAGS=/GR- /GX- /GD /G6 /Ox /MT
+
+# the rest can stay untouched
+# ----------------------------------------------
+
+# all the source files from the package
+SRCS= main.cpp py.cpp pyext.cpp modmeth.cpp clmeth.cpp register.cpp pyargs.cpp bound.cpp
+HDRS= main.h pyext.h
+
+# -----------------------------------------------
+
+NAME=py
+DIR=source
+
+all: $(OUTPATH) $(OUTPATH)\$(NAME).dll
+
+# remove build
+clean:
+	-del /q $(OUTPATH) > nul
+	-rmdir $(OUTPATH) > nul
+
+OBJS= $(SRCS:.cpp=.obj)
+
+$(OUTPATH):
+	-mkdir $(OUTPATH) > nul
+
+{$(DIR)}.cpp{}.obj:
+	cl /c /LD $(CFLAGS) $(DEFS) $(INCPATH) $** /Fo$(OUTPATH)\$@
+
+$(OUTPATH)\$(NAME).dll: $(OBJS)
+	cd $(OUTPATH)
+	link /DLL /out:$(NAME).dll /INCREMENTAL:NO $** $(LIBS) $(LIBPATH)
+	@-del *.exp
+	@-del *.lib
+	cd ..
+!ifdef INSTPATH
+	@-if not exist $(INSTPATH) mkdir $(INSTPATH)
+	copy $@ $(INSTPATH) > nul
+!endif

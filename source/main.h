@@ -21,7 +21,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.4.0
 #endif
 
-#define PY__VERSION "0.1.1pre3"
+#define PY__VERSION "0.1.1"
 
 
 #define PYEXT_MODULE "pyext" // name for module
