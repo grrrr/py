@@ -41,9 +41,6 @@ V py::lib_setup()
     // get main interpreter state
 	pystate = pythrmain->interp;
 
-    // release global lock
-    PyEval_ReleaseLock();
-
     // add thread state of main thread to map
     pythrmap[GetThreadId()] = pythrmain;
 #endif
@@ -58,6 +55,11 @@ V py::lib_setup()
 	PyObject* py_out = Py_InitModule("stdout", StdOut_Methods);
 	PySys_SetObject("stdout", py_out);
 
+#ifdef FLEXT_THREADS
+    // release global lock
+    PyEval_ReleaseLock();
+#endif
+
 	// -------------------------------------------------------------
 
 	FLEXT_SETUP(pyobj);
@@ -67,9 +69,8 @@ V py::lib_setup()
 FLEXT_LIB_SETUP(py,py::lib_setup)
 
 
-PyInterpreterState *py::pystate = NULL;
-
 #ifdef FLEXT_THREADS
+PyInterpreterState *py::pystate = NULL;
 PyThreadState *py::pythrmain = NULL;
 PyThrMap py::pythrmap;
 #endif
@@ -83,13 +84,9 @@ py::py():
 	detach(false),shouldexit(false),thrcount(0),
 	stoptick(0)
 {
-	Lock();
-
 	PY_LOCK
 	Py_INCREF(module_obj);
 	PY_UNLOCK
-
-	Unlock();
 
     FLEXT_ADDTIMER(stoptmr,tick);
 }
@@ -108,9 +105,7 @@ py::~py()
 		post("%s - Okay, all threads have terminated",thisName());
 	}
 		
-	Lock();
    	Py_XDECREF(module_obj);
-	Unlock();
 }
 
 

@@ -126,17 +126,17 @@ protected:
 	V tick(V *);
 
 public:
-	static PyInterpreterState *pystate;
 
 #ifdef FLEXT_THREADS
+	static PyInterpreterState *pystate;
 	static PyThreadState *pythrmain;
     static PyThrMap pythrmap;
 	ThrMutex mutex;
-	V Lock() { mutex.Unlock(); }
-	V Unlock() { mutex.Unlock(); }
+	inline V Lock() { mutex.Unlock(); }
+	inline V Unlock() { mutex.Unlock(); }
 #else
-	V Lock() {}
-	V Unlock() {}
+	inline V Lock() {}
+	inline V Unlock() {}
 #endif
 
 	static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);
@@ -163,7 +163,6 @@ protected:
     PyEval_AcquireLock(); \
 	PyThrMap::iterator it = pythrmap.find(GetThreadId()); \
 	PyThreadState *__st = it != pythrmap.end()?it->second:pythrmain; \
-    FLEXT_ASSERT(__st != NULL); \
 	PyThreadState *__oldst = PyThreadState_Swap(__st);
 
 #define PY_UNLOCK \

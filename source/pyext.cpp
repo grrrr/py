@@ -456,7 +456,6 @@ V pyext::work_wrapper(V *data)
         // --- make new Python thread ---
         // get the global lock
         PyEval_AcquireLock();
-        // get a reference to the PyInterpreterState
         // create a thread state object for this thread
         PyThreadState *newthr = PyThreadState_New(pystate);
         // free the lock

@@ -143,6 +143,7 @@ features:
 - enable multiple interpreters?
 - make a pygui object where Tkinter draws to the PD canvas...
 - stop individual threads
+- Python type for symbols
 
 tests:
 - check for python threading support

@@ -13,10 +13,12 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include <set>
 
+typedef std::set<PyObject *> FuncSet;
+
 struct bounddata 
 { 
     PyObject *self;
-    std::set<PyObject *> funcs;
+    FuncSet funcs;
 };
 
 bool pyext::boundmeth(flext_base *,t_symbol *sym,int argc,t_atom *argv,void *data)
@@ -28,7 +30,7 @@ bool pyext::boundmeth(flext_base *,t_symbol *sym,int argc,t_atom *argv,void *dat
 	PyObject *args = MakePyArgs(sym,argc,argv,-1,obj->self != NULL);
 
     // call all functions bound by this symbol
-    for(std::set<PyObject *>::iterator it = obj->funcs.begin(); it != obj->funcs.end(); ++it) {
+    for(FuncSet::iterator it = obj->funcs.begin(); it != obj->funcs.end(); ++it) {
 	    PyObject *ret = PyObject_CallObject(*it,args);
 	    if(!ret) {
 		    PyErr_Print();
@@ -135,7 +137,7 @@ V pyext::ClearBinding()
     while(GetThis(pyobj)->UnbindMethod(sym,NULL,&data)) {
         bounddata *bdt = (bounddata *)data; 
         if(bdt) {
-            for(std::set<PyObject *>::iterator it = bdt->funcs.begin(); it != bdt->funcs.end(); ++it) {
+            for(FuncSet::iterator it = bdt->funcs.begin(); it != bdt->funcs.end(); ++it) {
                 PyObject *func = *it;
 		        if(PyMethod_Check(func)) Py_DECREF(func);
             }
