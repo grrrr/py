@@ -12,10 +12,6 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
-#ifdef NT
-#include <windows.h>
-#endif
-
 class pyext:
 	public py
 {
@@ -56,11 +52,11 @@ private:
 
 //	FLEXT_CALLBACK(m_bang)
 
-	FLEXT_CALLBACK_G(m_reload)
-	FLEXT_CALLBACK_G(m_set)
+	FLEXT_CALLBACK_V(m_reload)
+	FLEXT_CALLBACK_V(m_set)
 };
 
-FLEXT_LIB_G("pyext",pyext)
+FLEXT_LIB_V("pyext",pyext)
 
 
 PyObject* pyext::py__init__(PyObject *sl, PyObject *args)
@@ -171,13 +167,6 @@ pyext::pyext(I argc,t_atom *argv):
 
 		// set script path
 		PySys_SetPath(dir);
-#ifdef _DEBUG
-		post("Script path: %s",dir);
-#ifdef NT
-		GetCurrentDirectory(sizeof(dir),dir);
-		post("Current working path: %s",dir);
-#endif
-#endif
 
 		if(!IsString(argv[0])) 
 			post("%s - script name argument is invalid",thisName());

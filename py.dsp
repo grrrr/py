@@ -135,7 +135,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib pd.lib flext-pdwin.lib /nologo /dll /debug /machine:I386 /pdbtype:sept /libpath:"c:/programme/audio/pd/bin" /libpath:"..\flext\msvc-debug" /libpath:"f:\prog\packs\Python-2.2.1\PCbuild"
-# ADD LINK32 kernel32.lib user32.lib pd.lib flext_t-pdwin.lib pthreadVC.lib /nologo /dll /debug /machine:I386 /pdbtype:sept /libpath:"c:/programme/audio/pd/bin" /libpath:"..\flext\pd-msvc" /libpath:"f:\prog\packs\Python-2.2.1\PCbuild"
+# ADD LINK32 kernel32.lib user32.lib pd.lib flext_td-pdwin.lib pthreadVC.lib /nologo /dll /debug /machine:I386 /pdbtype:sept /libpath:"c:/programme/audio/pd/bin" /libpath:"..\flext\pd-msvc" /libpath:"f:\prog\packs\Python-2.2.1\PCbuild"
 
 !ENDIF 
 
