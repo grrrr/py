@@ -245,6 +245,13 @@ V pyobj::m_help()
 
 V pyobj::ResetFunction()
 {
+	if(!module || !dict) 
+	{ 
+		post("%s - No module loaded",thisName());
+		function = NULL; 
+		return; 
+	}
+
 	function = funname?PyDict_GetItemString(dict,(C *)GetString(funname)):NULL; // borrowed!!!
 	if(!function) {
 		PyErr_Clear();

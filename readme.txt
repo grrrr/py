@@ -63,6 +63,9 @@ o GCC: edit "config-pd-linux.txt" & run "sh build-pd-linux.sh"
 
 Version history:
 
+0.1.1:
+- FIX: crash when module couldn't be loaded
+
 0.1.0:
 - completely reworked all code
 - added class functionality for full-featured objects and renamed the merge to pyext
