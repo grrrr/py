@@ -84,7 +84,7 @@ Version history:
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)
-- FIX: memory leak when passing list arguments to outlets (big thanks to sven!)
+- FIX: many memory leaks associated to ***GetItem stuff (big thanks to sven!)
 
 0.1.3:
 - FIX: class variables are now set atomic if parameter list has only 1 element

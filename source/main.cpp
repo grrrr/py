@@ -279,7 +279,7 @@ V py::AddToPath(const C *dir)
 		if(pobj && PyList_Check(pobj)) {
 			int i,n = PyList_Size(pobj);
 			for(i = 0; i < n; ++i) {
-				PyObject *pt = PyList_GetItem(pobj,i);
+				PyObject *pt = PyList_GetItem(pobj,i); // borrowed reference
 				if(PyString_Check(pt) && !strcmp(dir,PyString_AS_STRING(pt))) break;
 			}
 			if(i == n) { // string is not yet existent in path
@@ -296,33 +296,37 @@ static PyObject *output = NULL;
 // post to the console
 PyObject* py::StdOut_Write(PyObject* self, PyObject* args)
 {
-    if(PySequence_Check(args)) {
-		int sz = PySequence_Size(args);
-		for(int i = 0; i < sz; ++i) {
-			PyObject *val = PySequence_GetItem(args,i); // borrowed
-			PyObject *str = PyObject_Str(val);
-			char *cstr = PyString_AS_STRING(str);
-			char *lf = strchr(cstr,'\n');
+    // should always be a tuple
+    FLEXT_ASSERT(PyTuple_Check(args));
 
-			// line feed in string
-			if(!lf) {
-				// no -> just append
-				if(output)
-					PyString_ConcatAndDel(&output,str);
-				else
-					output = str;
-			}
-			else {
-				// yes -> append up to line feed, reset output buffer to string remainder
-				PyObject *part = PyString_FromStringAndSize(cstr,lf-cstr);
-				if(output)
-					PyString_ConcatAndDel(&output,part);			
-				else
-					output = part;
-				post(PyString_AS_STRING(output));
-				Py_DECREF(output);
-				output = PyString_FromString(lf+1);
-			}
+	int sz = PyTuple_Size(args);
+	for(int i = 0; i < sz; ++i) {
+		PyObject *val = PyTuple_GetItem(args,i); // borrowed reference
+		PyObject *str = PyObject_Str(val); // new reference
+		char *cstr = PyString_AS_STRING(str);
+		char *lf = strchr(cstr,'\n');
+
+		// line feed in string
+		if(!lf) {
+			// no -> just append
+            if(output)
+				PyString_ConcatAndDel(&output,str); // str is decrefd
+			else
+				output = str; // take str reference
+		}
+		else {
+			// yes -> append up to line feed, reset output buffer to string remainder
+			PyObject *part = PyString_FromStringAndSize(cstr,lf-cstr); // new reference
+            if(output)
+				PyString_ConcatAndDel(&output,part); // str is decrefd	
+			else
+				output = part; // take str reference
+
+            // output concatenated string
+			post(PyString_AS_STRING(output));
+
+			Py_DECREF(output);
+			output = PyString_FromString(lf+1);  // new reference
 		}
 	}
 

@@ -66,7 +66,7 @@ V py::Reregister(const C *regnm)
 		else {
 			I cnt = PySequence_Size(reg);
 			for(I i = 0; i < cnt; ++i) {
-				PyObject *it = PySequence_GetItem(reg,i); // borrowed!!
+				PyObject *it = PySequence_GetItem(reg,i); // new reference
 				if(!it || !PyInt_Check(it)) {
 					post("%s - Corrupt registry?!",thisName());
 				}
@@ -76,6 +76,8 @@ V py::Reregister(const C *regnm)
 					th->dict = dict;
 					th->Reload();
 				}
+
+                Py_XDECREF(it);
 			}
 		}
 	}

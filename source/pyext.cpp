@@ -76,10 +76,15 @@ V pyext::Setup(t_classid c)
 pyext *pyext::GetThis(PyObject *self)
 {
 	PyObject *th = PyObject_GetAttrString(self,"_this");
-	pyext *ret = th?(pyext *)PyLong_AsVoidPtr(th):NULL;
-	PyErr_Clear();
-	Py_XDECREF(th);
-	return ret;
+    if(th) {
+	    pyext *ret = static_cast<pyext *>(PyLong_AsVoidPtr(th));
+	    Py_DECREF(th);
+        return ret;
+    }
+    else {
+    	PyErr_Clear();
+        return NULL;
+    }
 }
 
 
@@ -385,7 +390,7 @@ void pyext::m_set(int argc,const t_atom *argv)
                 if(PySequence_Size(pval) == 1) {
                     // reduce lists of one element to element itself
 
-                    PyObject *val1 = PySequence_GetItem(pval,0);
+                    PyObject *val1 = PySequence_GetItem(pval,0); // new reference
                     Py_DECREF(pval);
                     pval = val1;
                 }

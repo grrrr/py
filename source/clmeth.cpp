@@ -122,9 +122,11 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
 
 	if(!ret) { 
 #if PY_VERSION_HEX >= 0x02020000
+        // \todo borrowed or new???
 		ret = PyObject_GenericGetAttr(self,name);
 #else
 		if(PyInstance_Check(self))
+            // borrowed reference
 			ret = PyDict_GetItem(((PyInstanceObject *)self)->in_dict,name);	
 #endif
 	}
@@ -139,7 +141,7 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
     // should always be a tuple!
     FLEXT_ASSERT(PyTuple_Check(args));
 
-    // borrow references!
+    // borrowed references!
 	PyObject *self = PyTuple_GetItem(args,0);
 	PyObject *outl = PyTuple_GetItem(args,1);
 	if(
@@ -251,40 +253,43 @@ PyObject *pyext::pyext_isthreaded(PyObject *,PyObject *)
 //! Send message to canvas
 PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 {
+    FLEXT_ASSERT(PyTuple_Check(args));
+
 	BL ok = false;
-    if(PySequence_Check(args)) {
-		PyObject *self = PySequence_GetItem(args,0);
-		if(self && PyInstance_Check(self)) {
-			pyext *ext = GetThis(self);
+	PyObject *self = PyTuple_GetItem(args,0); // borrowed ref
+	if(self && PyInstance_Check(self)) {
+		pyext *ext = GetThis(self);
 
-			I sz = PySequence_Size(args);
-			PyObject *val;
-			BL tp = sz == 2 && PySequence_Check(PyTuple_GetItem(args,1));
+		I sz = PySequence_Size(args);
+		PyObject *val;
 
-			if(tp)
-				val = PySequence_GetItem(args,1); // borrowed
-			else
-				val = PySequence_GetSlice(args,1,sz);  // new ref
+        BL tp = 
+            sz == 2 && 
+            PySequence_Check(
+                val = PyTuple_GetItem(args,1) // borrowed ref
+            );
 
-			AtomList *lst = GetPyArgs(val);
-			if(lst) {
-				t_glist *gl = ext->thisCanvas(); //canvas_getcurrent();
-			    t_class **cl = (t_pd *)gl;
-				if(cl) {
-					pd_forwardmess(cl,lst->Count(),lst->Atoms());
-				}
-#ifdef FLEXT_DEBUG
-				else
-					post("pyext - no parent canvas?!");
-#endif
-				ok = true;
+		if(!tp)
+			val = PyTuple_GetSlice(args,1,sz);  // new ref
+
+		AtomList *lst = GetPyArgs(val);
+		if(lst) {
+			t_glist *gl = ext->thisCanvas(); //canvas_getcurrent();
+			t_class **cl = (t_pd *)gl;
+			if(cl) {
+				pd_forwardmess(cl,lst->Count(),lst->Atoms());
 			}
-			else 
-				post("py/pyext - No data to send");
-			if(lst) delete lst;
-
-			if(!tp) Py_DECREF(val);
+#ifdef FLEXT_DEBUG
+			else
+				post("pyext - no parent canvas?!");
+#endif
+			ok = true;
 		}
+		else 
+			post("py/pyext - No data to send");
+		if(lst) delete lst;
+
+		if(!tp) Py_DECREF(val);
 	}
 
 	if(!ok)	post("pyext - Syntax: _tocanvas(self,args...)");

@@ -104,7 +104,7 @@ PyObject *py::py_inchannels(PyObject *self,PyObject *args)
 #if FLEXT_SYS == FLEXT_SYS_PD
 	I ch = sys_get_inchannels();
 #elif FLEXT_SYS == FLEXT_SYS_MAX
-	I ch = sys_getch(); // not functioning
+	I ch = sys_getch(); // not working
 #else
 #pragma message("Not implemented!")
 	ch = 0;
@@ -117,7 +117,7 @@ PyObject *py::py_outchannels(PyObject *self,PyObject *args)
 #if FLEXT_SYS == FLEXT_SYS_PD
 	I ch = sys_get_outchannels();
 #elif FLEXT_SYS == FLEXT_SYS_MAX
-	I ch = sys_getch(); // not functioning
+	I ch = sys_getch(); // not working
 #else
 #pragma message("Not implemented!")
 	ch = 0;
@@ -127,41 +127,45 @@ PyObject *py::py_outchannels(PyObject *self,PyObject *args)
 
 PyObject *py::py_send(PyObject *,PyObject *args)
 {
-    if(PySequence_Check(args)) {
-		PyObject *name = PySequence_GetItem(args,0); // borrowed
-		if(name && PyString_Check(name)) {
-			const t_symbol *recv = MakeSymbol(PyString_AsString(name));
-			I sz = PySequence_Size(args);
-			PyObject *val;
-			BL tp = sz == 2 && PySequence_Check(PySequence_GetItem(args,1));
+    // should always be a tuple
+    FLEXT_ASSERT(PyTuple_Check(args));
 
-			if(tp)
-				val = PySequence_GetItem(args,1); // borrowed
+	PyObject *name = PyTuple_GetItem(args,0); // borrowed reference
+    if(name && PyString_Check(name)) {
+		const t_symbol *recv = MakeSymbol(PyString_AsString(name));
+		int sz = PySequence_Size(args);
+		PyObject *val;
+
+		bool tp = 
+            sz == 2 && 
+            PySequence_Check(
+                val = PyTuple_GetItem(args,1) // borrowed ref
+            );
+
+		if(!tp)
+			val = PySequence_GetSlice(args,1,sz);  // new ref
+
+		AtomList *lst = GetPyArgs(val);
+		if(lst) {
+			bool ok;
+			if(lst->Count() && IsSymbol((*lst)[0]))
+				ok = Forward(recv,GetSymbol((*lst)[0]),lst->Count()-1,lst->Atoms()+1);
 			else
-				val = PySequence_GetSlice(args,1,sz);  // new ref
-
-			AtomList *lst = GetPyArgs(val);
-			if(lst) {
-				bool ok;
-				if(lst->Count() && IsSymbol((*lst)[0]))
-					ok = Forward(recv,GetSymbol((*lst)[0]),lst->Count()-1,lst->Atoms()+1);
-				else
-					ok = Forward(recv,*lst);
+				ok = Forward(recv,*lst);
 
 #ifdef FLEXT_DEBUG
-                if(!ok)
-					post("py/pyext - Receiver doesn't exist");
+            if(!ok)
+				post("py/pyext - Receiver doesn't exist");
 #endif
-			}
-			else 
-				post("py/pyext - No data to send");
-			if(lst) delete lst;
-
-			if(!tp) Py_DECREF(val);
 		}
-		else
-			post("py/pyext - Send name is invalid");
+		else 
+			post("py/pyext - No data to send");
+		if(lst) delete lst;
+
+		if(!tp) Py_DECREF(val);
 	}
+	else
+		post("py/pyext - Send name is invalid");
 
     Py_INCREF(Py_None);
     return Py_None;

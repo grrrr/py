@@ -116,10 +116,10 @@ flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 
 	for(I ix = 0; ix < rargc; ++ix) {
 		PyObject *arg;
-		switch(tp) {
-			case sequ: arg = PySequence_GetItem(pValue,ix); break;
-			default: arg = pValue;
-		}
+		if(tp == sequ)
+            arg = PySequence_GetItem(pValue,ix); // new reference
+		else
+            arg = pValue;
 
 		if(PyInt_Check(arg)) SetInt((*ret)[ix],PyInt_AsLong(arg));
 		else if(PyLong_Check(arg)) SetInt((*ret)[ix],PyLong_AsLong(arg));
@@ -127,6 +127,7 @@ flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 		else if(PyString_Check(arg)) SetString((*ret)[ix],PyString_AsString(arg));
 		else if(ix == 0 && self && PyInstance_Check(arg)) {
 			// assumed to be self ... that should be checked _somehow_ !!!
+            Py_INCREF(arg);
 			*self = arg;
 		}
 		else {
@@ -139,7 +140,8 @@ flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 			Py_XDECREF(tp);
 			ok = false;
 		}
-		// No DECREF for arg -> borrowed from pValue!
+
+		if(tp == sequ) Py_DECREF(arg);
 	}
 
 	if(!ok) { 

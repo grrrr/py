@@ -38,6 +38,8 @@ bool pyext::boundmeth(flext_base *,t_symbol *sym,int argc,t_atom *argv,void *dat
     	Py_XDECREF(ret);
     }
 
+    Py_XDECREF(args);
+
 	PY_UNLOCK
     return true;
 }
