@@ -78,6 +78,7 @@ Version history:
 
 0.1.2:
 - CHANGE: updates for flext 0.4.1 - method registering within class scope
+- fixed bugs in bound.cpp (object_free calls)
 
 0.1.1:
 - CHANGE: updates for flext 0.4.0
