@@ -55,6 +55,7 @@ Version history:
 
 0.0.2:
 - fixed bug when calling script with no function defined (thanks to Ben Saylor)
+- cleaner gcc makefile
 
 0.0.1:
 - using flext 0.2.1
