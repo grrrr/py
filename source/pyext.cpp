@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and MaxMSP
 
-Copyright (c) 2002-2004 Thomas Grill (xovo@gmx.net)
+Copyright (c)2002-2004 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -380,7 +380,7 @@ BL pyext::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
 V pyext::m_help()
 {
 	post("");
-	post("pyext %s - python script object, (C)2002,2003 Thomas Grill",PY__VERSION);
+	post("pyext %s - python script object, (C)2002-2004 Thomas Grill",PY__VERSION);
 #ifdef FLEXT_DEBUG
 	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif

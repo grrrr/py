@@ -208,7 +208,7 @@ V pyobj::m_set(I argc,const t_atom *argv)
 V pyobj::m_help()
 {
 	post("");
-	post("py %s - python script object, (C)2002,2003 Thomas Grill",PY__VERSION);
+	post("py %s - python script object, (C)2002-2004 Thomas Grill",PY__VERSION);
 #ifdef FLEXT_DEBUG
 	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
