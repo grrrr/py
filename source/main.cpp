@@ -78,7 +78,6 @@ py::py(I argc,t_atom *argv):
 	FLEXT_ADDMETHOD(0,m_any);
 
 
-
     if(!(pyref++)) Py_Initialize();
 
     if (argc < 2 || !is_symbol(argv[0]) || !is_symbol(argv[1])) {
@@ -97,6 +96,24 @@ py::py(I argc,t_atom *argv):
 
 		PySys_SetArgv(margc,margv);
 
+		for(i = 0; i < margc; ++i) delete[] margv[i];
+		delete[] margv;
+
+		C dir[1024];
+#ifdef PD
+		// uarghh... pd doesn't show it's path for extra modules
+
+		C *name;
+		I fd = open_via_path("",scrname,".py",dir,&name,sizeof(dir),0);
+		if(fd > 0) close(fd);
+		else name = NULL;
+#elif defined(MAXMSP)
+		*dir = 0;
+#endif
+
+		// set script path
+		PySys_SetPath(dir);
+
 		// init script module
 
 		pName = PyString_FromString(scrname);
@@ -111,9 +128,6 @@ py::py(I argc,t_atom *argv):
 			pFunc = PyDict_GetItemString(pDict,(C *)get_string(argv[1]));
 			/* pFun: Borrowed reference */
 		}
-
-		for(i = 0; i < margc; ++i) delete[] margv[i];
-		delete[] margv;
 
 	}
 }
@@ -198,10 +212,7 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 					post("%s: Could not convert return argument",thisName());
 					set_string(ret[ix],"???");
 				}
-
-				if(!tpl) break;
-
-				Py_DECREF(arg);
+				// No DECREF for arg -> borrowed from pValue!
 			}
 
 			Py_DECREF(pValue);
