@@ -45,16 +45,16 @@ private:
 	static V setup(t_class *);
 	
 	FLEXT_CALLBACK(m_bang)
-	FLEXT_CALLBACK_G(m_reload)
-	FLEXT_CALLBACK_G(m_set)
+	FLEXT_CALLBACK_V(m_reload)
+	FLEXT_CALLBACK_V(m_set)
 
-	FLEXT_CALLBACK_G(m_py_float)
-	FLEXT_CALLBACK_G(m_py_list)
-	FLEXT_CALLBACK_G(m_py_int)
+	FLEXT_CALLBACK_V(m_py_float)
+	FLEXT_CALLBACK_V(m_py_list)
+	FLEXT_CALLBACK_V(m_py_int)
 	FLEXT_CALLBACK_A(m_py_any)
 };
 
-FLEXT_LIB_G("py",pyobj)
+FLEXT_LIB_V("py",pyobj)
 
 
 pyobj::pyobj(I argc,t_atom *argv):
