@@ -5,4 +5,5 @@ PYTHONPREFIX=/usr
 PYTHONVERSION=2.3
 
 # uncomment if numarray support should be compiled in
+# for info about numarray see http://numeric.scipy.org
 # PY_NUMARRAY=1
