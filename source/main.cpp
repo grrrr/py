@@ -60,6 +60,7 @@ void py::FreeThreadState()
 
 
 void initsymbol();
+void initsamplebuffer();
 
 void py::lib_setup()
 {
@@ -114,6 +115,10 @@ void py::lib_setup()
     PyModule_AddObject(module_obj,"_s_float",(PyObject *)pySymbol_float);
     PyModule_AddObject(module_obj,"_s_int",(PyObject *)pySymbol_int);
 
+    // add samplebuffer type
+    initsamplebuffer();
+    PyModule_AddObject(module_obj,"Buffer",(PyObject *)&pySamplebuffer_Type);
+
 	// redirect stdout
 	PyObject* py_out;
     py_out = Py_InitModule("stdout", StdOut_Methods);
@@ -132,10 +137,6 @@ void py::lib_setup()
 
 	FLEXT_SETUP(pyobj);
 	FLEXT_SETUP(pyext);
-
-#ifdef PY_NUMARRAY
-    setupNumarray();
-#endif
 
 #ifdef FLEXT_THREADS
     // release global lock

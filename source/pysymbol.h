@@ -63,7 +63,7 @@ inline PyObject *pySymbol_FromString(const char *str)
 
 inline PyObject *pySymbol_FromString(PyObject *str)
 {
-    return pySymbol_FromSymbol(flext::MakeSymbol(PyString_AsString(str)));
+    return pySymbol_FromString(PyString_AsString(str));
 }
 
 inline const t_symbol *pySymbol_AS_SYMBOL(PyObject *op) 

@@ -26,12 +26,6 @@ PyMethodDef py::func_tbl[] =
 	{ "_getvalue", py::py_getvalue, METH_VARARGS,"Get value of a 'value' object" },
 	{ "_setvalue", py::py_setvalue, METH_VARARGS,"Set value of a 'value' object" },
 #endif
-
-#ifdef PY_NUMARRAY
-	{ "_import", py::py_import, METH_VARARGS,"Import buffer" },
-	{ "_export", py::py_export, METH_VARARGS,"Export buffer" },
-#endif
-
 	{NULL, NULL, 0, NULL} // sentinel
 };
 

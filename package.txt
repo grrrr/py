@@ -10,6 +10,6 @@ SRCS= \
     main.cpp \
     py.cpp pyext.cpp modmeth.cpp clmeth.cpp \
     register.cpp bound.cpp pyargs.cpp \
-    pysymbol.cpp pybuf.cpp
+    pysymbol.cpp pybuffer.cpp
 
-HDRS= pyprefix.h main.h pyext.h pysymbol.h
+HDRS= pyprefix.h main.h pyext.h pysymbol.h pybuffer.h

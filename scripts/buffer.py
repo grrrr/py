@@ -28,14 +28,19 @@ except:
     print "Failed importing numarray module:",sys.exc_value
 
 def mul(*args):
-    a = pyext._import(args[1])
-    b = pyext._import(args[2])
-    c = a*b
-    pyext._export(args[0],c)
+    c = pyext.Buffer(args[0])
+    dst = c.array()
+    dst[:] = 0
+    a = pyext.Buffer(args[1]).array()
+    b = pyext.Buffer(args[2]).array()
+    dst += a*b
+    c.dirty()   
 
 def add(*args):
-    a = pyext._import(args[1])
-    b = pyext._import(args[2])
-    c = a+b
-    pyext._export(args[0],c)
-
+    c = pyext.Buffer(args[0])
+    dst = c.array()
+    dst[:] = 0
+    a = pyext.Buffer(args[1]).array()
+    b = pyext.Buffer(args[2]).array()
+    dst += a+b
+    c.dirty()   
