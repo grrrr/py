@@ -9,6 +9,8 @@ Donations for further development of the package are highly appreciated.
 ----------------------------------------------------------------------------
 
 You will need the flext C++ layer for PD and Max/MSP externals to compile this.
+see http://www.parasitaere-kapazitaeten.net/ext
+
 
 Package files:
 - readme.txt: this one
