@@ -120,12 +120,19 @@ PyObject *py::py_outchannels(PyObject *self,PyObject *args)
 
 PyObject *py::py_send(PyObject *,PyObject *args)
 {
-    if(PyTuple_Check(args)) {
-		PyObject *name = PyTuple_GetItem(args,0); // borrowed
+    if(PySequence_Check(args)) {
+		PyObject *name = PySequence_GetItem(args,0); // borrowed
 		if(name && PyString_Check(name)) {
 			const t_symbol *recv = MakeSymbol(PyString_AsString(name));
-			
-			PyObject *val = PyTuple_GetSlice(args,1,PyTuple_Size(args));  // new ref
+			I sz = PySequence_Size(args);
+			PyObject *val;
+			BL tp = sz == 2 && PySequence_Check(PySequence_GetItem(args,1));
+
+			if(tp)
+				val = PySequence_GetItem(args,1); // borrowed
+			else
+				val = PySequence_GetSlice(args,1,sz);  // new ref
+
 			AtomList *lst = GetPyArgs(val);
 			if(lst) {
 				t_class **cl = (t_class **)GetBound(recv);
@@ -145,7 +152,7 @@ PyObject *py::py_send(PyObject *,PyObject *args)
 				post("py/pyext - No data to send");
 			if(lst) delete lst;
 
-			Py_DECREF(val);
+			if(!tp) Py_DECREF(val);
 		}
 		else
 			post("py/pyext - Send name is invalid");

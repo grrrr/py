@@ -23,6 +23,7 @@ PyMethodDef pyext::meth_tbl[] =
 	{ "_unbind", pyext::pyext_unbind, METH_VARARGS,"Unbind function from a receiving symbol" },
 #ifdef FLEXT_THREADS
 	{ "_detach", pyext::pyext_detach, METH_VARARGS,"Set detach flag for called methods" },
+	{ "_stop", pyext::pyext_stop, METH_VARARGS,"Stop running threads" },
 #endif
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
@@ -42,7 +43,7 @@ const C *pyext::pyext_doc =
 	"_outlet(self,ix,args...): Send a message to an indexed outlet\n"
 	"_tocanvas(self,args...): Send a message to the parent canvas\n"
 #ifdef FLEXT_THREADS
-	"_detach(self,int): Define whether called Python method run in their own threads\n"
+	"_detach(self,int): Define whether a called Python method has its own thread\n"
 #endif
 	"_bind(self,name,func): Bind a python function to a symbol\n"
 	"_unbind(self,name,func): Unbind a python function from a symbol\n"
@@ -115,41 +116,58 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
 	return ret?ret:PyObject_GenericGetAttr(self,name);
 }
 
-PyObject *pyext::pyext_outlet(PyObject *,PyObject *args) 
+
+//! Send message to outlet
+PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 {
-	PyObject *self;
-	AtomList *rargs = GetPyArgs(args,&self);
+	BL ok = false;
+    if(PySequence_Check(args)) {
+		PyObject *self = PySequence_GetItem(args,0);
+		PyObject *outl = PySequence_GetItem(args,1);
+		if(
+			self && PyInstance_Check(self) && 
+			outl && PyInt_Check(outl)
+		) {
+			pyext *ext = GetThis(self);
 
-//    post("pyext.outlet called, args:%i",rargc);
+			I sz = PySequence_Size(args);
+			PyObject *val;
+			BL tp = sz == 3 && PySequence_Check(PySequence_GetItem(args,2));
 
-	if(rargs) {
-		pyext *ext = GetThis(self);
-		if(!ext) 
-			error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
-
-		if(ext && rargs && rargs->Count() >= 2) {
-			I o = GetAInt((*rargs)[1]);
-			if(o >= 1 && o <= ext->Outlets()) {
-				if(rargs->Count() >= 3 && IsSymbol((*rargs)[2]))
-					ext->ToOutAnything(o-1,GetSymbol((*rargs)[2]),rargs->Count()-3,rargs->Atoms()+3);
-				else
-					ext->ToOutList(o-1,rargs->Count()-2,rargs->Atoms()+2);
-			}
+			if(tp)
+				val = PySequence_GetItem(args,2); // borrowed
 			else
-				post("pyext: outlet index out of range");
-		}
-		else {
-//			PyErr_Print();
-			error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
+				val = PySequence_GetSlice(args,2,sz);  // new ref
+
+			AtomList *lst = GetPyArgs(val);
+			if(lst) {
+				I o = PyInt_AsLong(outl);
+				if(o >= 1 && o <= ext->Outlets()) {
+					if(lst->Count() && IsSymbol((*lst)[0]))
+						ext->ToOutAnything(o-1,GetSymbol((*lst)[0]),lst->Count()-1,lst->Atoms()+1);
+					else
+						ext->ToOutList(o-1,*lst);
+				}
+				else
+					post("pyext: outlet index out of range");
+
+				ok = true;
+			}
+			else 
+				post("py/pyext - No data to send");
+			if(lst) delete lst;
+
+			if(!tp) Py_DECREF(val);
 		}
 	}
 
-	if(rargs) delete rargs;
+	if(!ok)	post("pyext - Syntax: _outlet(self,outlet,args...)");
 
     Py_INCREF(Py_None);
-
     return Py_None;
 }
+
+
 
 #ifdef FLEXT_THREADS
 //! Detach threads
@@ -157,7 +175,7 @@ PyObject *pyext::pyext_detach(PyObject *,PyObject *args)
 {
 	PyObject *self; 
 	int val;
-    if(!PyArg_ParseTuple(args, "Oi:py_detach",&self,&val)) {
+    if(!PyArg_ParseTuple(args, "Oi:pyext_detach",&self,&val)) {
         // handle error
 		post("pyext - Syntax: _detach(self,[0/1])");
     }
@@ -169,25 +187,60 @@ PyObject *pyext::pyext_detach(PyObject *,PyObject *args)
     Py_INCREF(Py_None);
     return Py_None;
 }
+
+//! Stop running threads
+PyObject *pyext::pyext_stop(PyObject *,PyObject *args)
+{
+	PyObject *self; 
+	int val = -1;
+    if(!PyArg_ParseTuple(args, "O|i:pyext_stop",&self,&val)) {
+        // handle error
+		post("pyext - Syntax: _stop(self,{wait time}");
+    }
+	else {
+		pyext *ext = GetThis(self);
+		I cnt = 0;
+		t_atom at;
+		if(val >= 0) flext_base::SetFlint(at,val);
+		ext->m_stop(cnt,&at);
+	}
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 #endif
 
 //! Send message to canvas
 PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 {
 	BL ok = false;
-    if(PyTuple_Check(args)) {
-		PyObject *self = PyTuple_GetItem(args,0);
+    if(PySequence_Check(args)) {
+		PyObject *self = PySequence_GetItem(args,0);
 		if(self && PyInstance_Check(self)) {
 			pyext *ext = GetThis(self);
 
 #ifdef PD
-			PyObject *val = PyTuple_GetSlice(args,1,PyTuple_Size(args));
+			I sz = PySequence_Size(args);
+			PyObject *val;
+			BL tp = sz == 2 && PySequence_Check(PyTuple_GetItem(args,1));
+
+			if(tp)
+				val = PySequence_GetItem(args,1); // borrowed
+			else
+				val = PySequence_GetSlice(args,1,sz);  // new ref
+
 			AtomList *lst = GetPyArgs(val);
 			if(lst) {
 				t_glist *gl = ext->thisCanvas(); //canvas_getcurrent();
 			    t_class **cl = (t_pd *)gl;
-				if(cl) 
+				if(cl) {
+#ifdef PD
 					pd_forwardmess(cl,lst->Count(),lst->Atoms());
+#else
+					#pragma message ("Send is not implemented")
+#endif
+				}
 #ifdef _DEBUG
 				else
 					post("pyext - no parent canvas?!");
@@ -197,7 +250,8 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 			else 
 				post("py/pyext - No data to send");
 			if(lst) delete lst;
-			Py_DECREF(val);
+
+			if(!tp) Py_DECREF(val);
 #else
 #pragma message ("Not implemented for MaxMSP")
 #endif

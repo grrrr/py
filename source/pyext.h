@@ -33,6 +33,7 @@ public:
 	static PyObject *pyext_getattr(PyObject *,PyObject *args);
 
 	static PyObject *pyext_detach(PyObject *,PyObject *args);
+	static PyObject *pyext_stop(PyObject *,PyObject *args);
 
 	I Inlets() const { return inlets; }
 	I Outlets() const { return outlets; }

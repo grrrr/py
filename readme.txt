@@ -1,4 +1,4 @@
-py/pyext - python script objects for PD and MaxMSP
+py/pyext - python script objects for PD (and MaxMSP... once, under MacOSX and Windows)
 
 Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -13,9 +13,9 @@ You will need the flext C++ layer for PD and Max/MSP externals to compile this.
 Package files:
 - readme.txt: this one
 - gpl.txt,license.txt: GPL license stuff
-- main.cpp, main.h: base class
+- main.cpp, main.h, modmeth.cpp, pyargs.cpp, register.cpp: base class
 - py.cpp: py object
-- pyext.cpp: pyext object
+- pyext.cpp, pyext.h, clmeth.cpp, bound.cpp: pyext object
 
 ----------------------------------------------------------------------------
 
@@ -30,11 +30,6 @@ Python doesn't provide a shared lib by default - static linking produces huge ex
 Ok, debian is an exception...
 o GCC: edit "config-pd-linux.txt" & run "sh build-pd-linux.sh" 
 
-- Max/MSP - MacOS:
-The source compiles and links but Max dies on first call of the Python API
-o CodeWarrior Pro: edit "py.cw" project file 
-o MPW-PR and GUSI: #undef HAVE_USABLE_WCHAR_T and HAVE_WCHAR_H in pyconfig.h
-
 ----------------------------------------------------------------------------
 
 Goals/features of the package:
@@ -43,23 +38,23 @@ Goals/features of the package:
 
 Description:
 
-- you can load python modules and execute the functions therein
-- the python scripts are searched within the pd path (specified with -path option)
-- different py objects can share the same modules, hence creation arguments only apply upon (re)load of the first instance
-- list, float, symbol messages to the script are transmitted without the header (only the message element(s))
-- multi-element results (tuple, list) from the python script are prepended by list
+With the py object you can load python modules and execute the functions therein.
+With the pyext you can use python classes to represent full-featured pd/Max message objects.
+Multithreading (detached methods) is supported for both objects.
+You can send messages to named objects or receive (with pyext) with Python methods.
 
 ----------------------------------------------------------------------------
 
 Version history:
 
 0.1.0:
+- completely reworked all code
 - added class functionality for full-featured objects and renamed the merge to pyext
 - enabled threads and made everything thread-safe ... phew!
 - using flext 0.3.2
-- another bugfix for undefined function
 - pyext now gets full python path
 - python's argv[0] is now "py" or "pyext"
+- etc.etc.
 
 0.0.2:
 - fixed bug when calling script with no function defined (thanks to Ben Saylor)
@@ -79,7 +74,7 @@ general:
 
 features:
 - enable multiple interpreters?
-- make a pygui object where Tkinter draws to PD canvas...
+- make a pygui object where Tkinter draws to the PD canvas...
 - stop individual threads
 
 tests:
@@ -87,5 +82,5 @@ tests:
 
 bugs:
 - the python interpreter can't be unloaded due to some bug at re-initialization
-- named arguments are not supported
+- named (keyword) arguments are not supported
 

@@ -5,27 +5,27 @@
 # WARRANTIES, see the file, "license.txt," in this distribution.  
 #
 
-"""This is an example script for showing a tcl/tk application."""
+"""This is an example script for showing a nonsense tcl/tk application."""
 
 import pyext
 from Tkinter import *
 import random
 
 
-# TK application class
-
 class Application(Frame):                                           
-#	Button pressed
+	"""This is the TK application class"""
+
+	# Button pressed
 	def say_hi(self):                                                    
 		self.extcl._outlet(1,"hi there, everyone!")
 
-#	Mouse motion over canvas
+	# Mouse motion over canvas
 	def evfunc(self, ev):
 		x = random.uniform(-3,3)
 		y = random.uniform(-3,3)
 		self.mcanv.move('group',x,y)	
 
-#	Create interface stuff
+	# Create interface stuff
 	def createWidgets(self):                                             
 		self.hi = Button(self)                                         
 		self.hi["text"] = "Hi!"                                       
@@ -46,25 +46,32 @@ class Application(Frame):
 			l = self.mcanv.create_line(x,y,x+1,y)
 			self.mcanv.addtag_withtag('group',l)
                                                                     
-#	Constructor
-	def __init__(self, cl):
+	# Constructor
+	def __init__(self,cl):
 		self.extcl = cl
-		Frame.__init__(self)                                    
+		Frame.__init__(self)
 		self.pack()
-		self.createWidgets()                                            
-                                                                    
+		self.createWidgets()
+		pass
 
 
 # derive class from pyext._class
 
-class main(pyext._class):   
-#	how many inlets and outlets?
+class myapp(pyext._class):   
+	"""This class demonstrates how a TCL/TK can be openened from within a pyext external"""
+
+	# how many inlets and outlets?
 	_inlets = 1
 	_outlets = 1
 
-#	method for bang into inlet 1
+	# Constructor
+	def __init__(self):
+		# detach bang method
+		self._detach(1)
+
 	def bang_1(self):
 		self._priority(-3)
+		# display the tcl/tk dialog
 		app = Application(self)
 		app.mainloop()
 

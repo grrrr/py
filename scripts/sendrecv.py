@@ -1,5 +1,15 @@
+# py/pyext - python script objects for PD and MaxMSP
+#
+# Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
+# For information on usage and redistribution, and for a DISCLAIMER OF ALL
+# WARRANTIES, see the file, "license.txt," in this distribution.  
+#
+
 """This is an example script for the py/pyext object's send/receive functionality.
-(C) 2002, Thomas Grill
+
+You can:
+- bind
+
 
 There are several classes exposing py/pyext features:
 - ex1: A class receiving messages and sending them out again

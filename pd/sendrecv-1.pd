@@ -1,4 +1,4 @@
-#N canvas 343 246 464 314 12;
+#N canvas 343 246 466 316 12;
 #X msg 125 52 reload mi ma;
 #X floatatom 48 173 5 0 0;
 #X floatatom 181 174 5 0 0;

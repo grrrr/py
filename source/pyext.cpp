@@ -87,8 +87,10 @@ pyext::pyext(I argc,t_atom *argv):
 
 		if(!IsString(argv[0])) 
 			post("%s - script name argument is invalid",thisName());
-		else
+		else {
+			SetArgs(0,NULL);
 			ImportModule(GetString(argv[0]));
+		}
 	}
 
 	Register("_pyext");
@@ -189,7 +191,7 @@ BL pyext::SetClssMeth() //I argc,t_atom *argv)
 {
 	// pyobj should already have been decref'd / cleared before getting here!!
 	
-	if(module) {
+	if(module && methname) {
 		PyObject *pref = PyObject_GetAttrString(module,const_cast<C *>(GetString(methname)));  
 		if(!pref) 
 			PyErr_Print();
@@ -207,14 +209,17 @@ BL pyext::SetClssMeth() //I argc,t_atom *argv)
 
 				// call init now, after _this has been set, which is
 				// important for eventual callbacks from __init__ to c
-				PyObject *pargs = MakePyArgs(NULL,args);
+				PyObject *pargs = MakePyArgs(NULL,args,-1,true);
 				if (pargs == NULL) PyErr_Print();
 
 				PyObject *init;
 				init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
 				if(init && PyCallable_Check(init)) {
 					PyObject *res = PyEval_CallObject(init,pargs);
-					Py_XDECREF(res);
+					if(!res)
+						PyErr_Print();
+					else
+						Py_DECREF(res);
 				}
 				
 				Py_XDECREF(pargs);
@@ -264,11 +269,15 @@ V pyext::m_reload_(I argc,t_atom *argv)
 V pyext::m_doc_()
 {
 	if(pyobj) {
+		PY_LOCK
+
 		PyObject *docf = PyObject_GetAttrString(pyobj,"__doc__"); // borrowed!!!
 		if(docf && PyString_Check(docf)) {
 			post("");
 			post(PyString_AsString(docf));
 		}
+
+		PY_UNLOCK
 	}
 }
 
@@ -326,9 +335,13 @@ PyObject *pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,t_atom *arg
 		if(!pargs)
 			PyErr_Print();
 		else {
-			ret = PyEval_CallObject(pmeth, pargs);           /* call method(x,y) */
-			if (ret == NULL)
+			ret = PyEval_CallObject(pmeth, pargs); 
+			if (ret == NULL) // function not found resp. arguments not matching
+#if 1 //def _DEBUG
 				PyErr_Print();
+#else
+				PyErr_Clear();  
+#endif
 			else {
 //				Py_DECREF(pres);
 			}

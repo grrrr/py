@@ -163,7 +163,10 @@ V pyobj::m_reload()
 
 V pyobj::m_reload_(I argc,t_atom *argv)
 {
+	PY_LOCK
 	SetArgs(argc,argv);
+	PY_UNLOCK
+
 	m_reload();
 }
 
@@ -198,6 +201,8 @@ V pyobj::m_set(I argc,t_atom *argv)
 
 V pyobj::m_doc_()
 {
+	PY_LOCK
+
 	if(function) {
 		PyObject *docf = PyObject_GetAttrString(function,"__doc__"); // borrowed!!!
 		if(docf && PyString_Check(docf)) {
@@ -205,6 +210,8 @@ V pyobj::m_doc_()
 			post(PyString_AsString(docf));
 		}
 	}
+
+	PY_UNLOCK
 }
 
 
@@ -238,10 +245,10 @@ V pyobj::m_help()
 
 V pyobj::ResetFunction()
 {
-	function = PyDict_GetItemString(dict,(C *)GetString(funname)); // borrowed!!!
+	function = funname?PyDict_GetItemString(dict,(C *)GetString(funname)):NULL; // borrowed!!!
 	if(!function) {
 		PyErr_Clear();
-		post("%s - Function %s could not be found",thisName(),GetString(funname));
+		if(funname) post("%s - Function %s could not be found",thisName(),GetString(funname));
 	}
 	else if(!PyFunction_Check(function)) {
 		post("%s - Object %s is not a function",thisName(),GetString(funname));
