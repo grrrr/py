@@ -1,7 +1,7 @@
 # py/pyext - python script object for PD and Max/MSP
-# Copyright (C) 2002 Thomas Grill (xovo@gmx.net)
+# Copyright (C)2002,03 Thomas Grill (xovo@gmx.net)
 #
-# Makefile for MSVC++ 6
+# Makefile for MSVC++ 6 and 7
 #
 # usage:
 # to build run "make -f makefile.pd-msvc"
@@ -12,12 +12,24 @@
 # includes
 INCPATH=/I"$(MSVCPATH)\include" /I"$(PYTHONINCLUDE)" /I"$(PDPATH)\src" /I"$(FLEXTPATH)"
 LIBPATH=/LIBPATH:"$(MSVCPATH)\lib" /LIBPATH:"$(PDPATH)\bin" /LIBPATH:"$(FLEXTPATH)"
-LIBS=pd.lib pthreadVC.lib flext_t-pdwin.lib $(PYTHONLIB)
 
 # compiler definitions and flags
 DEFS=/DFLEXT_SYS=2 /DFLEXT_THREADS
+CFLAGS=/MT $(UFLAGS)
 
-CFLAGS=/GR- /GX- /GD /G6 /Ox /MT
+# for VC7
+CFLAGS=$(CFLAGS) /EHsc 
+
+
+LIBS=pd.lib pthreadVC.lib $(PYTHONLIB)
+
+!ifdef FLEXT_SHARED
+LIBS=$(LIBS) flext_t-pdwin.lib
+DEFS=$(DEFS) /DFLEXT_SHARED
+!else
+LIBS=$(LIBS) flext_t-pdwin.lib
+!endif
+
 
 # the rest can stay untouched
 # ----------------------------------------------

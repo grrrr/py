@@ -1,5 +1,5 @@
 # py/pyext - python script objects for PD and Max/MSP
-# Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
+# Copyright (c)2002,03 Thomas Grill (xovo@gmx.net)
 #
 
 # where is PD?
@@ -9,10 +9,10 @@ PDPATH=c:\programme\audio\pd
 FLEXTPATH=$(PDPATH)\flext
 
 # where is MS VC++?
-MSVCPATH=c:\programme\prog\microsoft visual studio\VC98
+MSVCPATH=C:\Programme\Microsoft Visual Studio .NET 2003\Vc7
 
 # which version of Python?
-PYTHONVER=python22
+PYTHONVER=python23
 
 # where are the python header files?
 PYTHONINCLUDE=c:\programme\prog\$(PYTHONVER)\include
@@ -26,3 +26,7 @@ OUTPATH=pd-msvc
 # where should the external be installed?
 # (leave blank to omit installation)
 INSTDIR=$(PDPATH)\extra
+
+# user defined compiler flags
+# (check if they match your system!)
+UFLAGS=/G6 /Ox
