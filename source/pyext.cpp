@@ -104,9 +104,10 @@ void pyext::SetThis()
 PyObject *pyext::class_obj = NULL;
 PyObject *pyext::class_dict = NULL;
 
-pyext::pyext(int argc,const t_atom *argv):
+pyext::pyext(int argc,const t_atom *argv,bool sig):
 	pyobj(NULL),pythr(NULL),
 	inlets(-1),outlets(-1),
+    siginlets(0),sigoutlets(0),
 	methname(NULL)
 { 
 #ifdef FLEXT_THREADS
@@ -119,6 +120,12 @@ pyext::pyext(int argc,const t_atom *argv):
     if(argc >= apre+2 && CanbeInt(argv[apre]) && CanbeInt(argv[apre+1])) {
         inlets = GetAInt(argv[apre]);
         outlets = GetAInt(argv[apre+1]);
+        apre += 2;
+    }
+
+    if(sig && argc >= apre+2 && CanbeInt(argv[apre]) && CanbeInt(argv[apre+1])) {
+        siginlets = GetAInt(argv[apre]);
+        sigoutlets = GetAInt(argv[apre+1]);
         apre += 2;
     }
 
@@ -176,41 +183,47 @@ pyext::pyext(int argc,const t_atom *argv):
 
 	if(argc > apre) args(argc-apre,argv+apre);
 
-	if(methname) {
-		MakeInstance();
-
-        if(pyobj) 
-            InitInOut(inlets,outlets);
-	}
-    else 
-        inlets = outlets = 0;
-
 	PyUnlock(state);
-	
-    if(inlets < 0 || outlets < 0)
-        InitProblem();
-    else {
-    	AddInAnything(1+inlets);  
-	    AddOutAnything(outlets);  
-    }
-
-	if(!pyobj)
-		InitProblem();
 }
 
-pyext::~pyext()
+bool pyext::Init()
 {
 	PyThreadState *state = PyLock();
 
-    DoExit();
+	if(methname) {
+		MakeInstance();
+        if(pyobj) InitInOut(inlets,outlets);
+	}
+    else
+        inlets = outlets = 0;
 
+    if(inlets < 0 || outlets < 0)
+        InitProblem();
+    else {
+   	    AddInSignal(siginlets);  
+        AddInAnything((siginlets?0:1)+inlets);  
+        AddOutSignal(sigoutlets);
+	    AddOutAnything(outlets);  
+    }
+
+	PyUnlock(state);
+
+    return pyobj && flext_dsp::Init();
+}
+
+void pyext::Exit() 
+{ 
+    pybase::Exit(); // exit threads
+
+	PyThreadState *state = PyLock();
+    DoExit();
     Unregister("_pyext");
 	UnimportModule();
 
 	PyUnlock(state);
-}
 
-void pyext::Exit() { pybase::Exit(); flext_base::Exit(); }
+    flext_dsp::Exit(); 
+}
 
 bool pyext::DoInit()
 {
@@ -246,13 +259,13 @@ void pyext::DoExit()
         // try to run del to clean up the class instance
         PyObject *objdel = PyObject_GetAttrString(pyobj,"_del");
         if(objdel) {
-            PyObject *args = PyTuple_New(0);
-            PyObject *ret = PyObject_Call(objdel,args,NULL);
+            Py_INCREF(emptytuple);
+            PyObject *ret = PyObject_Call(objdel,emptytuple,NULL);
             if(!ret)
                 post("%s - Could not call _del method",thisName());
             else 
                 Py_DECREF(ret);
-            Py_DECREF(args);
+            Py_DECREF(emptytuple);
             Py_DECREF(objdel);
         }
         else
@@ -602,7 +615,10 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 	return ret;
 }
 
+PyObject *pyext::GetSig(bool in,bool vec) { return NULL; }
+
 void pyext::CbClick() { pybase::OpenEditor(); }
+bool pyext::CbDsp() { return false; }
 
 void pyext::DumpOut(const t_symbol *sym,int argc,const t_atom *argv)
 {

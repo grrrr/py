@@ -178,6 +178,21 @@ static PyObject *buffer_item(pySamplebuffer *self, int i)
 	return ret;
 }
 
+PyObject *NAFromBuffer(PyObject *buf,int c,int n)
+{
+#ifdef PY_NUMARRAY
+    if(nasupport) {
+        maybelong shape[2];
+        shape[0] = n;
+        shape[1] = c;
+        PyArrayObject *na = NA_NewAllFromBuffer(c == 1?1:2,shape,numtype,buf,0,0,NA_ByteOrder(),1,1);
+        return (PyObject *)na;
+    }
+    else
+#endif
+    return NULL;
+}
+
 static PyObject *buffer_slice(pySamplebuffer *self,int ilow = 0,int ihigh = 1<<(sizeof(int)*8-2))
 {
     PyObject *ret;
@@ -191,10 +206,7 @@ static PyObject *buffer_slice(pySamplebuffer *self,int ilow = 0,int ihigh = 1<<(
             if(ihigh < 0) ihigh += n;
             if(ihigh > n) ihigh = n;
 
-            maybelong shape[2];
-            shape[0] = n;
-            shape[1] = c;
-            PyObject *nobj = (PyObject *)NA_NewAllFromBuffer(c == 1?1:2,shape,numtype,(PyObject *)self,0,0,NA_ByteOrder(),1,1);
+            PyObject *nobj = NAFromBuffer((PyObject *)self,c,n);
             if(ilow != 0 || ihigh != n) {
                 ret = PySequence_GetSlice(nobj,ilow,ihigh);
                 Py_DECREF(nobj);

@@ -59,6 +59,12 @@ void pybase::FreeThreadState()
 #endif
 
 
+PyObject *pybase::module_obj = NULL;
+PyObject *pybase::module_dict = NULL;
+
+PyObject *pybase::emptytuple = NULL;
+
+
 void initsymbol();
 void initsamplebuffer();
 
@@ -137,10 +143,13 @@ void pybase::lib_setup()
     initsamplebuffer();
     PyModule_AddObject(module_obj,"Buffer",(PyObject *)&pySamplebuffer_Type);
 
+    emptytuple = PyTuple_New(0);
+
 	// -------------------------------------------------------------
 
 	FLEXT_SETUP(pyobj);
 	FLEXT_SETUP(pyext);
+	FLEXT_DSP_SETUP(pydsp);
 
 #ifdef FLEXT_THREADS
     // release global lock
@@ -152,10 +161,6 @@ void pybase::lib_setup()
 }
 
 FLEXT_LIB_SETUP(py,pybase::lib_setup)
-
-
-PyObject *pybase::module_obj = NULL;
-PyObject *pybase::module_dict = NULL;
 
 
 pybase::pybase()
@@ -570,9 +575,9 @@ short pybase::patcher_myvol(t_patcher *x)
 bool pybase::collect()
 {
     if(gcollect) {
-        PyObject *args = PyTuple_New(0);
-        PyObject *ret = PyObject_Call(gcollect,args,NULL);
-        Py_DECREF(args);
+        Py_INCREF(emptytuple);
+        PyObject *ret = PyObject_Call(gcollect,emptytuple,NULL);
+        Py_DECREF(emptytuple);
         if(ret) {
 #ifdef FLEXT_DEBUG
             int refs = PyInt_AsLong(ret);

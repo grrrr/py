@@ -84,6 +84,7 @@ Version history:
 - ADD: _del method in pyext-derived class can be used to clean up things on exit
 - FIX: solved py->py messaging problem with lock count instead of message queuing
 - ADD: buffer handling with optional numarray support (if present)
+- ADD: new objects for dsp processing: pyext~,pyx~,pyext.~,pyx.~
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)

@@ -20,8 +20,7 @@ class pyext
 	FLEXT_HEADER_S(pyext,flext_dsp,Setup)
 
 public:
-	pyext(int argc,const t_atom *argv);
-	virtual ~pyext();
+	pyext(int argc,const t_atom *argv,bool sig = false);
 
 	static PyObject *pyext__doc__(PyObject *,PyObject *args);
 	static PyObject *pyext__init__(PyObject *,PyObject *args);
@@ -39,15 +38,22 @@ public:
 	static PyObject *pyext_stop(PyObject *,PyObject *args);
 	static PyObject *pyext_isthreaded(PyObject *,PyObject *);
 
+	static PyObject *pyext_inbuf(PyObject *,PyObject *args);
+	static PyObject *pyext_invec(PyObject *,PyObject *args);
+	static PyObject *pyext_outbuf(PyObject *,PyObject *args);
+	static PyObject *pyext_outvec(PyObject *,PyObject *args);
+
 	int Inlets() const { return inlets; }
 	int Outlets() const { return outlets; }
 
 protected:
 
+    virtual bool Init();
     virtual void Exit();
 
     virtual bool CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv);
     virtual void CbClick();
+    virtual bool CbDsp();
 
     virtual void DumpOut(const t_symbol *sym,int argc,const t_atom *argv);
 
@@ -68,22 +74,26 @@ protected:
 	const t_symbol *methname;
 	PyObject *pyobj;
 	int inlets,outlets;
+    int siginlets,sigoutlets;
+
+	virtual void Reload();
+	virtual bool DoInit();
+	virtual void DoExit();
+
+    virtual PyObject *GetSig(bool in,bool vec);
+
+	static pyext *GetThis(PyObject *self);
 
 private:
 	static void Setup(t_classid);
 
-	static pyext *GetThis(PyObject *self);
 	void SetThis();
 
 	void ClearBinding();
 	bool MakeInstance();
-	bool DoInit();
-	void DoExit();
     void InitInOut(int &inlets,int &outlets);
 
 	AtomList args;
-
-	virtual void Reload();
 
 	static PyObject *class_obj,*class_dict;
 	static PyMethodDef attr_tbl[],meth_tbl[];

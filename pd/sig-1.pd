@@ -1,0 +1,24 @@
+#N canvas 56 67 643 295 12;
+#X obj 56 234 dac~;
+#X msg 523 211 \; pd dsp 1;
+#X obj 524 184 loadbang;
+#X obj 249 127 hsl 128 15 0.01 1 1 1 empty empty gain -2 -6 0 8 -225271
+-1 -1 9400 1;
+#X obj 89 116 noise~;
+#X msg 28 117 reload;
+#X obj 67 181 pyext~ 1 0 1 1 sig gain;
+#X obj 16 13 cnv 15 600 40 empty empty py/pyext 10 22 0 24 -260818
+-1 0;
+#X text 213 32 http://grrrr.org/ext;
+#X text 213 16 Python script objects \, (C)2003-2005 Thomas Grill;
+#X text 17 66 This demonstrates signal support. See the sig.py file.
+;
+#X obj 246 144 nbx 5 14 0.001 1 1 0 empty empty empty 0 -6 0 10 -225271
+-1 -1 0.302214 256;
+#X connect 2 0 1 0;
+#X connect 3 0 11 0;
+#X connect 4 0 6 0;
+#X connect 5 0 6 0;
+#X connect 6 0 0 0;
+#X connect 6 0 0 1;
+#X connect 11 0 6 1;

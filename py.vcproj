@@ -1132,6 +1132,9 @@
 			RelativePath=".\source\pybuffer.h">
 		</File>
 		<File
+			RelativePath=".\source\pydsp.cpp">
+		</File>
+		<File
 			RelativePath="source\pyext.cpp">
 			<FileConfiguration
 				Name="PD Debug|Win32">

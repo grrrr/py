@@ -85,11 +85,14 @@ protected:
 	void Reregister(const char *reg);
 	virtual void Reload() = 0;
 
+    void OpenEditor();
     void Respond(bool b);
 
 	static bool IsAnything(const t_symbol *s) { return s && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 
 	enum retval { nothing,atom,sequ };
+
+    static PyObject *emptytuple;
 
 	// --- module stuff -----
 
@@ -188,10 +191,6 @@ public:
 #endif
 
 	static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);
-
-protected:
-
-    void OpenEditor();
 };
 
 #endif

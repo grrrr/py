@@ -29,6 +29,11 @@ PyMethodDef pyext::meth_tbl[] =
 	{ "_stop", pyext::pyext_stop, METH_VARARGS,"Stop running threads" },
 #endif
 	{ "_isthreaded", pyext::pyext_isthreaded, METH_O,"Query whether threading is enabled" },
+
+	{ "_inbuf", pyext::pyext_inbuf, METH_VARARGS,"Get input buffer" },
+	{ "_invec", pyext::pyext_invec, METH_VARARGS,"Get input vector" },
+	{ "_outbuf", pyext::pyext_outbuf, METH_VARARGS,"Get output buffer" },
+	{ "_outvec", pyext::pyext_outvec, METH_VARARGS,"Get output vector" },
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -36,7 +41,7 @@ PyMethodDef pyext::attr_tbl[] =
 {
 	{ "__setattr__", pyext::pyext_setattr, METH_VARARGS,"Set class attribute" },
 	{ "__getattr__", pyext::pyext_getattr, METH_VARARGS,"Get class attribute" },
-	{ NULL, NULL,0,NULL },
+    { NULL, NULL,0,NULL },
 };
 
 
@@ -174,6 +179,9 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 		if(lst) {
 			int o = PyInt_AsLong(outl);
 			if(o >= 1 && o <= ext->Outlets()) {
+                // offset outlet by signal outlets
+                o += ext->sigoutlets;
+
 				// by using the queue there is no immediate call of the next object
 				// deadlock would occur if this was another py/pyext object!
 				if(lst->Count() && IsSymbol((*lst)[0]))
@@ -195,7 +203,10 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 		if(!tp) Py_DECREF(val);
 	}
 
-	if(!ok)	post("pyext - Syntax: _outlet(self,outlet,args...)");
+    if(!ok)	{
+		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _outlet(self,outlet,args...)");
+        return NULL;
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -211,7 +222,8 @@ PyObject *pyext::pyext_detach(PyObject *,PyObject *args)
 	int val;
     if(!PyArg_ParseTuple(args, "Oi:pyext_detach",&self,&val)) {
         // handle error
-		post("pyext - Syntax: _detach(self,[0/1])");
+		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _detach(self,[0/1])");
+        return NULL;
     }
 	else {
 		pyext *ext = GetThis(self);
@@ -229,7 +241,8 @@ PyObject *pyext::pyext_stop(PyObject *,PyObject *args)
 	int val = -1;
     if(!PyArg_ParseTuple(args, "O|i:pyext_stop",&self,&val)) {
         // handle error
-		post("pyext - Syntax: _stop(self,{wait time}");
+		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _stop(self,{wait time})");
+        return NULL;
     }
 	else {
 		pyext *ext = GetThis(self);
@@ -305,12 +318,88 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 		if(!tp) Py_DECREF(val);
 	}
 
-	if(!ok)	post("pyext - Syntax: _tocanvas(self,args...)");
+    if(!ok)	{
+		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _tocanvas(self,args...)");
+        return NULL;
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
 }
 #endif
 
+PyObject *pyext::pyext_inbuf(PyObject *,PyObject *args)
+{
+	PyObject *self; 
+	int val = -1;
+    if(!PyArg_ParseTuple(args, "O|i:pyext_inbuf",&self,&val)) {
+        // handle error
+		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _inbuf(self,inlet)");
+        return NULL;
+    }
+	else {
+		pyext *ext = GetThis(self);
+        PyObject *b = ext->GetSig(true,false);
+        if(b) return b;
+	}
 
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 
+PyObject *pyext::pyext_invec(PyObject *,PyObject *args)
+{
+	PyObject *self; 
+	int val = -1;
+    if(!PyArg_ParseTuple(args, "O|i:pyext_invec",&self,&val)) {
+        // handle error
+		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _invec(self,inlet)");
+        return NULL;
+    }
+	else {
+		pyext *ext = GetThis(self);
+        PyObject *b = ext->GetSig(true,true);
+        if(b) return b;
+	}
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+PyObject *pyext::pyext_outbuf(PyObject *,PyObject *args)
+{
+	PyObject *self; 
+	int val = -1;
+    if(!PyArg_ParseTuple(args, "O|i:pyext_outbuf",&self,&val)) {
+        // handle error
+		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _outbuf(self,inlet)");
+        return NULL;
+    }
+	else {
+		pyext *ext = GetThis(self);
+        PyObject *b = ext->GetSig(false,false);
+        if(b) return b;
+	}
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+PyObject *pyext::pyext_outvec(PyObject *,PyObject *args)
+{
+	PyObject *self; 
+	int val = -1;
+    if(!PyArg_ParseTuple(args, "O|i:pyext_outvec",&self,&val)) {
+        // handle error
+		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _outvec(self,inlet)");
+        return NULL;
+    }
+	else {
+		pyext *ext = GetThis(self);
+        PyObject *b = ext->GetSig(false,true);
+        if(b) return b;
+	}
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
