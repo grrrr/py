@@ -41,7 +41,7 @@ You can send messages to named objects or receive (with pyext) with Python metho
 ----------------------------------------------------------------------------
 
 The py/pyext package should run with Python version >= 2.1.
-It has been throughly tested with version 2.2
+It has been thoroughly tested with version 2.2
 
 
 The package should at least compile (and is tested) with the following compilers:
@@ -65,6 +65,9 @@ Version history:
 
 0.1.1:
 - FIX: crash when module couldn't be loaded
+- FIX: GetBound method (modmeth.cpp, line 138) doesn't exist in flext any more
+- FIX: deadlock occured when connecting to py/pyext boxes in non-detached mode
+- ADD: current path and path of the canvas is added to the python path
 
 0.1.0:
 - completely reworked all code

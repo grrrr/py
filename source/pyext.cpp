@@ -85,6 +85,17 @@ pyext::pyext(I argc,t_atom *argv):
 	// init script module
 	if(argc >= 1) {
 		C dir[1024];
+#ifdef PD
+		// add dir of current patch to path
+		strcpy(dir,GetString(canvas_getdir(thisCanvas())));
+		AddToPath(dir);
+		// add current dir to path
+		strcpy(dir,GetString(canvas_getcurrentdir()));
+		AddToPath(dir);
+#else
+		#pragma message("Adding current dir to path is not implemented")
+#endif
+
 		GetModulePath(GetString(argv[0]),dir,sizeof(dir));
 		// add to path
 		AddToPath(dir);

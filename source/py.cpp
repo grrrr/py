@@ -282,6 +282,8 @@ V pyobj::Reload()
 
 V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 {
+	AtomList *rargs = NULL;
+
 	++thrcount;
 	PY_LOCK
 
@@ -289,16 +291,9 @@ V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 		PyObject *pArgs = MakePyArgs(s,AtomList(argc,argv));
 		PyObject *pValue = PyObject_CallObject(function, pArgs);
 
-		AtomList *rargs = GetPyArgs(pValue);
+		rargs = GetPyArgs(pValue);
+		if(!rargs) PyErr_Print();
 
-		if(rargs) {
-			ToOutList(0,*rargs);
-			delete rargs;
-		}
-		else {
-			PyErr_Print();
-//			post("%s: python function call failed",thisName());
-		}
 		Py_XDECREF(pArgs);
 		Py_XDECREF(pValue);
 	}
@@ -308,6 +303,13 @@ V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 
 	PY_UNLOCK
 	--thrcount;
+
+	if(rargs) {
+		// call to outlet _outside_ the Mutex lock!
+		// otherwise (if not detached) deadlock will occur
+		ToOutList(0,*rargs);
+		delete rargs;
+	}
 }
 
 V pyobj::callwork(const t_symbol *s,I argc,t_atom *argv)

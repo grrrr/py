@@ -70,7 +70,7 @@ PyObject* pyext::pyext_setattr(PyObject *,PyObject *args)
     PyObject *self,*name,*val,*ret = NULL;
     if(!PyArg_ParseTuple(args, "OOO:test_foo", &self,&name,&val)) {
         // handle error
-		error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
+		ERRINTERNAL();
 		return NULL;
     }
 
@@ -86,7 +86,7 @@ PyObject* pyext::pyext_setattr(PyObject *,PyObject *args)
 		if(PyInstance_Check(self)) 
 			PyDict_SetItem(((PyInstanceObject *)self)->in_dict, name,val);
 		else
-			error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
+			ERRINTERNAL();
 	}
 
 	Py_INCREF(Py_None);
@@ -98,7 +98,7 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
     PyObject *self,*name,*ret = NULL;
     if(!PyArg_ParseTuple(args, "OO:test_foo", &self,&name)) {
         // handle error
-		error("pyext - INTERNAL ERROR, file %s - line %i",__FILE__,__LINE__);
+		ERRINTERNAL();
     }
 
     if(PyString_Check(name)) {
@@ -151,10 +151,12 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 			if(lst) {
 				I o = PyInt_AsLong(outl);
 				if(o >= 1 && o <= ext->Outlets()) {
+					// by using the queue there is no immediate call of the next object
+					// deadlock would occur if this was another py/pyext object!
 					if(lst->Count() && IsSymbol((*lst)[0]))
-						ext->ToOutAnything(o-1,GetSymbol((*lst)[0]),lst->Count()-1,lst->Atoms()+1);
+						ext->ToQueueAnything(o-1,GetSymbol((*lst)[0]),lst->Count()-1,lst->Atoms()+1);
 					else
-						ext->ToOutList(o-1,*lst);
+						ext->ToQueueList(o-1,*lst);
 				}
 				else
 					post("pyext: outlet index out of range");
@@ -209,7 +211,7 @@ PyObject *pyext::pyext_stop(PyObject *,PyObject *args)
 		pyext *ext = GetThis(self);
 		I cnt = 0;
 		t_atom at;
-		if(val >= 0) flext_base::SetFlint(at,val);
+		if(val >= 0) flext::SetInt(at,val);
 		ext->m_stop(cnt,&at);
 	}
 
