@@ -120,5 +120,4 @@ private:
 	FLEXT_CALLBACK_V(m_set)
 };
 
-
 #endif

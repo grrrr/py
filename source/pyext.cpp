@@ -11,7 +11,6 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pyext.h"
 #include <flinternal.h>
 
-
 FLEXT_LIB_V("pyext pyx",pyext)
 
 V pyext::Setup(t_classid c)
@@ -65,10 +64,12 @@ PyObject *pyext::class_dict = NULL;
 
 pyext::pyext(I argc,const t_atom *argv):
 	pyobj(NULL),pythr(NULL),
-	inlets(0),outlets(0),
+	inlets(-1),outlets(-1),
 	methname(NULL)
 { 
-	PY_LOCK
+    int apre = 0;
+
+    PY_LOCK
 
 	if(!pyextref++) {
 		// register/initialize pyext base class along with module
@@ -109,8 +110,14 @@ pyext::pyext(I argc,const t_atom *argv):
 		Py_INCREF(class_dict);
 	}
 
+    if(argc >= apre+2 && CanbeInt(argv[apre]) && CanbeInt(argv[apre+1])) {
+        inlets = GetAInt(argv[apre]);
+        outlets = GetAInt(argv[apre+1]);
+        apre += 2;
+    }
+
 	// init script module
-	if(argc >= 1) {
+	if(argc > apre) {
 		char dir[1024];
 
 #if FLEXT_SYS == FLEXT_SYS_PD
@@ -125,71 +132,79 @@ pyext::pyext(I argc,const t_atom *argv):
 #else 
         #pragma message("Adding current dir to path is not implemented")
 #endif
+        const t_atom &scr = argv[apre];
 
-		GetModulePath(GetString(argv[0]),dir,sizeof(dir));
-		// add to path
-		AddToPath(dir);
-
-		if(!IsString(argv[0])) 
+		if(!IsString(scr)) 
 			post("%s - script name argument is invalid",thisName());
 		else {
+		    GetModulePath(GetString(scr),dir,sizeof(dir));
+		    // add to path
+		    AddToPath(dir);
+
 			SetArgs(0,NULL);
 
-			ImportModule(GetString(argv[0]));
+			ImportModule(GetString(scr));
 		}
+
+        ++apre;
 	}
 
 	Register("_pyext");
 
 //	t_symbol *sobj = NULL;
-	if(argc >= 2) {
+	if(argc > apre) {
 		// object name
-		if(!IsString(argv[1])) 
+		if(!IsString(argv[apre])) 
 			post("%s - object name argument is invalid",thisName());
 		else {
-			methname = GetSymbol(argv[1]);
+			methname = GetSymbol(argv[apre]);
 		}
 
-		args(argc-2,argv+2);
+        ++apre;
 	}
+
+	if(argc > apre) args(argc-apre,argv+apre);
 
 	if(methname) {
 		SetClssMeth();
 
-		// now get number of inlets and outlets
-		inlets = 1,outlets = 1;
+        if(inlets < 0 && outlets < 0) {
+		    // now get number of inlets and outlets
+		    inlets = 1,outlets = 1;
 
-		if(pyobj) {
-			PyObject *res;
-			res = PyObject_GetAttrString(pyobj,"_inlets"); // get ref
-			if(res) {
-				if(PyCallable_Check(res)) {
-					PyObject *fres = PyEval_CallObject(res,NULL);
-					Py_DECREF(res);
-					res = fres;
-				}
-				if(PyInt_Check(res)) 
-					inlets = PyInt_AsLong(res);
-				Py_DECREF(res);
-			}
-			else 
-				PyErr_Clear();
+		    if(pyobj) {
+			    PyObject *res;
+			    res = PyObject_GetAttrString(pyobj,"_inlets"); // get ref
+			    if(res) {
+				    if(PyCallable_Check(res)) {
+					    PyObject *fres = PyEval_CallObject(res,NULL);
+					    Py_DECREF(res);
+					    res = fres;
+				    }
+				    if(PyInt_Check(res)) 
+					    inlets = PyInt_AsLong(res);
+				    Py_DECREF(res);
+			    }
+			    else 
+				    PyErr_Clear();
 
-			res = PyObject_GetAttrString(pyobj,"_outlets"); // get ref
-			if(res) {
-				if(PyCallable_Check(res)) {
-					PyObject *fres = PyEval_CallObject(res,NULL);
-					Py_DECREF(res);
-					res = fres;
-				}
-				if(PyInt_Check(res))
-					outlets = PyInt_AsLong(res);
-				Py_DECREF(res);
-			}
-			else
-				PyErr_Clear();
-		}
+			    res = PyObject_GetAttrString(pyobj,"_outlets"); // get ref
+			    if(res) {
+				    if(PyCallable_Check(res)) {
+					    PyObject *fres = PyEval_CallObject(res,NULL);
+					    Py_DECREF(res);
+					    res = fres;
+				    }
+				    if(PyInt_Check(res))
+					    outlets = PyInt_AsLong(res);
+				    Py_DECREF(res);
+			    }
+			    else
+				    PyErr_Clear();
+		    }
+        }
 	}
+    else inlets = outlets = 0;
 
 	PY_UNLOCK
 	
@@ -205,8 +220,9 @@ pyext::~pyext()
 	PY_LOCK
 
 	ClearBinding();
-	Unregister("_pyext");
 	
+	Unregister("_pyext");
+
 	Py_XDECREF(pyobj);
 
 	Py_XDECREF(class_obj);
@@ -253,6 +269,7 @@ BL pyext::SetClssMeth() //I argc,t_atom *argv)
 						PyErr_Print();
 					else
 						Py_DECREF(res);
+                    Py_DECREF(init);
 				}
 				
 				Py_XDECREF(pargs);
@@ -380,12 +397,12 @@ BL pyext::m_method_(I n,const t_symbol *s,I argc,const t_atom *argv)
 V pyext::m_help()
 {
 	post("");
-	post("pyext %s - python script object, (C)2002-2004 Thomas Grill",PY__VERSION);
+	post("%s %s - python class object, (C)2002-2004 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
 	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
 
-	post("Arguments: %s [script name] [class name] {args...}",thisName());
+    post("Arguments: %s {inlets outlets} [script name] [class name] {args...}",thisName());
 
 	post("Inlet 1: messages to control the pyext object");
 	post("      2...: python inlets");
@@ -559,6 +576,3 @@ BL pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
 
 	return retv;
 }
-
-
-

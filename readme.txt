@@ -87,6 +87,8 @@ Version history:
 - ADD: introduced shortcut "pyx" for pyext.
 - ADD: arguments to the pyext class are now exposed as attributes "args"
 - FIX: parameters to Python functions are treated as integers when they can be.
+- ADD: inlet and outlet count can be given for pyext, python _inlet and _outlet members are ignored then
+- FIX: crash if script or class names are non-strings
 
 0.1.2:
 - CHANGE: updates for flext 0.4.1 - method registering within class scope

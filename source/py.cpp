@@ -111,15 +111,16 @@ pyobj::pyobj(I argc,const t_atom *argv):
 
 	// init script module
 	if(argc >= 1) {
-		C dir[1024];
-		GetModulePath(GetString(argv[0]),dir,sizeof(dir));
-		// set script path
-		AddToPath(dir);
-
 		if(!IsString(argv[0])) 
 			post("%s - script name argument is invalid",thisName());
-		else
+        else {
+		    C dir[1024];
+		    GetModulePath(GetString(argv[0]),dir,sizeof(dir));
+		    // set script path
+		    AddToPath(dir);
+
 			ImportModule(GetString(argv[0]));
+        }
 	}
 
 	Register("_py");
@@ -208,7 +209,7 @@ V pyobj::m_set(I argc,const t_atom *argv)
 V pyobj::m_help()
 {
 	post("");
-	post("py %s - python script object, (C)2002-2004 Thomas Grill",PY__VERSION);
+	post("%s %s - python script object, (C)2002-2004 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
 	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
