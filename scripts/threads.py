@@ -32,7 +32,7 @@ class ex1(pyext._class):
 	_inlets=2
 	_outlets=2
 
-	sltime=0.2 # sleep time
+	sltime=0.1 # sleep time
 	loops=20   # loops to iterate
 
 	# method for bang to any inlet
