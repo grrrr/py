@@ -101,31 +101,6 @@ static PyGetSetDef buffer_getseters[] = {
     {NULL}  /* Sentinel */
 };
 
-static PyObject *buffer_array(PyObject *obj)
-{
-    PyObject *ret;
-#ifdef PY_NUMARRAY
-    if(nasupport) {
-        pySamplebuffer *self = (pySamplebuffer *)obj;
-        if(self->buf) {
-            maybelong shape[2];
-            shape[0] = self->buf->Frames();
-            shape[1] = self->buf->Channels();
-            ret = (PyObject *)NA_NewAllFromBuffer(2,shape,numtype,(PyObject *)self,0,sizeof(t_sample *),NA_ByteOrder(),1,1);
-        }
-        else
-            Py_INCREF(ret = Py_None);
-    }
-    else {
-        PyErr_Format(PyExc_RuntimeError,"No numarray support");
-        ret = NULL;
-    }
-#else
-    Py_INCREF(ret = Py_None);
-#endif
-    return ret;
-}
-
 static PyObject *buffer_dirty(PyObject *obj)
 {
     ((pySamplebuffer *)obj)->dirty = true;
@@ -134,7 +109,6 @@ static PyObject *buffer_dirty(PyObject *obj)
 }
 
 static PyMethodDef buffer_methods[] = {
-    {"array", (PyCFunction)buffer_array,METH_NOARGS,"Return a numarray object"},
     {"dirty", (PyCFunction)buffer_dirty,METH_NOARGS,"Mark buffer as dirty"},
     {NULL}  /* Sentinel */
 };
@@ -170,11 +144,468 @@ static int buffer_charbuffer(PyObject *obj, int segment, const char **ptrptr)
     return b->Channels()*b->Frames()*sizeof(t_sample);
 }
 
-static PyBufferProcs bufferprocs = {
+static PyBufferProcs buffer_as_buffer = {
     buffer_readbuffer,
     buffer_writebuffer,
     buffer_segcount,
     buffer_charbuffer
+};
+
+static int buffer_length(pySamplebuffer *self)
+{
+    return self->buf?self->buf->Frames():0;
+}
+
+static PyObject *buffer_item(pySamplebuffer *self, int i)
+{
+    PyObject *ret;
+    if(self->buf) {
+	    if (i < 0 || i >= self->buf->Frames()) {
+		    PyErr_SetString(PyExc_IndexError,"Index out of range");
+		    ret = NULL;
+	    }
+        else {
+            if(self->buf->Channels() == 1)
+                ret = PyFloat_FromDouble(self->buf->Data()[i]);
+            else {
+		        PyErr_SetString(PyExc_NotImplementedError,"Multiple channels not implemented yet");
+		        ret = NULL;
+            }
+        }
+    }
+    else
+        Py_INCREF(ret = Py_None);
+	return ret;
+}
+
+static PyObject *buffer_slice(pySamplebuffer *self,int ilow = 0,int ihigh = 1<<(sizeof(int)*8-2))
+{
+    PyObject *ret;
+#ifdef PY_NUMARRAY
+    if(nasupport) {
+        if(self->buf) {
+            const int n = self->buf->Frames();
+            const int c = self->buf->Channels();
+            if(ilow < 0) ilow += n;
+            if(ilow >= n) ilow = n-1;
+            if(ihigh < 0) ihigh += n;
+            if(ihigh > n) ihigh = n;
+
+            maybelong shape[2];
+            shape[0] = n;
+            shape[1] = c;
+            PyObject *nobj = (PyObject *)NA_NewAllFromBuffer(c == 1?1:2,shape,numtype,(PyObject *)self,0,0,NA_ByteOrder(),1,1);
+            if(ilow != 0 || ihigh != n) {
+                ret = PySequence_GetSlice(nobj,ilow,ihigh);
+                Py_DECREF(nobj);
+            }
+            else
+                ret = nobj;
+        }
+        else
+            Py_INCREF(ret = Py_None);
+    }
+    else 
+#endif
+    {
+        PyErr_SetString(PyExc_RuntimeError,"No numarray support");
+        ret = NULL;
+    }
+    return ret;
+}
+
+static int buffer_ass_item(pySamplebuffer *self,int i,PyObject *v)
+{
+    int ret;
+    if(self->buf) {
+	    if (i < 0 || i >= self->buf->Frames()) {
+		    PyErr_Format(PyExc_IndexError,"Index out of range");
+		    ret = -1;
+	    }
+        else {
+            if(self->buf->Channels() == 1) {
+                self->buf->Data()[i] = (t_sample)PyFloat_AsDouble(v);
+                if(PyErr_Occurred()) {
+                    // cast to double failed
+    		        PyErr_SetString(PyExc_TypeError,"Value must be a numarray");
+                    ret = -1;
+                }
+                else {
+                    self->dirty = true;
+                    ret = 0;
+                }
+            }
+            else {
+		        PyErr_SetString(PyExc_NotImplementedError,"Multiple channels not implemented yet");
+		        ret = -1;
+            }
+        }
+    }
+    else
+        ret = -1;
+	return ret;
+}
+
+static int buffer_ass_slice(pySamplebuffer *self,int ilow,int ihigh,PyObject *value)
+{
+    int ret;
+#ifdef PY_NUMARRAY
+    if(nasupport) {
+        if(!value) {
+            PyErr_SetString(PyExc_TypeError,"Object doesn't support item deletion");
+            ret = -1;
+        }
+        else if(self->buf) {
+            const int n = self->buf->Frames();
+            const int c = self->buf->Channels();
+            if(ilow < 0) ilow += n;
+            if(ilow >= n) ilow = n-1;
+            if(ihigh < 0) ihigh += n;
+            if(ihigh > n) ihigh = n;
+
+            PyArrayObject *out = NA_InputArray(value,numtype,NUM_C_ARRAY);
+            if(!out) {
+                PyErr_SetString(PyExc_TypeError,"Assigned object must be a numarray");
+                ret = -1;
+            }
+            else if(out->nd != 1) {
+                PyErr_SetString(PyExc_NotImplementedError,"Multiple dimensions not supported yet");
+                ret = -1;
+            }
+            else {
+                int dlen = ihigh-ilow;
+                int slen = out->dimensions[0];
+                flext::CopySamples(self->buf->Data()+ilow,(t_sample *)NA_OFFSETDATA(out),slen < dlen?slen:dlen);
+                self->dirty = true;
+                ret = 0;
+            }
+
+            Py_XDECREF(out);
+        }
+        else {
+            PyErr_SetString(PyExc_ValueError,"Buffer is not assigned");
+            ret = -1;
+        }
+    }
+    else 
+#endif
+    {
+        PyErr_SetString(PyExc_RuntimeError,"No numarray support");
+        ret = -1;
+    }
+    return ret;
+}
+
+static PyObject *buffer_concat(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PySequence_Concat(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_repeat(pySamplebuffer *self,int rep)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PySequence_Repeat(nobj,rep);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+
+static PySequenceMethods buffer_as_seq = {
+	(inquiry)buffer_length,			/* inquiry sq_length;             /* __len__ */
+	(binaryfunc)buffer_concat,          /* __add__ */
+	(intargfunc)buffer_repeat,          /* __mul__ */
+	(intargfunc)buffer_item,			/* intargfunc sq_item;            /* __getitem__ */
+	(intintargfunc)buffer_slice,		 /* intintargfunc sq_slice;        /* __getslice__ */
+	(intobjargproc)buffer_ass_item,		/* intobjargproc sq_ass_item;     /* __setitem__ */
+	(intintobjargproc)buffer_ass_slice,	/* intintobjargproc sq_ass_slice; /* __setslice__ */
+};
+
+static PyObject *buffer_iter(PyObject *obj)
+{
+    pySamplebuffer *self = (pySamplebuffer *)obj;
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *it = PyObject_GetIter(nobj);
+        Py_DECREF(nobj);
+        return it;
+    }
+    else
+        return NULL;
+}
+
+
+static PyObject *buffer_add(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_Add(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_subtract(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_Subtract(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_multiply(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_Multiply(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_divide(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_Divide(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_remainder(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_Remainder(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_divmod(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_Divmod(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_power(pySamplebuffer *self,PyObject *op1,PyObject *op2)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_Power(nobj,op1,op2);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_negative(pySamplebuffer *self)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_Negative(nobj);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_pos(pySamplebuffer *self)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_Positive(nobj);
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_absolute(pySamplebuffer *self)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_Absolute(nobj);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static int buffer_coerce(pySamplebuffer **pm, PyObject **pw) 
+{
+    if(pySamplebuffer_Check(*pw)) {
+        Py_INCREF(*pm);
+        Py_INCREF(*pw);
+    	return 0;
+    }
+    else
+        return 1;
+}
+	
+static PyObject *buffer_inplace_add(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_InPlaceAdd(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_inplace_subtract(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_InPlaceSubtract(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_inplace_multiply(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_InPlaceMultiply(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_inplace_divide(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_InPlaceDivide(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_inplace_remainder(pySamplebuffer *self,PyObject *op)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_InPlaceRemainder(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_inplace_power(pySamplebuffer *self,PyObject *op1,PyObject *op2)
+{
+    PyObject *nobj = buffer_slice(self);
+    if(nobj) {
+        PyObject *ret = PyNumber_InPlacePower(nobj,op1,op2);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+
+
+static PyNumberMethods buffer_as_number = {
+	(binaryfunc)buffer_add, /*nb_add*/
+	(binaryfunc)buffer_subtract, /*nb_subtract*/
+	(binaryfunc)buffer_multiply, /*nb_multiply*/
+	(binaryfunc)buffer_divide, /*nb_divide*/
+	(binaryfunc)buffer_remainder, /*nb_remainder*/
+	(binaryfunc)buffer_divmod, /*nb_divmod*/
+	(ternaryfunc)buffer_power, /*nb_power*/
+	(unaryfunc)buffer_negative, 
+	(unaryfunc)buffer_pos, /*nb_pos*/ 
+	(unaryfunc)buffer_absolute, /* (unaryfunc)buffer_abs,  */
+	0, //(inquiry)buffer_nonzero, /*nb_nonzero*/
+	0,		/*nb_invert*/
+	0,		/*nb_lshift*/
+	0,		/*nb_rshift*/
+	0,		/*nb_and*/
+	0,		/*nb_xor*/
+	0,		/*nb_or*/
+	(coercion)buffer_coerce, /*nb_coerce*/
+	0, /*nb_int*/
+	0, /*nb_long*/
+	0, /*nb_float*/
+	0,		/*nb_oct*/
+	0,		/*nb_hex*/
+	(binaryfunc)buffer_inplace_add,		/* nb_inplace_add */
+	(binaryfunc)buffer_inplace_subtract,		/* nb_inplace_subtract */
+	(binaryfunc)buffer_inplace_multiply,		/* nb_inplace_multiply */
+	(binaryfunc)buffer_inplace_divide,		/* nb_inplace_divide */
+	(binaryfunc)buffer_inplace_remainder,		/* nb_inplace_remainder */
+	(ternaryfunc)buffer_inplace_power, 		/* nb_inplace_power */
+	0,		/* nb_inplace_lshift */
+	0,		/* nb_inplace_rshift */
+	0,		/* nb_inplace_and */
+	0,		/* nb_inplace_xor */
+	0,		/* nb_inplace_or */
+//	buffer_floor_div, /* nb_floor_divide */
+//	buffer_div,	/* nb_true_divide */
+//	buffer_inplace_floor_div,		/* nb_inplace_floor_divide */
+//	buffer_inplace_div,		/* nb_inplace_true_divide */
 };
 
 PyTypeObject pySamplebuffer_Type = {
@@ -189,22 +620,22 @@ PyTypeObject pySamplebuffer_Type = {
     0,                         /*tp_setattr*/
     0,            /*tp_compare*/
     buffer_repr,               /*tp_repr*/
-    0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
+    &buffer_as_number,                         /*tp_as_number*/
+    &buffer_as_seq,                 /*tp_as_sequence*/
     0,                         /*tp_as_mapping*/
     buffer_hash,               /*tp_hash */
     0,                         /*tp_call*/
     0,                         /*tp_str*/
     0,                         /*tp_getattro*/
     0,                         /*tp_setattro*/
-    &bufferprocs,             /*tp_as_buffer*/
+    &buffer_as_buffer,             /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT /*| Py_TPFLAGS_BASETYPE*/,   /*tp_flags*/
     "Samplebuffer objects",           /* tp_doc */
     0,		               /* tp_traverse */
     0,		               /* tp_clear */
     0 /*buffer_richcompare*/,	       /* tp_richcompare */
     0,		               /* tp_weaklistoffset */
-    0,		               /* tp_iter */
+    buffer_iter,		               /* tp_iter */
     0,		               /* tp_iternext */
     buffer_methods,                          /* tp_methods */
     0,            /* tp_members */

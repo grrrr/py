@@ -9,10 +9,7 @@
 
 PD/Max buffers can be imported to and exported from numarray arrays.
 For numarray see http://numeric.scipy.org
-It will probably once be replaced by Numeric
-
-- _import(buffer): copy contents from the buffer to a new numarray object
-- _export(buffer,numarray): export contents of numarray object to the buffer
+It will probably once be replaced by Numeric(3)
 """
 
 import sys
@@ -29,18 +26,25 @@ except:
 
 def mul(*args):
     c = pyext.Buffer(args[0])
-    dst = c.array()
-    dst[:] = 0
-    a = pyext.Buffer(args[1]).array()
-    b = pyext.Buffer(args[2]).array()
-    dst += a*b
-    c.dirty()   
+    a = pyext.Buffer(args[1])
+    b = pyext.Buffer(args[2])
+
+    # fastest method: slicing causes numarrays (mapped to buffers) to be created
+    # note the c[:] - to assign contents you must assign to a slice
+    c[:] = a[:]*b[:]  
 
 def add(*args):
     c = pyext.Buffer(args[0])
-    dst = c.array()
-    dst[:] = 0
-    a = pyext.Buffer(args[1]).array()
-    b = pyext.Buffer(args[2]).array()
-    dst += a+b
-    c.dirty()   
+    a = pyext.Buffer(args[1])
+    b = pyext.Buffer(args[2])
+
+    # this is also possible, but is probably slower
+    # the + converts a into a numarray, the argument b is taken as a sequence
+    # depending on the the implementation in numarray this may be as fast
+    # as above or not
+    c[:] = a+b  
+
+def fadein(*args):
+    a = pyext.Buffer(args[0])
+    # inplace operations are ok
+    a *= arange(len(a),type=Float32)/len(a)
