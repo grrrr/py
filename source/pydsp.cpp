@@ -116,7 +116,7 @@ bool pydsp::CbDsp()
     {
        	PyThreadState *state = PyLockSys();
 
-        NewBuffers(true);
+        NewBuffers();
 
         if(dspfun) {
             PyObject *ret = PyObject_CallObject(dspfun,NULL);

@@ -54,7 +54,7 @@ class gain2(pyext._class):
         # initialize _signal method here for optimized version
         if self.invec is self.outvec:
             self._signal = self.signal1
-        else
+        else:
             self._signal = self.signal2
 
     def signal1(self):
