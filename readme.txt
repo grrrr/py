@@ -21,7 +21,7 @@ Package files:
 
 Goals/features of the package:
 
-Access the flexibility of the python language in PD/MaxMSP
+Access the flexibility of the python language in PD and MaxMSP
 
 
 PD - Load it as i library with e.g. "pd -lib py -path scripts"
@@ -46,20 +46,20 @@ It has been thoroughly tested with version 2.2
 
 The package should at least compile (and is tested) with the following compilers:
 
-pd - Windows:
+PD @ Windows:
 -------------
 o Borland C++ 5.5 (free): edit "config-pd-bcc.txt" & run "build-pd-bcc.bat" 
 
-o Microsoft Visual C++ 6: edit the project file "py.dsp" & build 
+o Microsoft Visual C++ 6: usr "py.dsp" or edit "config-pd-msvc.txt" & run "build-pd-msvc.bat" 
 
-pd - linux:
+PD @ linux:
 -----------
 Python doesn't provide a shared lib by default - static linking produces huge externals
 Ok, debian is an exception... the precompiled binary is for debian, therefore.
 
 o GCC: edit "config-pd-linux.txt" & run "sh build-pd-linux.sh" 
 
-pd - darwin (MacOSX):
+PD @ MacOSX:
 ---------------------
 
 o GCC: edit "config-pd-darwin.txt" & run "sh build-pd-darwin.sh" 
