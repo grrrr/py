@@ -92,7 +92,7 @@ LINK32=link.exe
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\scripts\pyext1.py
+SOURCE=.\scripts\ext1.py
 # End Source File
 # Begin Source File
 

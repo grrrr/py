@@ -40,12 +40,12 @@ py::~py()
 I py::pyref = 0;
 py::lookup *py::modules = NULL;
 
-py::lookup::lookup(I hname,PyObject *mod):
+py::lookup::lookup(I hname,PyObject *mod,py *_th):
 	modhash(hname),
 	module(NULL),dict(NULL),
 	nxt(NULL)
 {
-	Set(mod);
+	Set(mod,_th);
 }
 
 py::lookup::~lookup()
@@ -54,10 +54,11 @@ py::lookup::~lookup()
 	if(nxt) delete nxt;
 }
 
-V py::lookup::Set(PyObject *mod)
+V py::lookup::Set(PyObject *mod,py *_th)
 {
     if(module) Py_DECREF(module);
 	dict = PyModule_GetDict(module = mod);
+	th = _th;
 }
 
 V py::lookup::Add(lookup *l)
@@ -65,6 +66,14 @@ V py::lookup::Add(lookup *l)
 	if(nxt) nxt->Add(l);
 	else nxt = l;
 }
+
+py *py::lookup::GetThis(PyObject *mod)
+{
+    if(module == mod) return th;
+	else
+		return nxt?nxt->GetThis(mod):NULL;
+}
+
 
 
 
@@ -123,9 +132,9 @@ V py::SetModule(I hname,PyObject *module)
 	for(l = modules; l && l->modhash != hname; l = l->nxt);
 
 	if(l) 
-		l->Set(module);
+		l->Set(module,this);
 	else {
-		lookup *mod = new lookup(hname,module); 
+		lookup *mod = new lookup(hname,module,this); 
 		if(modules) modules->Add(mod);
 		else modules = mod;
 	}
@@ -140,7 +149,7 @@ V py::ReloadModule()
 		if(!newmod) 
 			PyErr_Print();
 		else {
-			l->Set(newmod);
+			l->Set(newmod,this);
 		}
 	}
 }
@@ -150,6 +159,13 @@ PyObject *py::GetModule()
 	lookup *l;
 	for(l = modules; l && l->modhash != hName; l = l->nxt);
 	return l?l->module:NULL;
+}
+
+PyObject *py::GetDict()
+{
+	lookup *l;
+	for(l = modules; l && l->modhash != hName; l = l->nxt);
+	return l?l->dict:NULL;
 }
 
 PyObject *py::GetFunction(const C *func)
@@ -198,7 +214,7 @@ PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv)
 	return pArgs;
 }
 
-t_atom *py::GetPyArgs(int &argc,PyObject *pValue)
+t_atom *py::GetPyArgs(int &argc,PyObject *pValue,PyObject **self)
 {
 	if(pValue == NULL) { argc = 0; return NULL; }
 
@@ -236,6 +252,10 @@ t_atom *py::GetPyArgs(int &argc,PyObject *pValue)
 		if(PyInt_CheckExact(arg)) SetFlint(ret[ix],PyInt_AsLong(arg));
 		else if(PyFloat_Check(arg)) SetFloat(ret[ix],(F)PyFloat_AsDouble(arg));
 		else if(PyString_Check(arg)) SetString(ret[ix],PyString_AsString(arg));
+		else if(ix == 0 && self && PyInstance_Check(arg)) {
+			// assumed to be self ... that should be checked _somehow_ !!!
+			*self = arg;
+		}
 		else {
 			post("py: Could not convert return argument");
 			ok = false;

@@ -51,28 +51,33 @@ protected:
 
 	class lookup {
 	public:
-		lookup(I hash,PyObject *mod);
+		lookup(I hash,PyObject *mod,py *_th);
 		~lookup();
 
-		V Set(PyObject *mod);
+		V Set(PyObject *mod,py *_th);
 		V Add(lookup *l);
+		py *GetThis(PyObject *mod);
 
 		I modhash;
 		PyObject *module,*dict;
 		lookup *nxt;
+		py *th;
 	};
 
 	static lookup *modules;
 	static I pyref;
+
+	static py *GetThis(PyObject *mod) { return modules?modules->GetThis(mod):NULL; }
 
 	V SetArgs(I argc,t_atom *argv);
 	V ImportModule(const C *name);
 	V SetModule(I hname,PyObject *module);
 	V ReloadModule();
 	PyObject *GetModule();
+	PyObject *GetDict();
 	PyObject *GetFunction(const C *func);
 	static PyObject *MakePyArgs(const t_symbol *s,I argc,t_atom *argv);
-	static t_atom *GetPyArgs(int &argc,PyObject *pValue);
+	static t_atom *GetPyArgs(int &argc,PyObject *pValue,PyObject **self = NULL);
 
 	static C *strdup(const C *s);
 

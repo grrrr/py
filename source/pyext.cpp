@@ -21,6 +21,7 @@ public:
 	pyext(I argc,t_atom *argv);
 	~pyext();
 
+	static PyObject *py_new(PyObject *self,PyObject *args);
 	static PyObject *py__init__(PyObject *self,PyObject *args);
 	static PyObject *py_outlet(PyObject *self,PyObject *args);
 
@@ -37,6 +38,18 @@ protected:
 
 	PyObject *pyobj;
 
+	class instt 
+	{ 
+	public:
+		instt(PyObject *p,pyext *t): th(t),pi(p),nxt(NULL) {}
+
+		pyext *th; 
+		PyObject *pi; 
+		instt *nxt;
+	};
+
+	static instt *insthead,*insttail;
+
 private:
 	enum retval { nothing,atom,tuple,list };
 
@@ -52,46 +65,48 @@ private:
 
 FLEXT_LIB_G("pyext",pyext)
 
+pyext::instt *pyext::insthead = NULL;
+pyext::instt *pyext::insttail = NULL;
 
 
-PyObject* pyext::py__init__(PyObject *self, PyObject *args)
+PyObject* pyext::py__init__(PyObject *sl, PyObject *args)
 {
-    post("pyext.__init__ called");
+//    post("pyext.__init__ called");
+
     Py_INCREF(Py_None);
     return Py_None;
 }
 
-
-PyObject *pyext::py_outlet(PyObject *self,PyObject *args) 
+PyObject *pyext::py_outlet(PyObject *sl,PyObject *args) 
 {
-    post("pyext.outlet called");
-	if(self) {
-		PyObject *pmod  = PyObject_GetAttrString(self,"__module__"); // get module
-		if(pmod) {
-			Py_DECREF(pmod);
-		}
-		else 
-			PyErr_Print();
-		
-		I rargc;
-		t_atom *rargv = GetPyArgs(rargc,args);
-	/*
-		pyext *ext = NULL;
+//    post("pyext.outlet called");
 
-		if(rargv && rargc >= 1) {
-			I o = GetAInt(rargv[0]);
-			if(rargc >= 2 && IsSymbol(rargv[1]))
-				ext->ToOutAnything(o,GetSymbol(rargv[1]),rargc-2,rargv+2);
-			else
-				ext->ToOutList(o,rargc-1,rargv+1);
+	I rargc;
+	PyObject *self;
+	t_atom *rargv = GetPyArgs(rargc,args,&self);
+
+	if(rargv) {
+		instt *p;
+		for(p = insthead; p; p = p->nxt)
+			if(p->pi == self) break;
+		py *ext = p?p->th:NULL;
+
+		if(ext && rargv && rargc >= 2) {
+			I o = GetAInt(rargv[1]);
+			if(o >= 1) {
+				if(rargc >= 3 && IsSymbol(rargv[2]))
+					ext->ToOutAnything(o-1,GetSymbol(rargv[2]),rargc-3,rargv+3);
+				else
+					ext->ToOutList(o-1,rargc-2,rargv+2);
+			}
 		}
 		else {
-			PyErr_Print();
-	//			post("%s: python function call failed",thisName());
+//			PyErr_Print();
+			post("pyext: python function call failed");
 		}
-	*/
-		if(rargv) delete[] rargv;
 	}
+
+	if(rargv) delete[] rargv;
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -100,28 +115,28 @@ PyObject *pyext::py_outlet(PyObject *self,PyObject *args)
 
 static PyMethodDef pyext_meths[] = 
 {
-    {"__init__", pyext::py__init__, METH_VARARGS, "pyext init"},
-    {"outlet", pyext::py_outlet, METH_VARARGS,"pyext outlet"},
+//    {"new", pyext::py_new, METH_VARARGS, "pyext new"},
+//    {"__init__", pyext::py__init__, METH_VARARGS, "pyext init"},
+    {"_outlet", pyext::py_outlet, METH_VARARGS,"pyext outlet"},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
-static PyMethodDef mod_meths[] = {{NULL, NULL, 0, NULL}};
+
+static PyMethodDef pyext_mod_meths[] = {{NULL, NULL, 0, NULL}};
 
 
 
 pyext::pyext(I argc,t_atom *argv):
 	pyobj(NULL)
 { 
-	if(pyref == 1) {
-		PyObject *module = Py_InitModule("pyext", pyext_meths);
-/*
-		PyObject *module = Py_InitModule("pyext", mod_meths);
+	if(!insthead) {
+		PyObject *module = Py_InitModule("pyext", pyext_mod_meths);
 
 		PyObject *moduleDict = PyModule_GetDict(module);
 		PyObject *classDict = PyDict_New();
-		PyObject *className = PyString_FromString("pyext");
+		PyObject *className = PyString_FromString("base");
 		PyObject *fooClass = PyClass_New(NULL, classDict, className);
-		PyDict_SetItemString(moduleDict, "pyext", fooClass);
+		PyDict_SetItemString(moduleDict, "base", fooClass);
 		Py_DECREF(classDict);
 		Py_DECREF(className);
 		Py_DECREF(fooClass);
@@ -134,9 +149,9 @@ pyext::pyext(I argc,t_atom *argv):
 			Py_DECREF(func);
 			Py_DECREF(method);
 		}
-*/
+
 	}
-		
+
 	// init script module
 	if(argc >= 1) {
 		C dir[1024];
@@ -193,12 +208,18 @@ pyext::pyext(I argc,t_atom *argv):
 				if(pargs) Py_DECREF(pargs);
 				if(pyobj == NULL) 
 					PyErr_Print();
+				else {
+					instt *no = new instt(pyobj,this);
+					if(insttail) insttail->nxt = no;
+					else insthead = no;
+					insttail = no;
+				}
 			}
 		}
 	}
 		
 	AddInAnything(2);  
-	AddOutAnything();  
+	AddOutAnything(2);  
 	SetupInOut();  // set up inlets and outlets
 
 	FLEXT_ADDMETHOD_(0,"reload",m_reload);
@@ -209,6 +230,23 @@ pyext::pyext(I argc,t_atom *argv):
 
 pyext::~pyext()
 {
+	instt *pp = NULL,*p = insthead;
+	while(p) {
+		instt *pn = p->nxt;
+		if(p->th == this) {
+			if(pp) pp->nxt = pn;
+			else insthead = pn;
+			p->nxt = NULL;
+			if(!insthead) insttail = NULL;
+
+			pp = p;
+			delete p;
+			p = pn;
+		}
+		else
+			pp = p,p = pn;
+	}
+
 	if(pyobj) Py_DECREF(pyobj);
 }
 
