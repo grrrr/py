@@ -78,8 +78,7 @@ void py::lib_setup()
 	Py_Initialize();
 
 #ifdef FLEXT_DEBUG
-//	Py_DebugFlag = 1;
-	Py_VerboseFlag = 1;
+//	Py_VerboseFlag = 1;
 #endif
 
 #ifdef FLEXT_THREADS
@@ -95,14 +94,23 @@ void py::lib_setup()
     pythrmap[GetThreadId()] = pythrmain;
 #endif
 
-    initsymbol();
-
     // register/initialize pyext module only once!
 	module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
 	module_dict = PyModule_GetDict(module_obj); // borrowed reference
 
 	PyModule_AddStringConstant(module_obj,"__doc__",(char *)py_doc);
+
+    // add symbol type
+    initsymbol();
     PyModule_AddObject(module_obj,"Symbol",(PyObject *)&pySymbol_Type);
+
+    // pre-defined symbols
+    PyModule_AddObject(module_obj,"_s_",(PyObject *)pySymbol__);
+    PyModule_AddObject(module_obj,"_s_bang",(PyObject *)pySymbol_bang);
+    PyModule_AddObject(module_obj,"_s_list",(PyObject *)pySymbol_list);
+    PyModule_AddObject(module_obj,"_s_symbol",(PyObject *)pySymbol_symbol);
+    PyModule_AddObject(module_obj,"_s_float",(PyObject *)pySymbol_float);
+    PyModule_AddObject(module_obj,"_s_int",(PyObject *)pySymbol_int);
 
 	// redirect stdout
 	PyObject* py_out;
@@ -155,7 +163,7 @@ py::~py()
 
 		// Wait forever
 		post("%s - Waiting for thread termination!",thisName());
-		while(thrcount) Sleep(0.2f);
+		while(thrcount) Sleep(0.01f);
 		post("%s - Okay, all threads have terminated",thisName());
 	}
 
@@ -203,7 +211,7 @@ void py::m__doc(PyObject *obj)
 		PyObject *docf = PyDict_GetItemString(obj,"__doc__"); // borrowed!!!
 		if(docf && PyString_Check(docf)) {
 			post("");
-			const char *s = PyString_AsString(docf);
+			const char *s = PyString_AS_STRING(docf);
 
 			// FIX: Python doc strings can easily be larger than 1k characters
 			// -> split into separate lines
@@ -256,8 +264,7 @@ void py::ImportModule(const char *name)
 	if(!name) return;
 
 	module = PyImport_ImportModule((char *)name);  // increases module_obj ref count by one
-	if (!module) {
-
+	if(!module) {
 		PyErr_Print();
 		dict = NULL;
 	}
@@ -269,7 +276,7 @@ void py::UnimportModule()
 {
 	if(!module) return;
 
-	assert(dict && module_obj && module_dict);
+	FLEXT_ASSERT(dict && module_obj && module_dict);
 
 	Py_DECREF(module);
 
@@ -348,17 +355,12 @@ void py::AddToPath(const char *dir)
 	if(dir && *dir) {
 		PyObject *pobj = PySys_GetObject("path");
 		if(pobj && PyList_Check(pobj)) {
-			int i,n = PyList_Size(pobj);
-			for(i = 0; i < n; ++i) {
-				PyObject *pt = PyList_GetItem(pobj,i); // borrowed reference
-				if(PyString_Check(pt) && !strcmp(dir,PyString_AS_STRING(pt))) break;
-			}
-			if(i == n) { // string is not yet existent in path
-				PyObject *ps = PyString_FromString(dir);
-				PyList_Append(pobj,ps);
-			}
+    		PyObject *ps = PyString_FromString(dir);
+            if(!PySequence_Contains(pobj,ps))
+				PyList_Append(pobj,ps); // makes new reference
+            Py_DECREF(ps);
 		}
-		PySys_SetObject("path",pobj);
+		PySys_SetObject("path",pobj); // steals reference to pobj
 	}
 }
 
@@ -383,9 +385,10 @@ PyObject* py::StdOut_Write(PyObject* self, PyObject* args)
     // should always be a tuple
     FLEXT_ASSERT(PyTuple_Check(args));
 
-	int sz = PyTuple_Size(args);
+	const int sz = PyTuple_GET_SIZE(args);
+
 	for(int i = 0; i < sz; ++i) {
-		PyObject *val = PyTuple_GetItem(args,i); // borrowed reference
+		PyObject *val = PyTuple_GET_ITEM(args,i); // borrowed reference
 		PyObject *str = PyObject_Str(val); // new reference
 		char *cstr = PyString_AS_STRING(str);
 		char *lf = strchr(cstr,'\n');

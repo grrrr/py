@@ -11,11 +11,16 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pysymbol.h"
 #include "structmember.h"
 
+inline pySymbol *symbol_newsym(const t_symbol *sym)
+{
+    pySymbol *self = (pySymbol *)pySymbol_Type.tp_alloc(&pySymbol_Type, 0);
+    if(self) self->sym = sym;
+    return self;
+}
+
 static PyObject *symbol_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    pySymbol *self = (pySymbol *)type->tp_alloc(type, 0);
-    if(self) self->sym = flext::sym__;
-    return (PyObject *)self;
+    return (PyObject *)symbol_newsym(flext::sym__);
 }
 
 static int symbol_init(PyObject *self, PyObject *args, PyObject *kwds)
@@ -25,22 +30,14 @@ static int symbol_init(PyObject *self, PyObject *args, PyObject *kwds)
     PyObject *arg = PySequence_GetItem(args,0); // new reference
     if(!arg) return -1;
 
-    int ret = -1;
+    int ret = 0;
 
-    if(pySymbol_Check(arg)) 
-        ((pySymbol *)self)->sym = pySymbol_SYMBOL(arg);
-    else if(PyString_Check(arg)) {
+    if(pySymbol_Check(arg))
+        ((pySymbol *)self)->sym = pySymbol_AS_SYMBOL(arg);
+    else if(PyString_Check(arg))
         ((pySymbol *)self)->sym = flext::MakeSymbol(PyString_AS_STRING(arg));
-    }
-    else {
-        // better use repr or str?
-        PyStringObject *str = (PyStringObject *)PyObject_Str(arg); // new reference
-        if(str) {
-            ((pySymbol *)self)->sym = flext::MakeSymbol(PyString_AS_STRING(str));
-            Py_DECREF(str);
-            ret = 0;
-        }
-    }
+    else
+        ret = -1;
     Py_DECREF(arg);
 
     return ret;
@@ -55,7 +52,33 @@ static PyObject *symbol_str(PyObject *self)
 static PyObject *symbol_repr(PyObject *self)
 {
     FLEXT_ASSERT(pySymbol_Check(self));
-    return (PyObject *)PyString_FromFormat("<py.Symbol %s>",pySymbol_AS_STRING(self));
+    return (PyObject *)PyString_FromFormat("<Symbol %s>",pySymbol_AS_STRING(self));
+}
+
+static PyObject *symbol_richcompare(PyObject *a,PyObject *b,int cmp)
+{
+    if(pySymbol_Check(a) && pySymbol_Check(b)) {
+        const t_symbol *asym = pySymbol_AS_SYMBOL(a);
+        const t_symbol *bsym = pySymbol_AS_SYMBOL(a);
+        bool ret;
+        switch(cmp) {
+            case Py_LT: ret = asym < bsym;
+            case Py_LE: ret = asym <= bsym;
+            case Py_EQ: ret = asym == bsym;
+            case Py_NE: ret = asym != bsym;
+            case Py_GT: ret = asym > bsym;
+            case Py_GE: ret = asym >= bsym;
+        }
+        return PyBool_FromLong(ret);
+    }
+	Py_INCREF(Py_NotImplemented);
+	return Py_NotImplemented;
+}
+
+static long symbol_hash(PyObject *self)
+{
+    FLEXT_ASSERT(pySymbol_Check(self));
+    return (long)pySymbol_AS_SYMBOL(self);
 }
 
 PyTypeObject pySymbol_Type = {
@@ -68,12 +91,12 @@ PyTypeObject pySymbol_Type = {
     0,                         /*tp_print*/
     0,                         /*tp_getattr*/
     0,                         /*tp_setattr*/
-    0,                         /*tp_compare*/
+    0,            /*tp_compare*/
     symbol_repr,               /*tp_repr*/
     0,                         /*tp_as_number*/
     0,                         /*tp_as_sequence*/
     0,                         /*tp_as_mapping*/
-    0,                         /*tp_hash */
+    symbol_hash,               /*tp_hash */
     0,                         /*tp_call*/
     symbol_str,                /*tp_str*/
     0,                         /*tp_getattro*/
@@ -83,7 +106,7 @@ PyTypeObject pySymbol_Type = {
     "Symbol objects",           /* tp_doc */
     0,		               /* tp_traverse */
     0,		               /* tp_clear */
-    0,		               /* tp_richcompare */
+    symbol_richcompare,	       /* tp_richcompare */
     0,		               /* tp_weaklistoffset */
     0,		               /* tp_iter */
     0,		               /* tp_iternext */
@@ -95,10 +118,18 @@ PyTypeObject pySymbol_Type = {
     0,                         /* tp_descr_get */
     0,                         /* tp_descr_set */
     0,                         /* tp_dictoffset */
-    (initproc)symbol_init,      /* tp_init */
+    symbol_init,            /* tp_init */
     0,                         /* tp_alloc */
     symbol_new,                 /* tp_new */
 };
+
+pySymbol *pySymbol__;
+pySymbol *pySymbol_bang;
+pySymbol *pySymbol_list;
+pySymbol *pySymbol_symbol;
+pySymbol *pySymbol_float;
+pySymbol *pySymbol_int;
+
 
 void initsymbol()
 {
@@ -106,4 +137,33 @@ void initsymbol()
         FLEXT_ASSERT(false);
     else
         Py_INCREF(&pySymbol_Type);
+
+    // initialize predefined objects
+    pySymbol__ = symbol_newsym(flext::sym__);
+    pySymbol_bang = symbol_newsym(flext::sym_bang);
+    pySymbol_list = symbol_newsym(flext::sym_list);
+    pySymbol_symbol = symbol_newsym(flext::sym_symbol);
+    pySymbol_float = symbol_newsym(flext::sym_float);
+    pySymbol_int = symbol_newsym(flext::sym_int);
+}
+
+
+PyObject *pySymbol_FromSymbol(const t_symbol *sym)
+{
+    pySymbol *op;
+    if(sym == flext::sym__)
+        Py_INCREF(op = pySymbol__);
+    else if(sym == flext::sym_bang)
+        Py_INCREF(op = pySymbol_bang);
+    else if(sym == flext::sym_list)
+        Py_INCREF(op = pySymbol_list);
+    else if(sym == flext::sym_symbol)
+        Py_INCREF(op = pySymbol_symbol);
+    else if(sym == flext::sym_float)
+        Py_INCREF(op = pySymbol_float);
+    else if(sym == flext::sym_int)
+        Py_INCREF(op = pySymbol_int);
+    else
+        op = symbol_newsym(sym);
+    return (PyObject *)op;
 }

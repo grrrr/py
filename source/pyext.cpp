@@ -198,7 +198,12 @@ pyext::~pyext()
 	ClearBinding();
     
     if(pyobj) {
-        if(pyobj->ob_refcnt > 1) post("%s - Python object is still referenced",thisName());
+        if(pyobj->ob_refcnt > 1) {
+            post("%s - Python object is still referenced",thisName());
+
+            // Force-quit object
+            DoExit();
+        }
     	Py_DECREF(pyobj);  // opposite of SetClssMeth
     }
 
@@ -219,8 +224,8 @@ bool pyext::DoInit()
 
 	PyObject *init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
     if(init) {
-        if(PyCallable_Check(init)) {
-			PyObject *res = PyEval_CallObject(init,pargs);
+        if(PyMethod_Check(init)) {
+			PyObject *res = PyObject_CallObject(init,pargs);
 			if(!res)
 				PyErr_Print();
 			else
@@ -233,18 +238,32 @@ bool pyext::DoInit()
     return true;
 }
 
+bool pyext::DoExit()
+{
+	PyObject *meth = PyObject_GetAttrString(pyobj,"__del__"); // get ref
+    if(meth) {
+        if(PyMethod_Check(meth)) {
+			PyObject *res = PyObject_CallObject(meth,NULL);
+			if(!res)
+				PyErr_Print();
+			else
+				Py_DECREF(res);
+        }
+        Py_DECREF(meth);
+	}
+    return true;
+}
+
 void pyext::InitInOut(int &inl,int &outl)
 {
     if(inl >= 0) {
         // set number of inlets
-		PyObject *res = PyInt_FromLong(inl);
-        int ret = PyObject_SetAttrString(pyobj,"_inlets",res);
+        int ret = PyObject_SetAttrString(pyobj,"_inlets",PyInt_FromLong(inl));
         FLEXT_ASSERT(!ret);
     }
     if(outl >= 0) {
         // set number of outlets
-		PyObject *res = PyInt_FromLong(outl);
-		int ret = PyObject_SetAttrString(pyobj,"_outlets",res);
+		int ret = PyObject_SetAttrString(pyobj,"_outlets",PyInt_FromLong(outl));
         FLEXT_ASSERT(!ret);
     }
 
@@ -262,7 +281,7 @@ void pyext::InitInOut(int &inl,int &outl)
 				res = fres;
 			}
 			if(PyInt_Check(res)) 
-				inl = PyInt_AsLong(res);
+				inl = PyInt_AS_LONG(res);
 			Py_DECREF(res);
 		}
 		else 
@@ -279,7 +298,7 @@ void pyext::InitInOut(int &inl,int &outl)
 				res = fres;
 			}
 			if(PyInt_Check(res))
-				outl = PyInt_AsLong(res);
+				outl = PyInt_AS_LONG(res);
 			Py_DECREF(res);
 		}
 		else

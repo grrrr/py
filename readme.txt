@@ -126,10 +126,11 @@ general:
 - better error reporting for runtime errors
 
 features:
-- enable multiple interpreters?
+- enable multiple interpreters? ( -> not possible within one thread)
 - stop individual threads
-- Python type for symbols
 - support named (keyword) arguments (like attributes for messages)
+
+- shutdown hook for threaded Python apps
 
 tests:
 - check for python threading support

@@ -12,7 +12,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 static PyObject *MakePyAtom(const t_atom &at)
 {
-	if(flext::IsSymbol(at)) return PyString_FromString(flext::GetString(at));
+	if(flext::IsSymbol(at)) 
+        return pySymbol_FromSymbol(flext::GetSymbol(at));
 //	else if(flext::IsPointer(at)) return NULL; // not handled
     else if(flext::CanbeInt(at) && flext::CanbeFloat(at)) {
         // if a number can be an integer... let at be an integer!
@@ -45,24 +46,16 @@ PyObject *py::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet
 
 	    int pix = 0;
 
-	    if(inlet >= 0) {
-		    PyObject *pValue = PyInt_FromLong(inlet); 
-    		
-		    // reference stolen:
-		    PyTuple_SetItem(pArgs, pix++, pValue); 
-	    }
+	    if(inlet >= 0)
+		    PyTuple_SetItem(pArgs, pix++, PyInt_FromLong(inlet)); 
 
 	    int ix;
 	    PyObject *tmp;
 	    if(!withself || argc < (any?1:2)) tmp = pArgs,ix = pix;
 	    else tmp = PyTuple_New(argc+(any?1:0)),ix = 0;
 
-	    if(any) {
-		    PyObject *pValue = PyString_FromString(GetString(s));
-
-		    // reference stolen here: 
-		    PyTuple_SetItem(tmp, ix++, pValue); 
-	    }
+	    if(any)
+		    PyTuple_SET_ITEM(tmp, ix++, pySymbol_FromSymbol(s)); 
 
 	    for(int i = 0; i < argc; ++i) {
 		    PyObject *pValue = MakePyAtom(argv[i]);
@@ -72,11 +65,11 @@ PyObject *py::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet
 		    }
 
 		    /* pValue reference stolen here: */
-		    PyTuple_SetItem(tmp, ix++, pValue); 
+		    PyTuple_SET_ITEM(tmp, ix++, pValue); 
 	    }
 
 	    if(tmp != pArgs) {
-		    PyTuple_SetItem(pArgs, pix++, tmp); 
+		    PyTuple_SET_ITEM(pArgs, pix++, tmp); 
     #if PY_VERSION_HEX >= 0x02020000
 		    _PyTuple_Resize(&pArgs,pix);
     #else
@@ -126,7 +119,8 @@ flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 		if(PyInt_Check(arg)) SetInt((*ret)[ix],PyInt_AsLong(arg));
 		else if(PyLong_Check(arg)) SetInt((*ret)[ix],PyLong_AsLong(arg));
 		else if(PyFloat_Check(arg)) SetFloat((*ret)[ix],(float)PyFloat_AsDouble(arg));
-		else if(PyString_Check(arg)) SetString((*ret)[ix],PyString_AsString(arg));
+		else if(pySymbol_Check(arg)) SetSymbol((*ret)[ix],pySymbol_AS_SYMBOL(arg));
+		else if(PyString_Check(arg)) SetString((*ret)[ix],PyString_AS_STRING(arg));
 		else if(ix == 0 && self && PyInstance_Check(arg)) {
 			// assumed to be self ... that should be checked _somehow_ !!!
             Py_INCREF(arg);
@@ -136,7 +130,7 @@ flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 			PyObject *tp = PyObject_Type(arg);
 			PyObject *stp = tp?PyObject_Str(tp):NULL;
 			char *tmp = "";
-			if(stp) tmp = PyString_AsString(stp);
+			if(stp) tmp = PyString_AS_STRING(stp);
 			post("py/pyext: Could not convert argument %s",tmp);
 			Py_XDECREF(stp);
 			Py_XDECREF(tp);

@@ -107,16 +107,19 @@ PyObject *py::py_send(PyObject *,PyObject *args)
     // should always be a tuple
     FLEXT_ASSERT(PyTuple_Check(args));
 
-	PyObject *name = PyTuple_GetItem(args,0); // borrowed reference
-    if(name && PyString_Check(name)) {
-		const t_symbol *recv = MakeSymbol(PyString_AsString(name));
-		int sz = PySequence_Size(args);
+	const int sz = PyTuple_GET_SIZE(args);
+
+    const t_symbol *recv;
+    if(
+        sz >= 1 && 
+        (recv = pyObject_AsSymbol(PyTuple_GET_ITEM(args,0))) != NULL
+    ) {
 		PyObject *val;
 
 		bool tp = 
             sz == 2 && 
             PySequence_Check(
-                val = PyTuple_GetItem(args,1) // borrowed ref
+                val = PyTuple_GET_ITEM(args,1) // borrowed ref
             );
 
 		if(!tp)
@@ -168,12 +171,14 @@ PyObject *py::py_getvalue(PyObject *self,PyObject *args)
 {
     FLEXT_ASSERT(PyTuple_Check(args));
 
+	const int sz = PyTuple_GET_SIZE(args);
+    const t_symbol *sym;
     PyObject *ret;
-	PyObject *name = PyTuple_GetItem(args,0); // borrowed reference
 
-    if(name && PyString_Check(name)) {
-		const t_symbol *sym = MakeSymbol(PyString_AsString(name));
-
+    if(
+        sz == 1 && 
+        (sym = pyObject_AsSymbol(PyTuple_GET_ITEM(args,0))) != NULL
+    ) {
         float f;
         if(value_getfloat(const_cast<t_symbol *>(sym),&f)) {
 		    post("py/pyext - Could not get value '%s'",GetString(sym));
@@ -193,10 +198,15 @@ PyObject *py::py_setvalue(PyObject *self,PyObject *args)
 {
     FLEXT_ASSERT(PyTuple_Check(args));
 
-	PyObject *name = PyTuple_GetItem(args,0); // borrowed reference
-	PyObject *val = PyTuple_GetItem(args,1); // borrowed reference
-    if(name && val && PyString_Check(name) && PyNumber_Check(val)) {
-		const t_symbol *sym = MakeSymbol(PyString_AsString(name));
+	const int sz = PyTuple_GET_SIZE(args);
+	const t_symbol *sym;
+	PyObject *val; // borrowed reference
+
+    if(
+        sz == 2 &&
+        (sym = pyObject_AsSymbol(PyTuple_GET_ITEM(args,0))) != NULL &&
+        PyNumber_Check(val = PyTuple_GET_ITEM(args,1))
+    ) {
         float f = (float)PyFloat_AsDouble(val);
 
         if(value_setfloat(const_cast<t_symbol *>(sym),f))

@@ -85,9 +85,8 @@ bool pyext::boundmeth(flext_base *th,t_symbol *sym,int argc,t_atom *argv,void *d
 
 PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 {
-    PyObject *self,*meth;
-	char *name;
-    if(!PyArg_ParseTuple(args, "OsO:pyext_bind", &self,&name,&meth))
+    PyObject *self,*meth,*name;
+    if(!PyArg_ParseTuple(args, "OOO:pyext_bind", &self,&name,&meth)) // borrowed references
 		post("py/pyext - Wrong arguments!");
 	else if(!PyInstance_Check(self) || !(PyMethod_Check(meth) || PyFunction_Check(meth))) {
 		post("py/pyext - Wrong argument types!");
@@ -96,10 +95,10 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
         py *th = GetThis(self);
         FLEXT_ASSERT(th);
 
-		const t_symbol *recv = MakeSymbol(name);
+		const t_symbol *recv = pyObject_AsSymbol(name);
 
         void *data = NULL;
-        if(th->GetBoundMethod(recv,boundmeth,data)) {
+        if(recv && th->GetBoundMethod(recv,boundmeth,data)) {
             // already bound to that symbol and function
             bounddata *bdt = (bounddata *)data;
             FLEXT_ASSERT(bdt != NULL && bdt->self == self);
@@ -128,9 +127,8 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 
 PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 {
-    PyObject *self,*meth;
-	char *name;
-    if(!PyArg_ParseTuple(args, "OsO:pyext_bind", &self,&name,&meth))
+    PyObject *self,*meth,*name;
+    if(!PyArg_ParseTuple(args, "OOO:pyext_bind", &self,&name,&meth))  // borrowed references
 		post("py/pyext - Wrong arguments!");
 	else if(!PyInstance_Check(self) || !(PyMethod_Check(meth) || PyFunction_Check(meth))) {
 		post("py/pyext - Wrong argument types!");
@@ -139,10 +137,10 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
         py *th = GetThis(self);
         FLEXT_ASSERT(th);
 
-		const t_symbol *recv = MakeSymbol(name);
+		const t_symbol *recv = pyObject_AsSymbol(name);
 
         void *data = NULL;
-        if(th->GetBoundMethod(recv,boundmeth,data)) {
+        if(recv && th->GetBoundMethod(recv,boundmeth,data)) {
             bounddata *bdt = (bounddata *)data;
             FLEXT_ASSERT(bdt != NULL);
 

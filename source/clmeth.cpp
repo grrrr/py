@@ -13,9 +13,10 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 PyMethodDef pyext::meth_tbl[] = 
 {
+/*
     {"__init__", pyext::pyext__init__, METH_VARARGS, "Constructor"},
     {"__del__", pyext::pyext__del__, METH_VARARGS, "Destructor"},
-
+*/
     {"_outlet", pyext::pyext_outlet, METH_VARARGS,"Send message to outlet"},
 #if FLEXT_SYS == FLEXT_SYS_PD
 	{"_tocanvas", pyext::pyext_tocanvas, METH_VARARGS,"Send message to canvas" },
@@ -56,6 +57,7 @@ const char *pyext::pyext_doc =
 	"_isthreaded(self): Query whether threading is enabled\n"
 ;
 
+/*
 PyObject* pyext::pyext__init__(PyObject *,PyObject *args)
 {
 //    post("pyext.__init__ called");
@@ -71,6 +73,7 @@ PyObject* pyext::pyext__del__(PyObject *,PyObject *args)
     Py_INCREF(Py_None);
     return Py_None;
 }
+*/
 
 PyObject* pyext::pyext_setattr(PyObject *,PyObject *args)
 {
@@ -82,13 +85,15 @@ PyObject* pyext::pyext_setattr(PyObject *,PyObject *args)
     }
 
 	bool handled = false;
+
+/*
     if(PyString_Check(name)) {
 	    char* sname = PyString_AsString(name);
 		if (sname) {
 //			post("pyext::setattr %s",sname);
 		}
 	}
-
+*/
 	if(!handled) {
 		if(PyInstance_Check(self)) 
 			PyDict_SetItem(((PyInstanceObject *)self)->in_dict, name,val);
@@ -109,8 +114,8 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
     }
 
     if(PyString_Check(name)) {
-	    char* sname = PyString_AsString(name);
-		if (sname) {
+	    char* sname = PyString_AS_STRING(name);
+		if(sname) {
 			if(!strcmp(sname,"_shouldexit")) {
 				pyext *ext = GetThis(self); 
 				if(ext)
@@ -122,8 +127,7 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
 
 	if(!ret) { 
 #if PY_VERSION_HEX >= 0x02020000
-        // \todo borrowed or new???
-		ret = PyObject_GenericGetAttr(self,name);
+		ret = PyObject_GenericGetAttr(self,name); // new reference (?)
 #else
 		if(PyInstance_Check(self))
             // borrowed reference
@@ -141,22 +145,24 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
     // should always be a tuple!
     FLEXT_ASSERT(PyTuple_Check(args));
 
+    int sz = PyTuple_GET_SIZE(args);
+
     // borrowed references!
-	PyObject *self = PyTuple_GetItem(args,0);
-	PyObject *outl = PyTuple_GetItem(args,1);
+    PyObject *self,*outl;
+
 	if(
-		self && PyInstance_Check(self) && 
-		outl && PyInt_Check(outl)
+        sz >= 2 &&
+		(self = PyTuple_GET_ITEM(args,0)) != NULL && PyInstance_Check(self) && 
+		(outl = PyTuple_GET_ITEM(args,1)) != NULL && PyInt_Check(outl)
 	) {
 		pyext *ext = GetThis(self);
 
-		int sz = PyTuple_Size(args);
 		PyObject *val;
         
         bool tp = 
             sz == 3 && 
             PySequence_Check(
-                val = PyTuple_GetItem(args,2) // borrow reference
+                val = PyTuple_GET_ITEM(args,2) // borrow reference
             );
 
 		if(!tp)
@@ -255,18 +261,22 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 {
     FLEXT_ASSERT(PyTuple_Check(args));
 
+    int sz = PyTuple_GET_SIZE(args);
+
 	bool ok = false;
-	PyObject *self = PyTuple_GetItem(args,0); // borrowed ref
-	if(self && PyInstance_Check(self)) {
+	PyObject *self; // borrowed ref
+	if(
+        sz >= 1 &&
+        (self = PyTuple_GET_ITEM(args,0)) != NULL && PyInstance_Check(self)
+    ) {
 		pyext *ext = GetThis(self);
 
-		int sz = PySequence_Size(args);
 		PyObject *val;
 
         bool tp = 
             sz == 2 && 
             PySequence_Check(
-                val = PyTuple_GetItem(args,1) // borrowed ref
+                val = PyTuple_GET_ITEM(args,1) // borrowed ref
             );
 
 		if(!tp)
