@@ -63,7 +63,10 @@ pyext Usage:
 
 """
 
-import pyext
+try:
+	import pyext
+except:
+	print "ERROR: This script must be loaded by the PD/Max pyext external"
 
 #################################################################
 

@@ -16,7 +16,11 @@ For threading support pyext exposes several function and variables
 
 """
 
-import pyext
+try:
+	import pyext
+except:
+	print "ERROR: This script must be loaded by the PD/Max pyext external"
+
 from time import sleep
 
 #################################################################
@@ -33,7 +37,7 @@ class ex1(pyext._class):
 
 	# method for bang to any inlet
 	def bang_(self,n):
-		for i in range(self.loops):
+		for i in xrange(self.loops):
 			# if _shouldexit is true, the thread ought to stop
 			if self._shouldexit: break
 

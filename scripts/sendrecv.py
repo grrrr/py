@@ -18,7 +18,12 @@ There are several classes exposing py/pyext features:
 
 """
 
-import pyext
+try:
+	import pyext
+except:
+	print "ERROR: This script must be loaded by the PD/Max pyext external"
+
+
 from time import sleep
 
 #################################################################
@@ -142,7 +147,7 @@ class ex3(pyext._class):
 
 		# make flower
 		self._tocanvas("obj",ori.real,ori.imag,"bng",20,250,50,0,"empty","yeah","empty",0,-6,64,8,-24198,-1,-1)
-		for i in range(num):
+		for i in xrange(num):
 			l[i] = ori+rad*exp(complex(0,i*2*pi/num))
 			self._tocanvas("obj",l[i].real,l[i].imag,"bng",15,250,50,0,"empty","yeah"+str(i),"empty",0,-6,64,8,0,-1,-1)
 			self._tocanvas("connect",2,0,3+i,0)
@@ -153,7 +158,7 @@ class ex3(pyext._class):
 			sleep(1./(i+1))
 
 		# move objects around
-		for i in range(200):
+		for i in xrange(200):
 			ix	= randint(0,num-1)
 			l[ix] = ori+rad*complex(2*random()-1,2*random()-1)
 			self._send("yeah"+str(ix),"pos",l[ix].real,l[ix].imag)
@@ -162,7 +167,7 @@ class ex3(pyext._class):
 		# now delete
 		# this is not well-done... from time to time an object remains
 		self._tocanvas("editmode",1)
-		for i in range(num):
+		for i in xrange(num):
 			self._tocanvas("mouse",l[i].real,l[i].imag,0,0)
 			self._tocanvas("cut")
 

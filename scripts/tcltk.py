@@ -7,7 +7,11 @@
 
 """This is an example script for showing a nonsense tcl/tk application."""
 
-import pyext
+try:
+	import pyext
+except:
+	print "ERROR: This script must be loaded by the PD/Max pyext external"
+
 from Tkinter import *
 import random
 
@@ -40,7 +44,7 @@ class Application(Frame):
 		r = self.mcanv.create_rectangle(50,50,200,200)
 		self.mcanv.addtag_withtag('group',r)
 
-		for i in range(500):
+		for i in xrange(500):
 			x = random.uniform(50,200)
 			y = random.uniform(50,200)
 			l = self.mcanv.create_line(x,y,x+1,y)
