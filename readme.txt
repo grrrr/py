@@ -88,6 +88,7 @@ Version history:
 - FIX: set "this" memory in object after reloading script
 - ADD: _getvalue,_setvalue to access PD values
 - FIX: don't shout when Python script returns PyNone
+- ADD: alias creation names pyext. and pyx. take the script name also for the class name
 
 0.1.3:
 - FIX: class variables are now set atomic if parameter list has only 1 element

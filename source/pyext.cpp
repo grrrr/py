@@ -11,7 +11,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pyext.h"
 #include <flinternal.h>
 
-FLEXT_LIB_V("pyext pyx",pyext)
+FLEXT_LIB_V("pyext pyext. pyx pyx.",pyext)
 
 V pyext::Setup(t_classid c)
 {
@@ -125,6 +125,8 @@ pyext::pyext(I argc,const t_atom *argv):
         apre += 2;
     }
 
+    const t_atom *clname = NULL;
+
     PY_LOCK
 
 	// init script module
@@ -158,20 +160,21 @@ pyext::pyext(I argc,const t_atom *argv):
 		}
 
         ++apre;
+
+        // check for alias creation names
+        if(strrchr(thisName(),'.')) clname = &scr;
 	}
 
  	Register("_pyext");
 
-//	t_symbol *sobj = NULL;
-	if(argc > apre) {
-		// object name
-		if(!IsString(argv[apre])) 
-			post("%s - object name argument is invalid",thisName());
-		else {
-			methname = GetSymbol(argv[apre]);
-		}
-
-        ++apre;
+	if(argc > apre || clname) {
+        if(!clname) clname = &argv[apre++];
+    
+		// class name
+		if(!IsString(*clname)) 
+			post("%s - class name argument is invalid",thisName());
+		else
+			methname = GetSymbol(*clname);
 	}
 
 	if(argc > apre) args(argc-apre,argv+apre);

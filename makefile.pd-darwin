@@ -28,8 +28,8 @@ endif
 
 ifdef FLEXT_SHARED
 
-CFLAGS+=-dynamic -DFLEXT_SHARED
-LDFLAGS+=-dynamic -L$(FLEXTPATH)
+CFLAGS+=-DFLEXT_SHARED
+LDFLAGS+=-L$(FLEXTPATH)
 FLEXTLIB=-lflext
 
 else
