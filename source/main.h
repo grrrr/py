@@ -19,11 +19,11 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <unistd.h>
 #endif
 
-#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 202)
-#error You need at least flext version 0.2.2
+#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 203)
+#error You need at least flext version 0.2.3
 #endif
 
-#define PY__VERSION "0.0.2"
+#define PY__VERSION "0.0.3pre"
 
 
 #define I int

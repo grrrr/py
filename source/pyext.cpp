@@ -25,7 +25,7 @@ public:
 	static PyObject *py_outlet(PyObject *self,PyObject *args);
 
 protected:
-	V m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
+	BL m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
 
 	V work(const t_symbol *s,I argc,t_atom *argv); 
 
@@ -267,10 +267,11 @@ V pyext::m_set(I argc,t_atom *argv)
 }
 
 
-V pyext::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
+BL pyext::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 {
 	if(n == 1)
 		post("%s - no method for type %s",thisName(),GetString(s));
+	return false;
 }
 
 

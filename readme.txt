@@ -1,5 +1,4 @@
 py - python script object for PD and MaxMSP
-version 0.0.2
 
 Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
@@ -52,6 +51,10 @@ Description:
 ----------------------------------------------------------------------------
 
 Version history:
+
+0.0.3:
+- using flext 0.2.2
+- another bugfix for undefined function
 
 0.0.2:
 - fixed bug when calling script with no function defined (thanks to Ben Saylor)

@@ -22,7 +22,7 @@ public:
 	pyobj(I argc,t_atom *argv);
 
 protected:
-	V m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
+	BL m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
 
 	V work(const t_symbol *s,I argc,t_atom *argv); 
 
@@ -108,10 +108,11 @@ pyobj::pyobj(I argc,t_atom *argv):
 }
 
 
-V pyobj::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
+BL pyobj::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
 {
 	if(n == 1)
 		post("%s - no method for type %s",thisName(),GetString(s));
+	return false;
 }
 
 V pyobj::m_reload(I argc,t_atom *argv)
@@ -164,7 +165,7 @@ V pyobj::m_help()
 
 V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 {
-	PyObject *pFunc = GetFunction(GetString(sFunc));
+	PyObject *pFunc = GetFunction(sFunc?GetString(sFunc):NULL);
 
 	if(pFunc && PyCallable_Check(pFunc)) {
 		PyObject *pArgs = MakePyArgs(s,argc,argv);
