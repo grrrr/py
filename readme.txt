@@ -81,6 +81,7 @@ Version history:
 - FIX: __init__ wasn't called on reload
 - FIX: bound instance methods weren't correctly decref'd
 - ADD: Python symbol type
+- ADD: _del method in pyext-derived class can be used to clean up things on exit
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)
@@ -151,8 +152,6 @@ features:
 - enable multiple interpreters? ( -> not possible within one thread)
 - stop individual threads
 - support named (keyword) arguments (like attributes for messages)
-
-- shutdown hook for threaded Python apps
 
 tests:
 - check for python threading support

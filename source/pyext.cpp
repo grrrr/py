@@ -225,27 +225,45 @@ void pyext::DoExit()
 {
 	ClearBinding();
 
+    bool gcrun = false;
     if(pyobj) {
-        if(pyobj->ob_refcnt > 1) {
-            post("%s - Python object is still referenced",thisName());
-
-            // Force-quit object:
-            // call __del__ manually
-            // this is dangerous, because it could get called a second time
-            // if object really has no more references then
-	        PyObject *meth = PyObject_GetAttrString(pyobj,"__del__"); // get ref
-            if(meth) {
-                if(PyMethod_Check(meth)) {
-			        PyObject *res = PyObject_CallObject(meth,NULL);
-			        if(!res)
-				        PyErr_Print();
-			        else
-				        Py_DECREF(res);
-                }
-                Py_DECREF(meth);
-	        }
+        // try to run del to clean up the class instance
+        PyObject *objdel = PyObject_GetAttrString(pyobj,"_del");
+        if(objdel) {
+            PyObject *args = PyTuple_New(0);
+            PyObject *ret = PyObject_Call(objdel,args,NULL);
+            if(!ret)
+                post("%s - Could not call _del method",thisName());
+            else 
+                Py_DECREF(ret);
+            Py_DECREF(args);
+            Py_DECREF(objdel);
         }
+
+        gcrun = pyobj->ob_refcnt > 1;
     	Py_DECREF(pyobj);  // opposite of SetClssMeth
+    }
+
+    if(gcrun) {
+        // object is still referenced - run garbage collector
+        PyObject *gcobj = PyImport_ImportModule("gc");
+        if(gcobj) {
+            PyObject *gcollect = PyObject_GetAttrString(gcobj,"collect");
+            if(gcollect) {
+                PyObject *args = PyTuple_New(0);
+                PyObject *ret = PyObject_Call(gcollect,args,NULL);
+                Py_DECREF(args);
+                if(ret) {
+#ifdef FLEXT_DEBUG
+                    int refs = PyInt_AsLong(ret);
+                    post("%s - Garbage collector reports %i unreachable objects",thisName(),refs);
+#endif
+                    Py_DECREF(ret);
+                }
+                Py_DECREF(gcollect);
+            }
+            Py_DECREF(gcobj);
+        }
     }
 }
 
