@@ -51,8 +51,10 @@ PyObject *py::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet
 
 	    int ix;
 	    PyObject *tmp;
-	    if(!withself || argc < (any?1:2)) tmp = pArgs,ix = pix;
-	    else tmp = PyTuple_New(argc+(any?1:0)),ix = 0;
+//	    if(!withself || argc < (any?1:2)) 
+            tmp = pArgs,ix = pix;
+//	    else 
+//            tmp = PyTuple_New(argc+(any?1:0)),ix = 0;
 
 	    if(any)
 		    PyTuple_SET_ITEM(tmp, ix++, pySymbol_FromSymbol(s)); 
