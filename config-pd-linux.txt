@@ -3,7 +3,7 @@
 #
 
 # your c++ compiler (normally g++)
-CXX=g++-3.2
+CXX=g++
 
 # where are the PD header files?
 # leave it blank if it is a system directory (like /usr/local/include), 
