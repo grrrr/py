@@ -8,7 +8,31 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 */
 
-#include "pyprefix.h"
+#ifndef __PYSYMBOL_H
+#define __PYSYMBOL_H
+
+#include <flext.h>
+
+#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 500)
+#error You need at least flext version 0.5.0
+#endif
+
+#if FLEXT_OS == FLEXT_OS_MAC
+#include <Python/Python.h>
+#else
+#include <Python.h>
+#endif
+
+
+#ifdef _MSC_VER
+    #ifdef PY_EXPORTS
+        #define PY_EXPORT __declspec(dllexport)
+    #else
+        #define PY_EXPORT __declspec(dllimport)
+    #endif
+#else
+    #define PY_EXPORT
+#endif
 
 typedef struct {
     PyObject_HEAD
@@ -16,21 +40,31 @@ typedef struct {
     const t_symbol *sym;
 } pySymbol;
 
-extern PyTypeObject pySymbol_Type;
+PY_EXPORT extern PyTypeObject pySymbol_Type;
 
-extern pySymbol *pySymbol__;
-extern pySymbol *pySymbol_bang;
-extern pySymbol *pySymbol_list;
-extern pySymbol *pySymbol_symbol;
-extern pySymbol *pySymbol_float;
-extern pySymbol *pySymbol_int;
+PY_EXPORT extern pySymbol *pySymbol__;
+PY_EXPORT extern pySymbol *pySymbol_bang;
+PY_EXPORT extern pySymbol *pySymbol_list;
+PY_EXPORT extern pySymbol *pySymbol_symbol;
+PY_EXPORT extern pySymbol *pySymbol_float;
+PY_EXPORT extern pySymbol *pySymbol_int;
 
 
 #define pySymbol_Check(op) PyObject_TypeCheck(op, &pySymbol_Type)
 #define pySymbol_CheckExact(op) ((op)->ob_type == &PySymbol_Type)
 
 
-PyObject *pySymbol_FromSymbol(const t_symbol *sym);
+PY_EXPORT PyObject *pySymbol_FromSymbol(const t_symbol *sym);
+
+inline PyObject *pySymbol_FromString(const char *str)
+{
+    return pySymbol_FromSymbol(flext::MakeSymbol(str));
+}
+
+inline PyObject *pySymbol_FromString(PyObject *str)
+{
+    return pySymbol_FromSymbol(flext::MakeSymbol(PyString_AsString(str)));
+}
 
 inline const t_symbol *pySymbol_AS_SYMBOL(PyObject *op) 
 {
@@ -55,3 +89,4 @@ inline const t_symbol *pyObject_AsSymbol(PyObject *op)
         return pySymbol_AsSymbol(op);
 }
 
+#endif

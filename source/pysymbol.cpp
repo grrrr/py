@@ -8,6 +8,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 */
 
+#include "pyprefix.h"
 #include "pysymbol.h"
 
 inline pySymbol *symbol_newsym(const t_symbol *sym)

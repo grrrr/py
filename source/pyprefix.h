@@ -8,8 +8,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 */
 
-#ifndef __PREFIX_H
-#define __PREFIX_H
+#ifndef __PYPREFIX_H
+#define __PYPREFIX_H
 
 #define FLEXT_ATTRIBUTES 1
 #include <flext.h>
