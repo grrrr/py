@@ -7,9 +7,9 @@
 
 """This is an example script for the py/pyext object's buffer support.
 
-PD/Max buffers can be mapped to numarray arrays.
-For numarray see http://numeric.scipy.org
-It will probably once be replaced by Numeric(3)
+PD/Max buffers can be mapped to Python arrays.
+Currently, there are three implementations:
+Numeric, numarray and Numeric3 (for all of them see http://numeric.scipy.org)
 """
 
 import sys
@@ -19,7 +19,7 @@ try:
 except:
     print "ERROR: This script must be loaded by the PD/Max py/pyext external"
 
-try:    
+try:
     from numarray import *
 except:
     print "Failed importing numarray module:",sys.exc_value
@@ -31,7 +31,7 @@ def mul(*args):
     a = pyext.Buffer(args[1])
     b = pyext.Buffer(args[2])
 
-    # slicing causes numarrays (mapped to buffers) to be created
+    # slicing causes Python arrays (mapped to buffers) to be created
     # note the c[:] - to assign contents you must assign to a slice of the buffer
     c[:] = a[:]*b[:]  
 
@@ -41,8 +41,8 @@ def add(*args):
     b = pyext.Buffer(args[2])
 
     # this is also possible, but is probably slower
-    # the + converts a into a numarray, the argument b is taken as a sequence
-    # depending on the implementation in numarray this may be as fast
+    # the + converts a into a Python array, the argument b is taken as a sequence
+    # depending on the implementation this may be as fast
     # as above or not
     c[:] = a+b  
 
@@ -53,7 +53,7 @@ def fadein(target):
 
 def neg(target):
     a = pyext.Buffer(target)
-    # in place transformation (see numarray ufuncs)
+    # in place transformation (see Python array ufuncs)
     negative(a[:],a[:])
     # must mark buffer content as dirty to update graph
     # (no explicit assignment occurred)

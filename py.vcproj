@@ -85,7 +85,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;c:\data\prog\pd\pd-cvs\src&quot;;..\flext\source;c:\programme\prog\Python24\include"
+				AdditionalIncludeDirectories="&quot;c:\data\pd\pd-cvs\src&quot;;..\flext\source;c:\programme\prog\Python24\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS;PY_NUMARRAY"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -506,9 +506,7 @@
 				TypeLibraryName=".\pd-msvc\td/py.tlb"
 				HeaderFileName=""/>
 			<Tool
-				Name="VCPostBuildEventTool"
-				Description="copy"
-				CommandLine="copy $(outdir)\py.mxe &quot;C:\Programme\Gemeinsame Dateien\Cycling &apos;74\externals&quot;"/>
+				Name="VCPostBuildEventTool"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -530,8 +528,8 @@
 		</Configuration>
 		<Configuration
 			Name="Max Threaded Release|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory=".\max-msvc\tr"
+			IntermediateDirectory=".\max-msvc\tr"
 			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"

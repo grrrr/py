@@ -63,7 +63,7 @@ void pydsp::DoExit()
     FreeBuffers();
 }
 
-PyObject *NAFromBuffer(PyObject *buf,int c,int n);
+PyObject *arrayfrombuffer(PyObject *buf,int c,int n);
 
 void pydsp::NewBuffers()
 {
@@ -82,7 +82,7 @@ void pydsp::NewBuffers()
     for(i = 0; i < ins; ++i) {
         Py_XDECREF(buffers[i]);
         PyObject *b = PyBuffer_FromReadWriteMemory(insigs[i],n*sizeof(t_sample));
-        buffers[i] = NAFromBuffer(b,1,n);
+        buffers[i] = arrayfrombuffer(b,1,n);
         Py_DECREF(b);
     }
     for(i = 0; i < outs; ++i) {
@@ -94,7 +94,7 @@ void pydsp::NewBuffers()
         }
         else {
             PyObject *b = PyBuffer_FromReadWriteMemory(outsigs[i],n*sizeof(t_sample));
-            buffers[ins+i] = NAFromBuffer(b,1,n);
+            buffers[ins+i] = arrayfrombuffer(b,1,n);
             Py_DECREF(b);
         }
     }

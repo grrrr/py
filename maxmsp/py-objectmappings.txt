@@ -4,8 +4,14 @@ max objectfile pyext py;
 max objectfile pyext. py;
 max objectfile pyx py;
 max objectfile pyx. py;
+max objectfile pyext~ py;
+max objectfile pyext.~ py;
+max objectfile pyx~ py;
+max objectfile pyx.~ py;
 
 max oblist python py;
 max oblist python py.;
 max oblist python pyext;
 max oblist python pyext.;
+max oblist python pyext~;
+max oblist python pyext.~;

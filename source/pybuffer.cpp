@@ -10,15 +10,49 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
-#ifdef PY_NUMARRAY
-#if FLEXT_OS == FLEXT_OS_MAC
-#include <Python/numarray/numarray.h>
+#undef PY_ARRAYS
+
+
+#if defined(PY_NUMERIC)
+    #define PY_ARRAYS 1
+
+    #if FLEXT_OS == FLEXT_OS_MAC
+    #include <Python/Numeric/arrayobject.h>
+    #else
+    #include <Numeric/arrayobject.h>
+    #endif
+#elif defined(PY_NUMARRAY)
+    #define PY_ARRAYS 1
+    #define NA
+
+#ifdef NA
+    #if FLEXT_OS == FLEXT_OS_MAC
+    #include <Python/numarray/numarray.h>
+    #else
+    #include <numarray/numarray.h>
+    #endif
 #else
-#include <numarray/numarray.h>
+    #if FLEXT_OS == FLEXT_OS_MAC
+    #include <Python/numarray/arrayobject.h>
+    #else
+    #include <numarray/arrayobject.h>
+    #endif
 #endif
-static bool nasupport = false;
-static NumarrayType numtype;
 #endif
+
+
+#ifdef PY_ARRAYS
+
+#ifdef NA
+static NumarrayType numtype = tAny;
+inline bool arrsupport() { return numtype != tAny; }
+#else
+static PyArray_TYPES numtype = PyArray_NOTYPE;
+inline bool arrsupport() { return numtype != PyArray_NOTYPE; }
+#endif
+
+#endif
+
 
 // PD defines a T_OBJECT symbol
 #undef T_OBJECT
@@ -188,15 +222,31 @@ static PyObject *buffer_item(pySamplebuffer *self, int i)
 	return ret;
 }
 
-PyObject *NAFromBuffer(PyObject *buf,int c,int n)
+PyObject *arrayfrombuffer(PyObject *buf,int c,int n)
 {
-#ifdef PY_NUMARRAY
-    if(nasupport) {
-        maybelong shape[2];
+#ifdef PY_ARRAYS
+    if(arrsupport()) {
+        PyObject *arr;
+        int shape[2];
         shape[0] = n;
         shape[1] = c;
-        PyArrayObject *na = NA_NewAllFromBuffer(c == 1?1:2,shape,numtype,buf,0,0,NA_ByteOrder(),1,1);
-        return (PyObject *)na;
+#ifdef NA
+        arr = (PyObject *)NA_NewAllFromBuffer(c == 1?1:2,shape,numtype,buf,0,0,NA_ByteOrder(),1,1);
+#else
+        void *data;
+        int len;
+        int err = PyObject_AsWriteBuffer(buf,&data,&len);
+        if(!err) {
+            FLEXT_ASSERT(len <= n*c*sizeof(t_sample));
+            Py_INCREF(buf);
+            arr = PyArray_FromDimsAndData(c == 1?1:2,shape,numtype,(char *)data);
+        }
+        else {
+            // exception string is already set
+            arr = NULL;
+        }
+#endif
+        return arr;
     }
     else
 #endif
@@ -206,8 +256,8 @@ PyObject *NAFromBuffer(PyObject *buf,int c,int n)
 static PyObject *buffer_slice(pySamplebuffer *self,int ilow = 0,int ihigh = 1<<(sizeof(int)*8-2))
 {
     PyObject *ret;
-#ifdef PY_NUMARRAY
-    if(nasupport) {
+#ifdef PY_ARRAYS
+    if(arrsupport()) {
         if(self->buf) {
             const int n = self->buf->Frames();
             const int c = self->buf->Channels();
@@ -216,7 +266,7 @@ static PyObject *buffer_slice(pySamplebuffer *self,int ilow = 0,int ihigh = 1<<(
             if(ihigh < 0) ihigh += n;
             if(ihigh > n) ihigh = n;
 
-            PyObject *nobj = NAFromBuffer((PyObject *)self,c,n);
+            PyObject *nobj = arrayfrombuffer((PyObject *)self,c,n);
             if(ilow != 0 || ihigh != n) {
                 ret = PySequence_GetSlice(nobj,ilow,ihigh);
                 Py_DECREF(nobj);
@@ -271,8 +321,8 @@ static int buffer_ass_item(pySamplebuffer *self,int i,PyObject *v)
 static int buffer_ass_slice(pySamplebuffer *self,int ilow,int ihigh,PyObject *value)
 {
     int ret;
-#ifdef PY_NUMARRAY
-    if(nasupport) {
+#ifdef PY_ARRAYS
+    if(arrsupport()) {
         if(!value) {
             PyErr_SetString(PyExc_TypeError,"Object doesn't support item deletion");
             ret = -1;
@@ -285,7 +335,11 @@ static int buffer_ass_slice(pySamplebuffer *self,int ilow,int ihigh,PyObject *va
             if(ihigh < 0) ihigh += n;
             if(ihigh > n) ihigh = n;
 
+#ifdef NA
             PyArrayObject *out = NA_InputArray(value,numtype,NUM_C_ARRAY);
+#else
+            PyArrayObject *out = (PyArrayObject *)PyArray_ContiguousFromObject(value,numtype,0,0);
+#endif
             if(!out) {
                 PyErr_SetString(PyExc_TypeError,"Assigned object must be a numarray");
                 ret = -1;
@@ -297,7 +351,11 @@ static int buffer_ass_slice(pySamplebuffer *self,int ilow,int ihigh,PyObject *va
             else {
                 int dlen = ihigh-ilow;
                 int slen = out->dimensions[0];
+#ifdef NA
                 flext::CopySamples(self->buf->Data()+ilow,(t_sample *)NA_OFFSETDATA(out),slen < dlen?slen:dlen);
+#else
+                flext::CopySamples(self->buf->Data()+ilow,(t_sample *)out->data,slen < dlen?slen:dlen);
+#endif
                 self->dirty = true;
                 ret = 0;
             }
@@ -674,20 +732,27 @@ PyTypeObject pySamplebuffer_Type = {
 
 void initsamplebuffer()
 {
-#ifdef PY_NUMARRAY
     PyErr_Clear();
+
+#ifdef PY_ARRAYS
+#ifdef NA
     import_libnumarray();
+#else
+    import_array();
+#endif
     if(PyErr_Occurred())
         // catch import error
         PyErr_Clear();
     else {
         // numarray support ok
-        nasupport = true;
+#ifdef NA
+        numtype = sizeof(t_sample) == 4?tFloat32:tFloat64;
+#else
+        numtype = sizeof(t_sample) == 4?PyArray_FLOAT:PyArray_DOUBLE;
+#endif
         post("");
-	    post("Numarray support enabled");
+	    post("Python array support enabled");
     }
-
-    numtype = sizeof(t_sample) == 4?tFloat32:tFloat64;
 #endif
 
     if(PyType_Ready(&pySamplebuffer_Type) < 0)
@@ -695,4 +760,3 @@ void initsamplebuffer()
     else
         Py_INCREF(&pySamplebuffer_Type);
 }
-

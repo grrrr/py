@@ -48,8 +48,8 @@ class gain2(pyext._class):
     gain = 0
 
     def _dsp(self):
-        # cache vectors
-        self.invec =self._invec(0)
+        # cache vectors in this scope
+        self.invec = self._invec(0)
         self.outvec = self._outvec(0)
         # initialize _signal method here for optimized version
         if self.invec is self.outvec:

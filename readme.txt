@@ -34,6 +34,21 @@ From a shell run
 bash ../flext/build.sh
 (you would have to substitute ../flext with the respective path to the flext package)
 
+
+----------------------------------------------------------------------------
+
+Python array support for py/pyext@Max/MSP:
+
+In the Max/MSP SDK change the file 
+4.5 headers\c74support\max-includes\ext_types.h, line 45
+from 
+    typedef unsigned long                    UInt32;
+    typedef signed long                      SInt32;
+to
+    typedef unsigned int                    UInt32;
+    typedef signed int                      SInt32;
+to avoid a compile-time type definition clash.
+
 ----------------------------------------------------------------------------
 
 Goals/features of the package:
