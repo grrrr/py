@@ -11,14 +11,15 @@
 ## EDIT ZONE ##################################
 
 # flext path
-FLEXTPATH=/usr/lib/pd/flext
+FLEXTPATH=/usr/local/lib/pd/flext
 
 # pd path
-PDPATH=/usr/lib/pd/include
+PDPATH=/usr/local/lib/pd/include
 
 # python paths
-PYTHONINCLUDE=/usr/include/python2.2
-PYTHONLIB=/usr/lib/python2.2/config
+PYTHONVER=2.2
+PYTHONINCLUDE=/usr/include/python$(PYTHONVER)
+PYTHONLIB=/usr/lib/python$(PYTHONVER)/config
 
 # where to install	
 INSTDIR=/usr/lib/pd/extra
@@ -45,8 +46,8 @@ LIBS=m util python2.2 # static linking with python
 NAME=py
 
 # all the source files from the package
-SRCS=main.cpp 
-HDRS=
+SRCS=main.cpp py.cpp pyext.cpp
+HDRS=main.h
 
 TARGET=$(TARGDIR)/$(NAME).pd_linux
 

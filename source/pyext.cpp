@@ -12,9 +12,9 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
-//#ifdef _DEBUG
+#ifdef NT
 #include <windows.h>
-//#endif
+#endif
 
 class pyext:
 	public py
@@ -168,12 +168,13 @@ pyext::pyext(I argc,t_atom *argv):
 
 		// set script path
 		PySys_SetPath(dir);
-//#ifdef _DEBUG
+#ifdef _DEBUG
 		post("Script path: %s",dir);
-
+#ifdef NT
 		GetCurrentDirectory(sizeof(dir),dir);
 		post("Current working path: %s",dir);
-//#endif
+#endif
+#endif
 
 		if(!IsString(argv[0])) 
 			post("%s - script name argument is invalid",thisName());
