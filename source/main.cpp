@@ -153,7 +153,7 @@ V py::m__doc(PyObject *obj)
 			// -> split into separate lines
 			for(;;) {
 				char buf[1024];
-				char *nl = strchr(s,'\n');
+				char *nl = strchr((char *)s,'\n'); // the cast is for Borland C++
 				if(!nl) {
 					// no more newline found
 					post(s);

@@ -453,6 +453,7 @@ V pyext::work_wrapper(V *data)
 	else
 #endif
 	{
+#ifdef FLEXT_THREADS
         // --- make new Python thread ---
         // get the global lock
         PyEval_AcquireLock();
@@ -463,7 +464,6 @@ V pyext::work_wrapper(V *data)
         // -----------------------------
 
         // store new thread state
-#ifdef FLEXT_THREADS
         pythrmap[GetThreadId()] = newthr;
 #endif
         {
@@ -476,7 +476,6 @@ V pyext::work_wrapper(V *data)
 #ifdef FLEXT_THREADS
         // delete mapped thread state
         pythrmap.erase(GetThreadId());
-#endif
 
         // --- delete Python thread ---
         // grab the lock
@@ -490,6 +489,7 @@ V pyext::work_wrapper(V *data)
         // release the lock
         PyEval_ReleaseLock();
         // -----------------------------
+#endif
 	}
 	--thrcount;
 }

@@ -29,7 +29,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.4.6
 #endif
 
-#define PY__VERSION "0.1.3pre"
+#define PY__VERSION "0.1.3"
 
 
 #define PYEXT_MODULE "pyext" // name for module
@@ -50,7 +50,9 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+#ifdef FLEXT_THREADS
 typedef std::map<flext::thrid_t,PyThreadState *> PyThrMap;
+#endif
 
 class py:
 	public flext_base
