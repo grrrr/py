@@ -40,7 +40,6 @@ protected:
 	virtual V m_any(const t_symbol *s,I argc,t_atom *argv);
 
     PyObject *pName,*pModule,*pDict,*pFunc;	
-//	t_atom *ret;
 
 	static I pyref;
 
@@ -66,7 +65,6 @@ FLEXT_GIMME("py",py)
 
 py::py(I argc,t_atom *argv):
 	pName(NULL),pModule(NULL),pDict(NULL),pFunc(NULL)
-	//,ret(NULL)
 { 
 	add_in_anything();  
 	add_out_anything();  
@@ -78,6 +76,8 @@ py::py(I argc,t_atom *argv):
 	FLEXT_ADDMETHOD_(0,"symbol",m_symbol);
 	FLEXT_ADDMETHOD(0,m_list);
 	FLEXT_ADDMETHOD(0,m_any);
+
+
 
     if(!(pyref++)) Py_Initialize();
 
@@ -120,8 +120,6 @@ py::py(I argc,t_atom *argv):
 
 py::~py()
 {
-//	if(ret) delete[] ret;
-    
 	// pDict and pFunc are borrowed and must not be Py_DECREF-ed 
 
     if(pModule) Py_DECREF(pModule);
@@ -151,26 +149,13 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 {
     PyObject *pArgs, *pValue;
 
-//	post("Any called: inlet=%i, symbol=%s, argc=%i",inlet,s->s_name,argc);
+//	post("work called: inlet=%i, symbol=%s, argc=%i",inlet,s->s_name,argc);
 
 	if(pFunc && PyCallable_Check(pFunc)) {
 		pArgs = PyTuple_New(argc);
 
 		I ix = 0;
-/*
-		if(any) {
-//				post("Header: symbol=%s",s->s_name);
 
-			pValue = PyString_FromString(s->s_name);
-			if(!pValue) {
-				post("%s: cannot convert argument header",thisName());
-			}
-
-			// pValue reference stolen here: 
-			PyTuple_SetItem(pArgs, ix, pValue);
-			++ix;
-		}
-*/
 		for(I i = 0; i < argc; ++i) {
 			pValue = NULL;
 			
@@ -184,11 +169,9 @@ V py::work(const t_symbol *s,I argc,t_atom *argv)
 			}
 
 			/* pValue reference stolen here: */
-			PyTuple_SetItem(pArgs, ix, pValue); 
-			++ix;
+			PyTuple_SetItem(pArgs, ix++, pValue); 
 		}
 
-//		post("calling function with %i args",PyTuple_Size(pArgs));
 
 		pValue = PyObject_CallObject(pFunc, pArgs);
 		if (pValue != NULL) {
