@@ -10,6 +10,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+
 V py::Register(const C *regnm)
 {
 	if(module) {
@@ -80,5 +81,6 @@ V py::Reregister(const C *regnm)
 	}
 
 }
+
 
 

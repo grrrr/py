@@ -102,7 +102,7 @@ private:
 	BL callwork(I n,const t_symbol *s,I argc,t_atom *argv); 
 
 	class work_data:
-		public flext_base::AtomAnything
+		public flext::AtomAnything
 	{
 	public:
 		work_data(I _n,const t_symbol *_s,I _argc,t_atom *_argv): n(_n),AtomAnything(_s,_argc,_argv) {}

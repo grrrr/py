@@ -10,6 +10,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+
 // function table for module
 PyMethodDef py::func_tbl[] = 
 {
@@ -177,5 +178,6 @@ PyObject *py::py_priority(PyObject *self,PyObject *args)
     return Py_None;
 }
 #endif
+
 
 

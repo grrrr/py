@@ -10,6 +10,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+
 PyObject *py::MakePyArgs(const t_symbol *s,const AtomList &args,I inlet,BL withself)
 {
 	PyObject *pArgs;
@@ -67,7 +68,7 @@ PyObject *py::MakePyArgs(const t_symbol *s,const AtomList &args,I inlet,BL withs
 	return pArgs;
 }
 
-flext_base::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
+flext::AtomList *py::GetPyArgs(PyObject *pValue,PyObject **self)
 {
 	if(pValue == NULL) return NULL; 
 	AtomList *ret = NULL;

@@ -11,8 +11,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pyext.h"
 #include <flinternal.h>
 
-FLEXT_LIB_V("pyext",pyext)
 
+FLEXT_LIB_V("pyext",pyext)
 
 V pyext::setup(t_class *)
 {

@@ -10,6 +10,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+
 V py::lib_setup()
 {
 	post("");
@@ -207,4 +208,5 @@ V py::AddToPath(const C *dir)
 		PySys_SetObject("path",pobj);
 	}
 }
+
 
