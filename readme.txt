@@ -38,6 +38,11 @@ With the pyext you can use python classes to represent full-featured pd/Max mess
 Multithreading (detached methods) is supported for both objects.
 You can send messages to named objects or receive (with pyext) with Python methods.
 
+
+Known bugs:
+There are problems with importing the "time" module, experienced with Python 2.2.2 under OSX.
+Therefore, some help patches may not be functional.
+
 ----------------------------------------------------------------------------
 
 The py/pyext package should run with Python version >= 2.1.
