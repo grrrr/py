@@ -1,0 +1,15 @@
+# py/pyext - python script object for PD and Max/MSP
+# Copyright (C)2002-04 Thomas Grill (gr@grrrr.org)
+#
+# Makefile for MSVC++ 6 and 7
+#
+# usage:
+# to build run "build-max-msvc.bat" or "build-pd-msvc.bat"
+#
+
+# includes
+INCPATH=/I$(PYTHONPATH)\include
+LIBPATH=/LIBPATH:$(PYTHONPATH)\libs
+
+# multithreaded build
+FLEXT_THREADED=1
