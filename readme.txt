@@ -5,6 +5,7 @@ For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
 Donations for further development of the package are highly appreciated.
+Visit https://www.paypal.com/xclick/business=t.grill%40gmx.net&item_name=pyext&no_note=1&tax=0&currency_code=EUR
 
 ----------------------------------------------------------------------------
 
