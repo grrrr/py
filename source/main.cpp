@@ -510,37 +510,37 @@ void py::work_wrapper(void *data)
 #ifdef FLEXT_THREADS
 bool py::qucall(PyObject *fun,PyObject *args)
 {
-    if(qufifo.Push(fun,args)) {
-        qucond.Signal();
-        return true;
-    }
-    else
-        return false;
+    FifoEl *el = qufifo.New();
+    el->Set(fun,args);
+    qufifo.Put(el);
+    qucond.Signal();
+    return true;
 }
 
 void py::threadworker()
 {
-    PyObject *fun,*args;
+    FifoEl *el;
     PyThreadState *state;
 
     while(!shouldexit) {
-        state = PyLock();
-        while(qufifo.Pop(fun,args)) {
-            callpy(fun,args);
-            Py_XDECREF(fun);
-            Py_XDECREF(args);
+        while(el = qufifo.Get()) {
+            state = PyLock();
+            callpy(el->fun,el->args);
+            Py_XDECREF(el->fun);
+            Py_XDECREF(el->args);
+            PyUnlock(state);
+            qufifo.Free(el);
         }
-        PyUnlock(state);
         qucond.Wait();
     }
 
     state = PyLock();
     // unref remaining Python objects
-    while(qufifo.Pop(fun,args)) {
-        Py_XDECREF(fun);
-        Py_XDECREF(args);
+    while(el = qufifo.Get()) {
+        Py_XDECREF(el->fun);
+        Py_XDECREF(el->args);
+        qufifo.Free(el);
     }
-
     PyUnlock(state);
 }
 #endif
@@ -573,39 +573,5 @@ bool py::collect()
             return false;
         }
     }
-    return true;
-}
-
-Fifo::~Fifo()
-{
-    FifoEl *el = head;
-    head = tail = NULL; // reset it, in case there's a thread wanting to Pop
-    while(el) {
-        FifoEl *n = el->nxt;
-        delete el;
-        el = n;
-    }
-}
-
-bool Fifo::Push(PyObject *f,PyObject *a)
-{
-    FifoEl *el = new FifoEl;
-    el->fun = f;
-    el->args = a;
-    if(tail) tail->nxt = el;
-    else head = el;
-    tail = el;
-    return true;
-}
-
-bool Fifo::Pop(PyObject *&f,PyObject *&a)
-{
-    if(!head) return false;
-    FifoEl *el = head;
-    head = el->nxt;
-    f = el->fun;
-    a = el->args;
-    if(tail == el) tail = NULL;
-    delete el;
     return true;
 }

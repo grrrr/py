@@ -13,6 +13,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "pyprefix.h"
 #include "pysymbol.h"
+#include <flcontainers.h>
 
 #if FLEXT_OS == FLEXT_LINUX || FLEXT_OS == FLEXT_IRIX
 #include <unistd.h>
@@ -28,25 +29,16 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #define PY_STOP_TICK 10  // ms
 
 
-class Fifo
-{
-protected:
-    struct FifoEl {
-        PyObject *fun;
-        PyObject *args;
-        FifoEl *nxt;
-    };
-public:
-    Fifo(): head(NULL),tail(NULL) {}
-    ~Fifo();
 
-    bool Push(PyObject *f,PyObject *a);
-    bool Pop(PyObject *&f,PyObject *&a);
-    
-protected:
-    FifoEl *head,*tail;
+class FifoEl
+    : public Fifo::Cell
+{
+public:
+    void Set(PyObject *f,PyObject *a) { fun = f,args = a; }
+    PyObject *fun,*args;
 };
 
+typedef PooledFifo<FifoEl> PyFifo;
 
 class py:
 	public flext_base
@@ -141,7 +133,7 @@ private:
 #ifdef FLEXT_THREADS
     bool qucall(PyObject *fun,PyObject *args);
     void threadworker();
-    Fifo qufifo;
+    PyFifo qufifo;
     ThrCond qucond;
 
     static PyThreadState *FindThreadState();
