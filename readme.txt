@@ -1,24 +1,16 @@
-py/pyext - python script objects for PD (and MaxMSP... once, under MacOSX and Windows)
+py/pyext - python script objects for PD and Max/MSP
 
-Copyright (c)2002-2004 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
 Donations for further development of the package are highly appreciated.
-Visit https://www.paypal.com/xclick/business=t.grill%40gmx.net&item_name=pyext&no_note=1&tax=0&currency_code=EUR
+Visit https://www.paypal.com/xclick/business=gr%40grrrr.org&item_name=pyext&no_note=1&tax=0&currency_code=EUR
 
 ----------------------------------------------------------------------------
 
 You will need the flext C++ layer for PD and Max/MSP externals to compile this.
-see http://www.parasitaere-kapazitaeten.net/ext
-
-
-Package files:
-- readme.txt: this one
-- gpl.txt,license.txt: GPL license stuff
-- main.cpp, main.h, modmeth.cpp, pyargs.cpp, register.cpp: base class
-- py.cpp: py object
-- pyext.cpp, pyext.h, clmeth.cpp, bound.cpp: pyext object
+see http://grrrr.org/ext
 
 ----------------------------------------------------------------------------
 
@@ -51,32 +43,7 @@ Known bugs:
 ----------------------------------------------------------------------------
 
 The py/pyext package should run with Python version >= 2.1.
-It has been thoroughly tested with version 2.2 and 2.3
-
-
-The package should at least compile (and is tested) with the following compilers:
-
-
-PD @ Windows:
--------------
-o Borland C++ 5.5 (free): edit "config-pd-bcc.txt" & run "build-pd-bcc.bat" 
-
-o Microsoft Visual C++ 6/7: edit "config-pd-msvc.txt" & run "build-pd-msvc.bat"
-
-
-PD @ linux:
------------
-o GCC: edit "config-pd-linux.txt" & run "sh build-pd-linux.sh" 
-
-
-PD @ MacOSX:
----------------------
-You'll need to have Python installed as a framework. 
-This is the default with Panther - otherwise, all newer Python source distributions are buildable as a darwin framework 
-( ./configure --enable-framework=/System/Library/Frameworks && make && make installframework )
-
-o GCC: edit "config-pd-darwin.txt" & run "sh build-pd-darwin.sh" 
-
+It has been thoroughly tested with versions 2.2 to 2.4
 
 ----------------------------------------------------------------------------
 
@@ -85,6 +52,8 @@ Version history:
 0.2.0:
 - ADD: handling of Python threads
 - FIX: output of single atoms instead of 1-element lists
+- ADD: new detach mechanism (call queue)
+- ADD: support for Max/MSP @ OSX and Windows
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)
@@ -162,4 +131,3 @@ tests:
 
 bugs:
 - named (keyword) arguments are not supported
-

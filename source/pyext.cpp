@@ -462,7 +462,7 @@ V pyext::m_help()
 
 bool pyext::callpy(PyObject *fun,PyObject *args)
 {
-    PyObject *ret = PyEval_CallObject(fun,args); 
+    PyObject *ret = PyObject_Call(fun,args,NULL);
     if(ret == NULL) {
         // function not found resp. arguments not matching
         PyErr_Print();
@@ -480,7 +480,7 @@ bool pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *ar
 {
 	bool ret = false;
 
-	PyObject *pmeth  = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
+	PyObject *pmeth = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
 	if(pmeth == NULL) {
 		PyErr_Clear(); // no method found
 	}
@@ -491,7 +491,7 @@ bool pyext::call(const C *meth,I inlet,const t_symbol *s,I argc,const t_atom *ar
     		Py_DECREF(pmeth);
         }
 		else 
-            gencall(pmeth,pargs);
+            ret = gencall(pmeth,pargs);
 	}
 	return ret;
 }
@@ -542,10 +542,10 @@ bool pyext::work(I n,const t_symbol *s,I argc,const t_atom *argv)
 		// no matching python method found
 		post("%s - no matching method found for '%s' into inlet %i",thisName(),GetString(s),n);
 
-    Respond(ret);
-
 	if(str) delete[] str;
 
 	PY_UNLOCK
+
+    Respond(ret);
 	return ret;
 }

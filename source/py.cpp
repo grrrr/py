@@ -294,7 +294,7 @@ V pyobj::Reload()
 
 bool pyobj::callpy(PyObject *fun,PyObject *args)
 {
-    PyObject *ret = PyEval_CallObject(fun,args); 
+    PyObject *ret = PyObject_Call(fun,args,NULL); 
     if(ret == NULL) {
         // function not found resp. arguments not matching
         PyErr_Print();
@@ -315,70 +315,19 @@ bool pyobj::callpy(PyObject *fun,PyObject *args)
     }
 } 
 
-/*
-bool pyobj::work(const t_symbol *s,I argc,const t_atom *argv)
-{
-	AtomList *rargs = NULL;
-    BL ret;
-
-	++thrcount;
-	PY_LOCK
-
-	if(function) {
-		PyObject *pArgs = MakePyArgs(s,argc,argv);
-		PyObject *pValue = PyObject_CallObject(function, pArgs);
-
-		rargs = GetPyArgs(pValue);
-		if(!rargs) PyErr_Print();
-
-		Py_XDECREF(pArgs);
-		Py_XDECREF(pValue);
-        ret = true;
-	}
-	else {
-		post("%s: no function defined",thisName());
-        ret = false;
-	}
-
-	PY_UNLOCK
-	--thrcount;
-
-	if(rargs) {
-		// call to outlet _outside_ the Mutex lock!
-		// otherwise (if not detached) deadlock will occur
- 		if(rargs->Count()) ToOutList(0,*rargs);
-		delete rargs;
-	}
-
-    return ret;
-}
-
-void pyobj::callwork(const t_symbol *s,I argc,const t_atom *argv)
-{
-    BL ret = false;
-	if(detach) {
-		if(shouldexit)
-			post("%s - New threads can't be launched now!",thisName());
-		else {
-			ret = FLEXT_CALLMETHOD_A(work,s,argc,argv);
-			if(!ret) post("%s - Failed to launch thread!",thisName());
-        }
-	}
-    else
-		ret = work(s,argc,argv);
-    Respond(ret);
-}
-*/
-
 void pyobj::callwork(const t_symbol *s,int argc,const t_atom *argv)
 {
     bool ret = false;
  
 	if(function) {
+        PY_LOCK
+    
 		PyObject *pargs = MakePyArgs(s,argc,argv);
         Py_INCREF(function);
         ret = gencall(function,pargs);
-	}
+
+        PY_UNLOCK
+    }
 	else {
 		post("%s: no function defined",thisName());
         ret = false;

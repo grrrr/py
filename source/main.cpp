@@ -436,7 +436,7 @@ bool py::gencall(PyObject *pmeth,PyObject *pargs)
             break;
         case 2:
             // each call a new thread
-		    if(ShouldExit())
+		    if(shouldexit)
 			    post("%s - Stopping.... new threads can't be launched now!",thisName());
 		    else {
 			    ret = FLEXT_CALLMETHOD_X(work_wrapper,new work_data(pmeth,pargs));
@@ -484,7 +484,7 @@ void py::threadworker()
 {
     PyObject *fun,*args;
 
-    while(!ShouldExit()) {
+    while(!shouldexit) {
         PY_LOCK
         while(qufifo.Pop(fun,args)) {
             callpy(fun,args);
