@@ -54,6 +54,7 @@ Version history:
 - ADD: new detach mechanism (call queue)
 - ADD: support for Max/MSP @ OSX and Windows
 - DEL: eliminated meaningless inchannels and outchannels methods
+- ADD: enabled "int"-tags for pyext class functions
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)

@@ -83,6 +83,9 @@ class ex1(pyext._class):
 	def bang_1(self):
 		print "Bang into first inlet"
 
+	def int_1(self,f):
+		print "Integer",f,"into first inlet"
+
 	def float_1(self,f):
 		print "Float",f,"into first inlet"
 

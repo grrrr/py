@@ -509,14 +509,29 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
     // should be enough...
 	char str[256];
 
-	{
-		// try tag/inlet
+    bool isfloat = s == sym_float && argc == 1;
+
+	// if float equals an integer, try int_* method
+    if(isfloat && GetAFloat(argv[0]) == GetAInt(argv[0])) {
+		sprintf(str,"int_%i",n);
+		ret = call(str,0,NULL,1,argv);
+    }
+
+	// try tag/inlet
+	if(!ret) {
 		sprintf(str,"%s_%i",GetString(s),n);
 		ret = call(str,0,NULL,argc,argv);
 	}
 
-	if(!ret) {
-		// try anything/inlet
+	// try truncated int
+	if(!ret && isfloat) {
+        t_atom at; SetInt(at,GetAInt(argv[0]));
+		sprintf(str,"int_%i",n);
+		ret = call(str,0,NULL,1,&at);
+	}
+
+	// try anything/inlet
+    if(!ret) {
 		sprintf(str,"_anything_%i",n);
 		if(s == sym_bang && !argc) {
 			t_atom argv;
@@ -526,12 +541,25 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 		else
 			ret = call(str,0,s,argc,argv);
 	}
-	if(!ret) {
-		// try tag at any inlet
+
+    // try int at any inlet
+	if(!ret && isfloat && GetAFloat(argv[0]) == GetAInt(argv[0])) {
+		ret = call("int_",0,NULL,1,argv);
+	}
+
+	// try tag at any inlet
+    if(!ret) {
 		sprintf(str,"%s_",GetString(s));
 		ret = call(str,n,NULL,argc,argv);
 	}
-	if(!ret) {
+
+    // try truncated int at any inlet
+	if(!ret && isfloat) {
+        t_atom at; SetInt(at,GetAInt(argv[0]));
+		ret = call("int_",0,NULL,1,&at);
+	}
+
+    if(!ret) {
 		// try anything at any inlet
 		const char *str1 = "_anything_";
 		if(s == sym_bang && !argc) {
