@@ -1,0 +1,5 @@
+#N canvas 294 237 484 334 12;
+#X obj 283 258 pyext sendrecv ex3;
+#X obj 437 255 bng 25 250 50 0 empty ugh empty 0 -6 64 8 -258699 -1
+-1;
+#X connect 1 0 0 1;

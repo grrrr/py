@@ -1,0 +1,8 @@
+#N canvas 133 322 454 304 12;
+#X obj 36 135 pyext sendrecv ex2 huha;
+#X floatatom 36 165 5 0 0;
+#X floatatom 35 38 5 0 0;
+#X obj 34 65 s huha;
+#X text 22 19 scroll here;
+#X connect 0 0 1 0;
+#X connect 2 0 3 0;

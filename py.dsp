@@ -164,6 +164,10 @@ SOURCE=.\scripts\scr1.py
 
 SOURCE=.\scripts\scr2.py
 # End Source File
+# Begin Source File
+
+SOURCE=.\scripts\sendrecv.py
+# End Source File
 # End Group
 # Begin Group "doc"
 
