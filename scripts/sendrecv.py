@@ -1,6 +1,6 @@
 # py/pyext - python script objects for PD and MaxMSP
 #
-# Copyright (c) 2002-2003 Thomas Grill (xovo@gmx.net)
+# Copyright (c) 2002-2005 Thomas Grill (gr@grrrr.org)
 # For information on usage and redistribution, and for a DISCLAIMER OF ALL
 # WARRANTIES, see the file, "license.txt," in this distribution.  
 #
@@ -49,7 +49,7 @@ class ex1(pyext._class):
 	recvname=""   
 	sendname=""
 
-	def recv(self,arg):
+	def recv(self,*arg):
 		"""This is a class-local receive function, which has access to class members."""
 
 		# print some stuff
@@ -59,7 +59,7 @@ class ex1(pyext._class):
 		self._send(self.sendname,arg)
 
 
-	def __init__(self,args):
+	def __init__(self,*args):
 		"""Class constructor"""
 
 		# store sender/receiver names
@@ -100,7 +100,7 @@ class ex2(pyext._class):
 
 	recvname=""   
 
-	def recv(self,arg):
+	def recv(self,*arg):
 		"""This is a class-local receive function"""
 
 		# send received data to outlet

@@ -8,7 +8,7 @@ class pak(pyext._class):
         # initialize list
         self.lst = [0 for x in range(n)]
 
-    def _anything_(self,n,args):
-        # args should be type-checked!
-        self.lst[n-1] = args 
+    def _anything_(self,n,arg):
+        # arg should be type-checked!
+        self.lst[n-1] = arg
         self._outlet(1,self.lst)

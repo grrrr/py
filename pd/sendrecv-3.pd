@@ -1,9 +1,9 @@
-#N canvas 294 237 640 319 12;
-#X obj 410 265 pyext sendrecv ex3;
+#N canvas 294 237 644 323 12;
+#X obj 410 265 pyext sendrecv ex3 @detach 1;
 #X obj 564 262 bng 25 250 50 0 empty ugh empty 0 -6 0 8 -258699 -1
 -1;
 #X obj 16 13 cnv 15 600 40 empty empty py/pyext 10 22 0 24 -260818
 -1 0;
-#X text 213 32 http://www.parasitaere-kapazitaeten.net;
-#X text 213 16 Python script objects \, (C)2003-2004 Thomas Grill;
+#X text 213 16 Python script objects \, (C)2003-2005 Thomas Grill;
+#X text 213 32 http://grrrr.org/ext;
 #X connect 1 0 0 1;

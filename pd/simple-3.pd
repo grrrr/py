@@ -1,4 +1,4 @@
-#N canvas 136 275 649 361 12;
+#N canvas 136 275 653 365 12;
 #X msg 73 266 help;
 #X text 17 80 This demonstrates message handling. See the simple.py
 file.;
@@ -17,8 +17,8 @@ file.;
 #X text 410 140 sets argument;
 #X obj 16 13 cnv 15 600 40 empty empty py/pyext 10 22 0 24 -260818
 -1 0;
-#X text 213 32 http://www.parasitaere-kapazitaeten.net;
-#X text 213 16 Python script objects \, (C)2003-2004 Thomas Grill;
+#X text 213 16 Python script objects \, (C)2003-2005 Thomas Grill;
+#X text 213 32 http://grrrr.org/ext;
 #X connect 0 0 7 0;
 #X connect 2 0 7 0;
 #X connect 3 0 7 0;

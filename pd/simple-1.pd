@@ -1,4 +1,4 @@
-#N canvas 156 192 662 389 12;
+#N canvas 156 192 670 397 12;
 #X obj 53 123 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
 -1;
 #X floatatom 52 155 5 0 0 0 - - -;
@@ -23,8 +23,8 @@ file.;
 #X msg 106 325 doc+;
 #X obj 16 13 cnv 15 600 40 empty empty py/pyext 10 22 0 24 -260818
 -1 0;
-#X text 213 32 http://www.parasitaere-kapazitaeten.net;
-#X text 213 16 Python script objects \, (C)2003-2004 Thomas Grill;
+#X text 213 32 http://grrrr.org/ext;
+#X text 213 16 Python script objects \, (C)2003-2005 Thomas Grill;
 #X connect 0 0 9 1;
 #X connect 1 0 9 1;
 #X connect 3 0 9 1;

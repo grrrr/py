@@ -1,4 +1,4 @@
-#N canvas 95 223 650 390 12;
+#N canvas 95 223 654 394 12;
 #X floatatom 202 113 5 0 0 0 - - -;
 #X text 338 286 watch the console output!;
 #X msg 20 115 help;
@@ -21,8 +21,8 @@ file.;
 so _anything_ is called!;
 #X obj 16 13 cnv 15 600 40 empty empty py/pyext 10 22 0 24 -260818
 -1 0;
-#X text 213 32 http://www.parasitaere-kapazitaeten.net;
-#X text 213 16 Python script objects \, (C)2003-2004 Thomas Grill;
+#X text 213 16 Python script objects \, (C)2003-2005 Thomas Grill;
+#X text 213 32 http://grrrr.org/ext;
 #X connect 0 0 8 1;
 #X connect 2 0 8 0;
 #X connect 4 0 8 0;

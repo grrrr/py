@@ -1,6 +1,6 @@
 # py/pyext - python script objects for PD and MaxMSP
 #
-# Copyright (c) 2002-2003 Thomas Grill (xovo@gmx.net)
+# Copyright (c) 2002-2005 Thomas Grill (gr@grrrr.org)
 # For information on usage and redistribution, and for a DISCLAIMER OF ALL
 # WARRANTIES, see the file, "license.txt," in this distribution.  
 #
@@ -22,7 +22,8 @@ def numargs(*args):   # variable argument list
 
 def strlen(arg):   
 	"""Return the string length"""
-	return len(arg)
+	# we must convert to string first (it's a symbol type most likely)
+	return len(str(arg))
 
 
 def strcat(*args):

@@ -1,4 +1,4 @@
-#N canvas 297 17 684 526 12;
+#N canvas 297 17 688 530 12;
 #X obj 39 278 print;
 #X obj 345 251 print;
 #X msg 499 149 freakhole;
@@ -33,8 +33,10 @@ file.;
 #X msg 58 160 dir+;
 #X obj 16 13 cnv 15 630 40 empty empty py/pyext 10 22 0 24 -260818
 -1 0;
-#X text 235 32 http://www.parasitaere-kapazitaeten.net;
-#X text 235 16 Python script objects \, (C)2003-2004 Thomas Grill;
+#X text 235 16 Python script objects \, (C)2003-2005 Thomas Grill;
+#X text 235 32 http://grrrr.org/ext;
+#X msg 509 178 a b c;
+#X text 556 181 too many args;
 #X connect 2 0 25 1;
 #X connect 3 0 21 1;
 #X connect 4 0 21 1;
@@ -56,3 +58,4 @@ file.;
 #X connect 25 0 1 0;
 #X connect 26 0 21 0;
 #X connect 28 0 21 0;
+#X connect 32 0 25 1;
