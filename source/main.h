@@ -19,11 +19,11 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <unistd.h>
 #endif
 
-#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 301)
-#error You need at least flext version 0.3.1
+#if !defined(FLEXT_VERSION) || (FLEXT_VERSION < 302)
+#error You need at least flext version 0.3.2
 #endif
 
-#define PY__VERSION "0.0.3pre"
+#define PY__VERSION "0.1.0"
 
 
 #define I int
@@ -69,6 +69,8 @@ protected:
 
 	static py *GetThis(PyObject *mod) { return modules?modules->GetThis(mod):NULL; }
 
+	V GetModulePath(const C *mod,C *dir,I len);
+	V AddToPath(const C *dir);
 	V SetArgs(I argc,t_atom *argv);
 	V ImportModule(const C *name);
 	V SetModule(I hname,PyObject *module);
@@ -84,6 +86,27 @@ protected:
 	static C *strdup(const C *s);
 
 	enum retval { nothing,atom,tuple,list };
+
+	// ----------------------------------
+
+	V m_detach(BL det) { detach = det; }
+	V m_wait(I wait) { waittime = wait; }
+
+	BL detach;
+	I waittime;
+
+#ifdef FLEXT_THREADS
+	// for python thread protection
+	/*static*/ ThrMutex mutex;
+
+	BL Trylock(I wait = -1);
+	V Lock() { mutex.Unlock(); }
+	V Unlock() { mutex.Unlock(); }
+#else
+	BL Trylock(I) { return true; }
+	V Lock() {}
+	V Unlock() {}
+#endif
 };
 
 #endif

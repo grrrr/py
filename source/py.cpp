@@ -26,17 +26,19 @@ protected:
 
 	V work(const t_symbol *s,I argc,t_atom *argv); 
 
-	virtual V m_bang() { work(sym_bang,0,NULL); }
-	virtual V m_reload(I argc,t_atom *argv);
-	virtual V m_set(I argc,t_atom *argv);
+	V m_bang() { work(sym_bang,0,NULL); }
+	V m_reload(I argc,t_atom *argv);
+	V m_set(I argc,t_atom *argv);
 
 	virtual V m_help();
 
 	// methods for python arguments
-	virtual V m_py_list(I argc,t_atom *argv) { work(sym_list,argc,argv); }
-	virtual V m_py_float(I argc,t_atom *argv) { work(sym_float,argc,argv); }
-	virtual V m_py_int(I argc,t_atom *argv) { work(sym_int,argc,argv); }
-	virtual V m_py_any(const t_symbol *s,I argc,t_atom *argv) { work(s,argc,argv); }
+	V callwork(const t_symbol *s,I argc,t_atom *argv);
+	
+	V m_py_list(I argc,t_atom *argv) { callwork(sym_list,argc,argv); }
+	V m_py_float(I argc,t_atom *argv) { callwork(sym_float,argc,argv); }
+	V m_py_int(I argc,t_atom *argv) { callwork(sym_int,argc,argv); }
+	V m_py_any(const t_symbol *s,I argc,t_atom *argv) { callwork(s,argc,argv); }
 
 	t_symbol *sFunc;
 
@@ -47,11 +49,19 @@ private:
 	FLEXT_CALLBACK(m_bang)
 	FLEXT_CALLBACK_V(m_reload)
 	FLEXT_CALLBACK_V(m_set)
+	FLEXT_CALLBACK_B(m_detach)
+	FLEXT_CALLBACK_I(m_wait)
 
 	FLEXT_CALLBACK_V(m_py_float)
 	FLEXT_CALLBACK_V(m_py_list)
 	FLEXT_CALLBACK_V(m_py_int)
 	FLEXT_CALLBACK_A(m_py_any)
+
+#ifdef FLEXT_THREADS
+	FLEXT_THREAD_A(work)
+#else
+	FLEXT_CALLBACK_A(work)
+#endif
 };
 
 FLEXT_LIB_V("py",pyobj)
@@ -60,6 +70,8 @@ FLEXT_LIB_V("py",pyobj)
 pyobj::pyobj(I argc,t_atom *argv):
 	sFunc(NULL)
 { 
+//	py_BEGIN_ALLOW_THREADS
+
 	AddInAnything(2);  
 	AddOutAnything();  
 	SetupInOut();  // set up inlets and outlets
@@ -67,33 +79,25 @@ pyobj::pyobj(I argc,t_atom *argv):
 	FLEXT_ADDBANG(0,m_bang);
 	FLEXT_ADDMETHOD_(0,"reload",m_reload);
 	FLEXT_ADDMETHOD_(0,"set",m_set);
+	FLEXT_ADDMETHOD_(0,"detach",m_detach);
+	FLEXT_ADDMETHOD_(0,"wait",m_wait);
 
 	FLEXT_ADDMETHOD_(1,"float",m_py_float);
 	FLEXT_ADDMETHOD_(1,"int",m_py_int);
 	FLEXT_ADDMETHOD(1,m_py_list);
 	FLEXT_ADDMETHOD(1,m_py_any);
 
-	if(argc > 2) SetArgs(argc-2,argv+2);
+	if(argc > 2) 
+		SetArgs(argc-2,argv+2);
+	else
+		SetArgs(0,NULL);
 
 	// init script module
 	if(argc >= 1) {
 		C dir[1024];
-#ifdef PD
-		// uarghh... pd doesn't show it's path for extra modules
-
-		C *name;
-		I fd = open_via_path("",GetString(argv[0]),".py",dir,&name,sizeof(dir),0);
-		if(fd > 0) close(fd);
-		else name = NULL;
-
-		// if dir is current working directory... name points to dir
-		if(dir == name) strcpy(dir,".");
-#elif defined(MAXMSP)
-		*dir = 0;
-#endif
-
+		GetModulePath(GetString(argv[0]),dir,sizeof(dir));
 		// set script path
-		PySys_SetPath(dir);
+		AddToPath(dir);
 
 		if(!IsString(argv[0])) 
 			post("%s - script name argument is invalid",thisName());
@@ -108,7 +112,10 @@ pyobj::pyobj(I argc,t_atom *argv):
 		else
 			sFunc = GetSymbol(argv[1]);
 	}
+
+//	py_END_ALLOW_THREADS
 }
+
 
 
 BL pyobj::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
@@ -142,7 +149,6 @@ V pyobj::m_set(I argc,t_atom *argv)
 		post("%s - function name is not valid",thisName());
 	else
 		sFunc = GetSymbol(argv[ix]);
-
 }
 
 V pyobj::m_help()
@@ -162,12 +168,16 @@ V pyobj::m_help()
 	post("\tbang: call script without arguments");
 	post("\tset [script name] [function name]: set (script and) function name");
 	post("\treload [args...]: reload python script");
+	post("\tdetach 0/1: detach threads");
+	post("\twait [int]: wait time for thread termination (in ms)");
 	post("");
 }
 
 
 V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 {
+//	py_BEGIN_ALLOW_THREADS
+
 	PyObject *pFunc = GetFunction(sFunc?GetString(sFunc):NULL);
 
 	if(pFunc && PyCallable_Check(pFunc)) {
@@ -191,5 +201,15 @@ V pyobj::work(const t_symbol *s,I argc,t_atom *argv)
 	else {
 		post("%s: no function defined",thisName());
 	}
+
+//	py_END_ALLOW_THREADS
+
 }
 
+V pyobj::callwork(const t_symbol *s,I argc,t_atom *argv)
+{
+	if(detach)
+		FLEXT_CALLMETHOD_A(work,s,argc,argv);
+	else
+		work(s,argc,argv);
+}

@@ -22,18 +22,36 @@ V lib_setup()
 FLEXT_LIB_SETUP(py,lib_setup)
 
 
-py::py(): sName(NULL),hName(0) 
+py::py(): 
+	sName(NULL),hName(0),
+	detach(false),waittime(100)
 {
+	Lock();
 	// under Max/MSP: doesn't survive next line.....
-    if(!(pyref++)) Py_Initialize();
+
+	if(!(pyref++)) {
+		Py_Initialize();
+#ifdef FLEXT_THREADS
+		PyEval_InitThreads();
+#endif
+	}
+
+	Unlock();
 }
 
 py::~py()
 {
+	Lock();
+
     if(!(--pyref)) {
 		delete modules; modules = NULL;
+#ifdef FLEXT_THREADS
+		PyEval_ReleaseLock();
+#endif
 		Py_Finalize();
 	}
+
+	Unlock();
 }
 
 
@@ -89,18 +107,25 @@ C *py::strdup(const C *s)
 
 V py::SetArgs(I argc,t_atom *argv)
 {
+	// Py_BEGIN_ALLOW_THREADS
+
 	// script arguments
 	I i;
-	C **sargv = new C *[argc];
-	for(i = 0; i < argc; ++i) {
+	C **sargv = new C *[argc+1];
+	for(i = 0; i <= argc; ++i) {
 		sargv[i] = new C[256];
-		GetAString(argv[i],sargv[i],255);
+		if(!i) 
+			strcpy(sargv[i],thisName());
+		else
+			GetAString(argv[i-1],sargv[i],255);
 	}
 
 	// the arguments to the module are only recognized once! (at first use in a patcher)
-	PySys_SetArgv(argc,sargv);
+	PySys_SetArgv(argc+1,sargv);
 
-	for(i = 0; i < argc; ++i) delete[] sargv[i];
+	// Py_END_ALLOW_THREADS
+
+	for(i = 0; i <= argc; ++i) delete[] sargv[i];
 	delete[] sargv;
 }
 
@@ -110,6 +135,8 @@ V py::ImportModule(const C *name)
 
 	if(sName) delete[] sName;
 	sName = strdup(name);
+
+	// Py_BEGIN_ALLOW_THREADS
 
 	PyObject *pName = PyString_FromString(sName);
 	hName = PyObject_Hash(pName);
@@ -124,10 +151,14 @@ V py::ImportModule(const C *name)
 	}
 
 	Py_DECREF(pName);
+	// Py_END_ALLOW_THREADS
 }
 
 V py::SetModule(I hname,PyObject *module)
 {
+	// Py_BEGIN_ALLOW_THREADS
+	Lock();
+
 	lookup *l;
 	for(l = modules; l && l->modhash != hname; l = l->nxt);
 
@@ -138,10 +169,16 @@ V py::SetModule(I hname,PyObject *module)
 		if(modules) modules->Add(mod);
 		else modules = mod;
 	}
+
+	Unlock();
+	// Py_END_ALLOW_THREADS
 }
 
 V py::ReloadModule()
 {
+	// Py_BEGIN_ALLOW_THREADS
+	Lock();
+
 	lookup *l;
 	for(l = modules; l && l->modhash != hName; l = l->nxt);
 	if(l && l->module) {
@@ -152,32 +189,58 @@ V py::ReloadModule()
 			l->Set(newmod,this);
 		}
 	}
+
+	Unlock();
+	// Py_END_ALLOW_THREADS
 }
 
 PyObject *py::GetModule()
 {
+	Lock();
+
 	lookup *l;
 	for(l = modules; l && l->modhash != hName; l = l->nxt);
-	return l?l->module:NULL;
+	PyObject *ret = l?l->module:NULL;
+
+	Unlock();
+	return ret;
 }
 
 PyObject *py::GetDict()
 {
+	Lock();
+
 	lookup *l;
 	for(l = modules; l && l->modhash != hName; l = l->nxt);
-	return l?l->dict:NULL;
+	PyObject *ret = l?l->dict:NULL;
+
+	Unlock();
+	return ret;
 }
 
 PyObject *py::GetFunction(const C *func)
 {
-	if(!func) return NULL;
-	lookup *l;
-	for(l = modules; l && l->modhash != hName; l = l->nxt);
-	return l?PyDict_GetItemString(l->dict,const_cast<C *>(func)):NULL;
+	// Py_BEGIN_ALLOW_THREADS
+
+	PyObject *ret = NULL;
+	if(func) {
+		Lock();
+
+		lookup *l;
+		for(l = modules; l && l->modhash != hName; l = l->nxt);
+		ret = l?PyDict_GetItemString(l->dict,const_cast<C *>(func)):NULL;
+
+		Unlock();
+	}
+
+	// Py_END_ALLOW_THREADS
+	return ret;
 }
 
 PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet)
 {
+	// Py_BEGIN_ALLOW_THREADS
+
 	BL any = IsAnything(s);
 
 	PyObject *pArgs = PyTuple_New(argc+(any?1:0)+(inlet >= 0?1:0));
@@ -224,12 +287,16 @@ PyObject *py::MakePyArgs(const t_symbol *s,I argc,t_atom *argv,I inlet)
 		_PyTuple_Resize(&pArgs,pix);
 	}
 
+	// Py_END_ALLOW_THREADS
+
 	return pArgs;
 }
 
 t_atom *py::GetPyArgs(int &argc,PyObject *pValue,PyObject **self)
 {
 	if(pValue == NULL) { argc = 0; return NULL; }
+
+	// Py_END_ALLOW_THREADS
 
 	// analyze return value or tuple
 
@@ -279,14 +346,64 @@ t_atom *py::GetPyArgs(int &argc,PyObject *pValue,PyObject **self)
 	if(!ok) { 
 		delete[] ret; 
 		argc = 0; 
-		return NULL; 
+		ret = NULL; 
 	}
-	else {
+	else 
 		argc = rargc;
-		return ret;
+
+	// Py_END_ALLOW_THREADS
+
+	return ret;
+}
+
+
+V py::GetModulePath(const C *mod,C *dir,I len)
+{
+#ifdef PD
+	// uarghh... pd doesn't show it's path for extra modules
+
+	C *name;
+	I fd = open_via_path("",mod,".py",dir,&name,len,0);
+	if(fd > 0) close(fd);
+	else name = NULL;
+
+	// if dir is current working directory... name points to dir
+	if(dir == name) strcpy(dir,".");
+#elif defined(MAXMSP)
+	*dir = 0;
+#endif
+}
+
+V py::AddToPath(const C *dir)
+{
+	if(dir && *dir) {
+		// Py_END_ALLOW_THREADS
+
+		PyObject *pobj = PySys_GetObject("path");
+		if(pobj && PyList_Check(pobj)) {
+			PyObject *ps = PyString_FromString(dir);
+			PyList_Append(pobj,ps);
+		}
+		PySys_SetObject("path",pobj);
+
+		// Py_END_ALLOW_THREADS
 	}
 }
 
 
+//flext_base::ThrMutex py::mutex;
 
+#ifdef FLEXT_THREADS
+BL py::Trylock(I wait) 
+{
+	if(mutex.TryLock()) {
+		Sleep((F)((wait >= 0?wait:waittime)/1000.));
 
+		if(mutex.TryLock()) {
+			post("%s - A thread is running!",thisName());
+			return false;
+		}
+	}
+	return true;
+}	
+#endif

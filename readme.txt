@@ -52,9 +52,13 @@ Description:
 
 Version history:
 
-0.0.3:
-- using flext 0.2.2
+0.1.0:
+- using flext 0.3.1
 - another bugfix for undefined function
+- added pyext for full-featured objects
+- py/pyext now get full python path
+- make external name python argv[0]
+- enabled threads - Python is not thread-safe (?) -> mutex protection
 
 0.0.2:
 - fixed bug when calling script with no function defined (thanks to Ben Saylor)
@@ -75,5 +79,6 @@ general:
 features:
 
 tests:
+- test whether parallel threads are possible
 
 bugs:
