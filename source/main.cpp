@@ -19,19 +19,20 @@ static PyMethodDef StdOut_Methods[] =
 
 
 #ifdef FLEXT_THREADS
+
 typedef std::map<flext::thrid_t,PyThreadState *> PyThrMap;
 
-static PyInterpreterState *pystate = NULL;
+static PyInterpreterState *pymain = NULL;
 static PyThreadState *pythrmain = NULL;
 static PyThrMap pythrmap;
 
-PyThreadState *FindThreadState()
+PyThreadState *py::FindThreadState()
 {
     flext::thrid_t id = flext::GetThreadId();
 	PyThrMap::iterator it = pythrmap.find(id);
     if(it == pythrmap.end()) {
         // Make new thread state
-        PyThreadState *st = PyThreadState_New(pystate);
+        PyThreadState *st = PyThreadState_New(pymain);
         pythrmap[id] = st;
         return st;
     }
@@ -39,7 +40,7 @@ PyThreadState *FindThreadState()
         return it->second;
 }
 
-void FreeThreadState()
+void py::FreeThreadState()
 {
     flext::thrid_t id = flext::GetThreadId();
 	PyThrMap::iterator it = pythrmap.find(id);
@@ -61,12 +62,14 @@ void py::lib_setup()
 	post("------------------------------------------------");
 	post("py/pyext %s - python script objects",PY__VERSION);
 	post("(C)2002-2005 Thomas Grill - http://grrrr.org/ext");
+    post("");
+    post("using Python %s",Py_GetVersion());
 #ifdef FLEXT_DEBUG
-        post("");
+    post("");
 	post("DEBUG version compiled on %s %s",__DATE__,__TIME__);
 #endif
 	post("------------------------------------------------");
-        post("");
+    post("");
 
 	// -------------------------------------------------------------
 
@@ -84,7 +87,7 @@ void py::lib_setup()
     // get thread state
     pythrmain = PyThreadState_Get();
     // get main interpreter state
-	pystate = pythrmain->interp;
+	pymain = pythrmain->interp;
 
     // add thread state of main thread to map
     pythrmap[GetThreadId()] = pythrmain;
@@ -103,15 +106,15 @@ void py::lib_setup()
     py_out = Py_InitModule("stderr", StdOut_Methods);
 	PySys_SetObject("stderr", py_out);
 
-#ifdef FLEXT_THREADS
-    // release global lock
-    PyEval_ReleaseLock();
-#endif
-
 	// -------------------------------------------------------------
 
 	FLEXT_SETUP(pyobj);
 	FLEXT_SETUP(pyext);
+
+#ifdef FLEXT_THREADS
+    // release global lock
+    PyEval_ReleaseLock();
+#endif
 }
 
 FLEXT_LIB_SETUP(py,py::lib_setup)
@@ -126,11 +129,9 @@ py::py():
 	detach(0),shouldexit(false),thrcount(0),
 	stoptick(0)
 {
-//    interpreter = PyInterpreterState_New();
-
     PyThreadState *state = PyLock();
 	Py_INCREF(module_obj);
-	PyUnlock(state);
+    PyUnlock(state);
 
     FLEXT_ADDTIMER(stoptmr,tick);
 
@@ -152,14 +153,10 @@ py::~py()
 		while(thrcount) Sleep(0.2f);
 		post("%s - Okay, all threads have terminated",thisName());
 	}
-		
+
+    PyThreadState *state = PyLock();
    	Py_XDECREF(module_obj);
-/*
-    PyEval_AcquireLock();
-    PyInterpreterState_Clear(interpreter);
-    PyInterpreterState_Delete(interpreter);
-    PyEval_ReleaseLock();
-*/
+    PyUnlock(state);
 }
 
 
@@ -504,12 +501,28 @@ void py::threadworker()
         Py_XDECREF(fun);
         Py_XDECREF(args);
     }
+
     PyUnlock(state);
 }
+
+#if FLEXT_SYS == FLEXT_SYS_MAX
+short py::patcher_myvol(t_patcher *x)
+{
+    t_box *w;
+    if (x->p_vol)
+        return x->p_vol;
+    else if (w = (t_box *)x->p_vnewobj)
+        return patcher_myvol(w->b_patcher);
+    else
+        return 0;
+}
+#endif
+
 
 Fifo::~Fifo()
 {
     FifoEl *el = head;
+    head = tail = NULL; // reset it, in case there's a thread wanting to Pop
     while(el) {
         FifoEl *n = el->nxt;
         delete el;

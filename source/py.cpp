@@ -25,7 +25,6 @@ protected:
 
 	bool work(const t_symbol *s,int argc,const t_atom *argv); 
 
-	void m_bang() { callwork(sym_bang,0,NULL); }
 	void m_reload();
 	void m_reload_(int argc,const t_atom *argv);
 	void m_set(int argc,const t_atom *argv);
@@ -37,6 +36,7 @@ protected:
 	// methods for python arguments
 	void callwork(const t_symbol *s,int argc,const t_atom *argv);
 	
+	void m_bang() { callwork(sym_bang,0,NULL); }
 	void m_py_list(int argc,const t_atom *argv) { callwork(sym_list,argc,argv); }
 	void m_py_float(int argc,const t_atom *argv) { callwork(sym_float,argc,argv); }
 	void m_py_int(int argc,const t_atom *argv) { callwork(sym_int,argc,argv); }
@@ -44,6 +44,7 @@ protected:
 
 	const t_symbol *funname;
 	PyObject *function;
+    bool withfunction;
 
 	virtual void Reload();
 
@@ -102,7 +103,7 @@ void pyobj::Setup(t_classid c)
 }
 
 pyobj::pyobj(int argc,const t_atom *argv):
-	function(NULL),funname(NULL)
+	function(NULL),funname(NULL),withfunction(false)
 { 
 	PyThreadState *state = PyLock();
 
@@ -130,11 +131,9 @@ pyobj::pyobj(int argc,const t_atom *argv):
 			// add current dir to path
 			AddToPath(GetString(canvas_getcurrentdir()));
 #elif FLEXT_SYS == FLEXT_SYS_MAX 
-/*
 			short path = patcher_myvol(thisCanvas());
 			path_topathname(path,NULL,dir); 
 			AddToPath(dir);       
-*/
 #else 
 	        #pragma message("Adding current dir to path is not implemented")
 #endif
@@ -146,6 +145,8 @@ pyobj::pyobj(int argc,const t_atom *argv):
 	Register("_py");
 
 	if(argc >= 2) {
+        withfunction = true;
+
 		// set function name
 		if(!IsString(argv[1])) 
 			post("%s - function name argument is invalid",thisName());
@@ -154,6 +155,8 @@ pyobj::pyobj(int argc,const t_atom *argv):
 			SetFunction(GetString(argv[1]));
 		}
 	}
+    else
+        withfunction = false;
 
 	PyUnlock(state);
 }
@@ -280,10 +283,13 @@ void pyobj::SetFunction(const char *func)
 {
 	if(func) {
 		funname = MakeSymbol(func);
+        withfunction = true;
 		ResetFunction();
 	}
-	else 
+    else {
+        withfunction = false;
 		function = NULL,funname = NULL;
+    }
 }
 
 
@@ -319,19 +325,29 @@ void pyobj::callwork(const t_symbol *s,int argc,const t_atom *argv)
 {
     bool ret = false;
  
-	if(function) {
-        PyThreadState *state = PyLock();
-    
-		PyObject *pargs = MakePyArgs(s,argc,argv);
-        Py_INCREF(function);
-        ret = gencall(function,pargs);
+    PyThreadState *state = PyLock();
 
-        PyUnlock(state);
+    if(withfunction) {
+        if(function) {
+		    PyObject *pargs = MakePyArgs(s,argc,argv);
+            Py_INCREF(function);
+            ret = gencall(function,pargs);
+        }
+	    else
+		    post("%s: no valid function defined",thisName());
     }
-	else {
-		post("%s: no function defined",thisName());
-        ret = false;
-	}
+    else {
+        // no function defined as creation argument -> use message tag
+        PyObject *func = PyObject_GetAttrString(module,const_cast<char *>(GetString(s)));
+        if(func) {
+		    PyObject *pargs = MakePyArgs(sym_list,argc,argv);
+            ret = gencall(func,pargs);
+        }
+        else
+            PyErr_Print();
+    }
+
+    PyUnlock(state);
 
     Respond(ret);
 }
