@@ -1,0 +1,28 @@
+# py/pyext - python script objects for PD and Max/MSP
+# Copyright (c) 2002 Thomas Grill (xovo@gmx.net)
+#
+
+# where are the PD header files?
+PDPATH=/usr/local/include
+
+# where do the flext libraries reside?
+FLEXTPATH=/usr/local/lib/pd/flext
+
+# what is the python version?
+PYTHONVER=2.2
+# where are the python header files?
+PYTHONINCLUDE=/usr/include/python${PYTHONVER}
+# where is the python library file?
+PYTHONLIB=/usr/lib/python${PYTHONVER}/config
+
+# where should flext libraries be built?
+TARGDIR=./pd-linux
+
+# should the flext stuff be installed? (yes/no)
+INSTALL=yes
+
+# where should py/pyext be installed?
+INSTPATH=/usr/local/lib/pd/extra
+
+
+

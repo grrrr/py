@@ -8,28 +8,9 @@
 # to install (as root), do "make -f makefile.pd-linux install"
 #
 
-## EDIT ZONE ##################################
-
-# flext path
-FLEXTPATH=/usr/local/lib/pd/flext
-
-# pd path
-PDPATH=/usr/local/lib/pd/include
-
-# python paths
-PYTHONVER=2.2
-PYTHONINCLUDE=/usr/include/python$(PYTHONVER)
-PYTHONLIB=/usr/lib/python$(PYTHONVER)/config
-
-# where to install	
-INSTDIR=/usr/lib/pd/extra
-
-###############################################
+include config-pd-linux.txt
 
 FLEXTLIB=$(FLEXTPATH)/flext_t.a
-
-# where to build (temporary)
-TARGDIR=./pd-linux
 
 # compiler+linker stuff	
 INCLUDES=$(PDPATH) $(PYTHONINCLUDE)
@@ -67,14 +48,15 @@ $(TARGET) : $(patsubst %.cpp,$(TARGDIR)/%.o,$(SRCS)) $(FLEXTLIB)
 	$(CXX) -shared $^ $(patsubst %,-L%,$(LIBPATH)) $(patsubst %,-l%,$(LIBS)) -o $@ 
 	chmod 755 $@
 
-$(INSTDIR):
+$(INSTPATH):
 	mkdir $(INSTDIR)
 
 install:: $(INSTDIR)
 
 install:: $(TARGET)
-	cp $^ $(INSTDIR)
-	chown root.root  $(patsubst %,$(INSTDIR)/%,$(notdir $^))
+	cp $^ $(INSTPATH)
+	chown root.root  $(patsubst %,$(INSTPATH)/%,$(notdir $^))
+	chmod 755 $(patsubst %,$(INSTPATH)/%,$(notdir $^))
 
 .PHONY: clean
 clean:
