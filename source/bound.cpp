@@ -104,7 +104,7 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 		// do unbind
 		if(px) {
 			pd_unbind(&px->obj.ob_pd,recv);  
-			object_free(px->obj);
+			object_free(&px->obj);
 
 			Py_DECREF(self);
 			if(PyMethod_Check(meth)) Py_DECREF(meth);
@@ -133,7 +133,7 @@ V pyext::ClearBinding()
 			if(PyMethod_Check(px->func)) Py_DECREF(px->func);
 
 			pd_unbind(&px->obj.ob_pd,px->name);  
-			object_free(px->obj);
+			object_free(&px->obj);
 		}
 		else pp = px;	
 		px = pn;
