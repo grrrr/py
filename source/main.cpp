@@ -475,7 +475,6 @@ bool py::gencall(PyObject *pmeth,PyObject *pargs)
             // put call into queue
             ret = qucall(pmeth,pargs);
             break;
-#endif
         case 2:
             // each call a new thread
             if(!shouldexit) {
@@ -483,8 +482,9 @@ bool py::gencall(PyObject *pmeth,PyObject *pargs)
 			    if(!ret) post("%s - Failed to launch thread!",thisName());
 		    }
             break;
+#endif
         default:
-            FLEXT_ASSERT(false);
+            post("%s - Unknown detach mode",thisName());
     }
     return ret;
 }
@@ -522,14 +522,17 @@ void py::threadworker()
     FifoEl *el;
     PyThreadState *state;
 
+   	++thrcount;
     while(!shouldexit) {
         while(el = qufifo.Get()) {
+        	++thrcount;
             state = PyLock();
             callpy(el->fun,el->args);
             Py_XDECREF(el->fun);
             Py_XDECREF(el->args);
             PyUnlock(state);
             qufifo.Free(el);
+            --thrcount;
         }
         qucond.Wait();
     }
@@ -542,6 +545,7 @@ void py::threadworker()
         qufifo.Free(el);
     }
     PyUnlock(state);
+    --thrcount;
 }
 #endif
 

@@ -157,14 +157,14 @@ public:
 
 	inline PyThreadState *PyLock() 
     { 
-        if(!lockcount++) PyEval_AcquireLock();
+        if(!IsSystemThread() || !lockcount++) PyEval_AcquireLock();
 	    return PyThreadState_Swap(FindThreadState());
     }
 
 	inline void PyUnlock(PyThreadState *st) 
     {
         PyThreadState_Swap(st);
-        if(!--lockcount) PyEval_ReleaseLock();
+        if(!IsSystemThread() || !--lockcount) PyEval_ReleaseLock();
     }
 #else
 	inline void Lock() {}
