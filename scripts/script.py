@@ -28,17 +28,11 @@ def strlen(arg):
 
 def strcat(*args):
 	"""Concatenate several symbols"""
-	s = ""
-	for si in args:
-		s += str(si)
-	return s
-
+	return reduce(lambda a,b: a+str(b), args,"")
 
 def addall(*args):   # variable argument list
-	s = 0
-	for si in args:
-		s += si
-	return s
+	"""Add a couple of numbers"""
+	return reduce(lambda a,b: a+b, args,0)
 
 
 def ret1():

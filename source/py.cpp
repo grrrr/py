@@ -36,11 +36,11 @@ protected:
 	// methods for python arguments
 	void callwork(const t_symbol *s,int argc,const t_atom *argv);
 	
-	void m_bang() { callwork(sym_bang,0,NULL); }
-	void m_py_list(int argc,const t_atom *argv) { callwork(sym_list,argc,argv); }
-	void m_py_float(int argc,const t_atom *argv) { callwork(sym_float,argc,argv); }
-	void m_py_int(int argc,const t_atom *argv) { callwork(sym_int,argc,argv); }
-	void m_py_any(const t_symbol *s,int argc,const t_atom *argv) { callwork(s,argc,argv); }
+	inline void m_bang() { callwork(NULL,0,NULL); }
+	inline void m_py_list(int argc,const t_atom *argv) { callwork(sym_list,argc,argv); }
+	inline void m_py_float(int argc,const t_atom *argv) { callwork(sym_float,argc,argv); }
+	inline void m_py_int(int argc,const t_atom *argv) { callwork(sym_int,argc,argv); }
+	inline void m_py_any(const t_symbol *s,int argc,const t_atom *argv) { callwork(s,argc,argv); }
 
 	const t_symbol *funname;
 	PyObject *function;
