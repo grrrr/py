@@ -10,11 +10,6 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "pyext.h"
 
-#ifdef _MSC_VER
-#pragma warning(disable: 4091)
-#endif
-#include <g_canvas.h>
-
 
 PyMethodDef pyext::meth_tbl[] = 
 {

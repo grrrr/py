@@ -10,7 +10,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
-PyObject *py::MakePyArgs(const t_symbol *s,AtomList &args,I inlet,BL withself)
+PyObject *py::MakePyArgs(const t_symbol *s,const AtomList &args,I inlet,BL withself)
 {
 	PyObject *pArgs;
 

@@ -28,7 +28,7 @@ LIBS=m util python$(PYTHONVER)
 NAME=py
 
 # all the source files from the package
-SRCS=main.cpp py.cpp pyext.cpp bound.cpp clmeth.cpp
+SRCS=main.cpp py.cpp pyext.cpp bound.cpp clmeth.cpp modmeth.cpp pyargs.cpp register.cpp
 HDRS=main.h pyext.h
 
 TARGET=$(TARGDIR)/$(NAME).pd_linux

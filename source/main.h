@@ -52,7 +52,7 @@ public:
 	~py();
 	static V lib_setup();
 
-	static PyObject *MakePyArgs(const t_symbol *s,AtomList &args,I inlet = -1,BL withself = false);
+	static PyObject *MakePyArgs(const t_symbol *s,const AtomList &args,I inlet = -1,BL withself = false);
 	static AtomList *GetPyArgs(PyObject *pValue,PyObject **self = NULL);
 
 protected:
