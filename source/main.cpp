@@ -28,12 +28,29 @@ public:
 	~py();
 
 protected:
-	virtual V m_method_(I n,const t_symbol *s,I argc,t_atom *argv); 
+	V m_method_(I n,const t_symbol *s,I argc,t_atom *argv);
+
+	V work(const t_symbol *s,I argc,t_atom *argv); 
+	
+	virtual V m_bang() { work(sym_bang,0,NULL); }
+	virtual V m_list(I argc,t_atom *argv) { work(sym_list,argc,argv); }
+	virtual V m_float(I argc,t_atom *argv) { work(sym_float,argc,argv); }
+	virtual V m_int(I argc,t_atom *argv) { work(sym_int,argc,argv); }
+	virtual V m_symbol(I argc,t_atom *argv) { work(sym_symbol,argc,argv); }
+	virtual V m_any(const t_symbol *s,I argc,t_atom *argv);
 
     PyObject *pName,*pModule,*pDict,*pFunc;	
-	t_atom *ret;
+//	t_atom *ret;
 
 	static I pyref;
+
+private:
+	FLEXT_CALLBACK(m_bang)
+	FLEXT_CALLBACK_G(m_float)
+	FLEXT_CALLBACK_G(m_list)
+	FLEXT_CALLBACK_G(m_int)
+	FLEXT_CALLBACK_G(m_symbol)
+	FLEXT_CALLBACK_A(m_any)
 };
 
 I py::pyref;
@@ -48,13 +65,19 @@ FLEXT_GIMME("py",py)
 
 
 py::py(I argc,t_atom *argv):
-	pName(NULL),pModule(NULL),pDict(NULL),pFunc(NULL),
-	ret(NULL)
+	pName(NULL),pModule(NULL),pDict(NULL),pFunc(NULL)
+	//,ret(NULL)
 { 
 	add_in_anything();  
 	add_out_anything();  
 	setup_inout();  // set up inlets and outlets
 
+	FLEXT_ADDBANG(0,m_bang);
+	FLEXT_ADDMETHOD_(0,"float",m_float);
+	FLEXT_ADDMETHOD_(0,"int",m_int);
+	FLEXT_ADDMETHOD_(0,"symbol",m_symbol);
+	FLEXT_ADDMETHOD(0,m_list);
+	FLEXT_ADDMETHOD(0,m_any);
 
     if(!(pyref++)) Py_Initialize();
 
@@ -62,26 +85,42 @@ py::py(I argc,t_atom *argv):
         post("%s: Syntax: %s pythonfile function",thisName(),thisName());
     }
 	else {
-		const C *scrname = geta_string(argv[0]);
+		const C *scrname = get_string(argv[0]);
+
+		// script arguments
+		I margc = argc > 2?argc-2:0;
+		C **margv = new C *[margc];
+		for(I i = 0; i < margc; ++i) {
+			margv[i] = new C[256];
+			geta_string(argv[i+2],margv[i],255);
+		}
+
+		PySys_SetArgv(margc,margv);
+
+		// init script module
 
 		pName = PyString_FromString(scrname);
 
 		pModule = PyImport_Import(pName);
 		if (!pModule) 
-			post("%s: python script %s not found",thisName(),scrname);
+			post("%s: python script %s not found or init error",thisName(),scrname);
 		else {
 			pDict = PyModule_GetDict(pModule);
 			/* pDict is a borrowed reference */
 
-			pFunc = PyDict_GetItemString(pDict,(C *)geta_string(argv[1]));
+			pFunc = PyDict_GetItemString(pDict,(C *)get_string(argv[1]));
 			/* pFun: Borrowed reference */
 		}
+
+		for(i = 0; i < margc; ++i) delete[] margv[i];
+		delete[] margv;
+
 	}
 }
 
 py::~py()
 {
-	if(ret) delete[] ret;
+//	if(ret) delete[] ret;
     
 	// pDict and pFunc are borrowed and must not be Py_DECREF-ed 
 
@@ -91,91 +130,101 @@ py::~py()
     if(!(--pyref)) Py_Finalize();
 }
 
-V py::m_method_(I inlet,const t_symbol *s,I argc,t_atom *argv)
+V py::m_method_(I n,const t_symbol *s,I argc,t_atom *argv)
+{
+	post("%s - no method for type %s",thisName(),get_string(s));
+}
+
+V py::m_any(const t_symbol *s,I argc,t_atom *argv)
+{
+	if(argc == 0) {
+		t_atom a;
+		set_symbol(a,s);
+		work(s,1,&a);
+	}
+	else
+		m_method_(0,s,argc,argv);
+}
+
+
+V py::work(const t_symbol *s,I argc,t_atom *argv)
 {
     PyObject *pArgs, *pValue;
 
 //	post("Any called: inlet=%i, symbol=%s, argc=%i",inlet,s->s_name,argc);
 
 	if(pFunc && PyCallable_Check(pFunc)) {
+		pArgs = PyTuple_New(argc);
 
-		if(s == sym_bang) {
-			pArgs = PyTuple_New(0);
-			argc = 0;
-		}
-		else {
-			BL any;
-			any = s && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list;
-
-			pArgs = PyTuple_New(any?argc+1:argc);
-
-			I ix = 0;
-			if(any) {
+		I ix = 0;
+/*
+		if(any) {
 //				post("Header: symbol=%s",s->s_name);
 
-				pValue = PyString_FromString(s->s_name);
-				if(!pValue) {
-					post("%s: cannot convert argument header",thisName());
-				}
-
-				/* pValue reference stolen here: */
-				PyTuple_SetItem(pArgs, ix, pValue);
-				++ix;
+			pValue = PyString_FromString(s->s_name);
+			if(!pValue) {
+				post("%s: cannot convert argument header",thisName());
 			}
 
-			for(I i = 0; i < argc; ++i) {
-				pValue = NULL;
-				
-				if(is_float(argv[i])) pValue = PyFloat_FromDouble((D)get_float(argv[i]));
-				else if(is_int(argv[i])) pValue = PyInt_FromLong(get_int(argv[i]));
-				else if(is_symbol(argv[i])) pValue = PyString_FromString(geta_string(argv[i]));
+			// pValue reference stolen here: 
+			PyTuple_SetItem(pArgs, ix, pValue);
+			++ix;
+		}
+*/
+		for(I i = 0; i < argc; ++i) {
+			pValue = NULL;
+			
+			if(is_float(argv[i])) pValue = PyFloat_FromDouble((D)get_float(argv[i]));
+			else if(is_int(argv[i])) pValue = PyInt_FromLong(get_int(argv[i]));
+			else if(is_symbol(argv[i])) pValue = PyString_FromString(get_string(argv[i]));
 
-				if(!pValue) {
-					post("%s: cannot convert argument",thisName());
-					continue;
-				}
-
-				/* pValue reference stolen here: */
-				PyTuple_SetItem(pArgs, ix, pValue); 
-				++ix;
+			if(!pValue) {
+				post("%s: cannot convert argument",thisName());
+				continue;
 			}
+
+			/* pValue reference stolen here: */
+			PyTuple_SetItem(pArgs, ix, pValue); 
+			++ix;
 		}
 
 //		post("calling function with %i args",PyTuple_Size(pArgs));
 
 		pValue = PyObject_CallObject(pFunc, pArgs);
 		if (pValue != NULL) {
-			// analyze return tuple
+			// analyze return value or tuple
 
-			PyObject *arg;
-			int rargc;
-			if(PyTuple_Check(pValue)) 
-				rargc = PyTuple_Size(pValue);
+			int rargc = 0;
+			BL tpl = false;
+
+			if(PyObject_Not(pValue)) rargc = 0;
 			else {
-				arg = pValue;
-				rargc = -1;
+				tpl = PyTuple_Check(pValue);
+				rargc = tpl?PyTuple_Size(pValue):1;
 			}
 
-			if(ret) delete[] ret;
-			ret = new t_atom[rargc < 0?1:rargc];
+			t_atom *ret = new t_atom[rargc];
 
-			for(int ix = 0; ix < rargc || rargc < 0; ++ix) {
-				if(rargc >= 0) arg = PyTuple_GetItem(pValue,ix);
+			for(int ix = 0; ix < rargc; ++ix) {
+				PyObject *arg = tpl?PyTuple_GetItem(pValue,ix):pValue;
 
 				if(PyInt_CheckExact(arg)) set_flint(ret[ix],PyInt_AsLong(arg));
 				else if(PyFloat_Check(arg)) set_float(ret[ix],PyFloat_AsDouble(arg));
 				else if(PyString_Check(arg)) set_string(ret[ix],PyString_AsString(arg));
-				else 
+				else {
 					post("%s: Could not convert return argument",thisName());
+					set_string(ret[ix],"???");
+				}
 
-				if(rargc < 0) break;
+				if(!tpl) break;
 
 				Py_DECREF(arg);
 			}
 
 			Py_DECREF(pValue);
 
-			to_out_list(0,rargc < 0?1:rargc,ret);
+			if(rargc) to_out_list(0,rargc,ret);
+			delete[] ret;
 		}
 		else {
 			post("%s: python function call failed",thisName());
