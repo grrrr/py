@@ -173,7 +173,7 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 		if(!tp)
 			val = PySequence_GetSlice(args,2,sz);  // new ref
 
-        AtomListStatic<16> lst;
+        flext::AtomListStatic<16> lst;
 		if(GetPyArgs(lst,val)) {
 			int o = PyInt_AsLong(outl);
 			if(o >= 1 && o <= ext->Outlets()) {
@@ -295,7 +295,7 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 		if(!tp)
 			val = PyTuple_GetSlice(args,1,sz);  // new ref
 
-		AtomListStatic<16> lst;
+		flext::AtomListStatic<16> lst;
         if(GetPyArgs(lst,val)) {
 			t_glist *gl = ext->thisCanvas(); //canvas_getcurrent();
 			t_class **cl = (t_pd *)gl;

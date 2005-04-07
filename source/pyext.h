@@ -76,7 +76,7 @@ protected:
 	int inlets,outlets;
     int siginlets,sigoutlets;
 
-    AtomListStatic<16> initargs;
+    flext::AtomListStatic<16> initargs;
 
 	virtual bool Reload();
 	virtual bool DoInit();

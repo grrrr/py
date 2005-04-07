@@ -331,7 +331,7 @@ bool pyobj::callpy(PyObject *fun,PyObject *args)
         return false;
     }
     else {
-        AtomListStatic<16> rargs;
+        flext::AtomListStatic<16> rargs;
         if(GetPyArgs(rargs,ret)) {
             // call to outlet _outside_ the Mutex lock!
             // otherwise (if not detached) deadlock will occur
