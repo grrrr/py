@@ -15,44 +15,34 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #if defined(PY_NUMERIC)
     #define PY_ARRAYS 1
-
-    #if FLEXT_OS == FLEXT_OS_MAC
-    #include <Python/Numeric/arrayobject.h>
-    #else
-    #include <Numeric/arrayobject.h>
-    #endif
 #elif defined(PY_NUMARRAY)
     #define PY_ARRAYS 1
     #define NA
+#endif
+
+#ifdef PY_ARRAYS
 
 #ifdef NA
     #if FLEXT_OS == FLEXT_OS_MAC
-    #include <Python/numarray/numarray.h>
+    #include <Python/numarray/libnumarray.h>
     #else
-    #include <numarray/numarray.h>
+    #include <numarray/libnumarray.h>
     #endif
+
+static NumarrayType numtype = tAny;
+inline bool arrsupport() { return numtype != tAny; }
+
 #else
     #if FLEXT_OS == FLEXT_OS_MAC
     #include <Python/numarray/arrayobject.h>
     #else
     #include <numarray/arrayobject.h>
     #endif
-#endif
-#endif
 
-
-#ifdef PY_ARRAYS
-
-#ifdef NA
-static NumarrayType numtype = tAny;
-inline bool arrsupport() { return numtype != tAny; }
-#else
 static PyArray_TYPES numtype = PyArray_NOTYPE;
 inline bool arrsupport() { return numtype != PyArray_NOTYPE; }
 #endif
-
 #endif
-
 
 // PD defines a T_OBJECT symbol
 #undef T_OBJECT
