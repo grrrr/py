@@ -1,0 +1,516 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 39;
+	objects = {
+		089C1669FE841209C02AAC07 = {
+			buildSettings = {
+			};
+			buildStyles = (
+				4F9091AC011F3BD104CA0E50,
+				4F9091AD011F3BD104CA0E50,
+			);
+			hasScannedForEncodings = 1;
+			isa = PBXProject;
+			mainGroup = 089C166AFE841209C02AAC07;
+			projectDirPath = "";
+			targets = (
+				E90E52E508092505001341AC,
+			);
+		};
+		089C166AFE841209C02AAC07 = {
+			children = (
+				08FB77ADFE841716C02AAC07,
+				089C1671FE841209C02AAC07,
+				19C28FB4FE9D528D11CA2CBB,
+			);
+			isa = PBXGroup;
+			name = py;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		089C1671FE841209C02AAC07 = {
+			children = (
+				E90E52D208091F79001341AC,
+				E90E521108091CA5001341AC,
+				E90E51FD08091A06001341AC,
+				E90E51FB080919EC001341AC,
+			);
+			isa = PBXGroup;
+			name = "External Frameworks and Libraries";
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		08FB77ADFE841716C02AAC07 = {
+			children = (
+				E90E51DB08091989001341AC,
+				E90E51DC08091989001341AC,
+				E90E51DD08091989001341AC,
+				E90E51DE08091989001341AC,
+				E90E51DF08091989001341AC,
+				E90E51E008091989001341AC,
+				E90E51E108091989001341AC,
+				E90E51E208091989001341AC,
+				E90E51E308091989001341AC,
+				E90E51E408091989001341AC,
+				E90E51E508091989001341AC,
+				E90E51E608091989001341AC,
+				E90E51E708091989001341AC,
+				E90E51E808091989001341AC,
+				E90E51E908091989001341AC,
+				E90E51EA08091989001341AC,
+			);
+			isa = PBXGroup;
+			name = Source;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+//080
+//081
+//082
+//083
+//084
+//190
+//191
+//192
+//193
+//194
+		19C28FB4FE9D528D11CA2CBB = {
+			children = (
+				E90E52E608092505001341AC,
+			);
+			isa = PBXGroup;
+			name = Products;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+//190
+//191
+//192
+//193
+//194
+//4F0
+//4F1
+//4F2
+//4F3
+//4F4
+		4F9091AC011F3BD104CA0E50 = {
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "$(GCC_PREPROCESSOR_DEFINITIONS) FLEXT_DEBUG";
+				OPTIMIZATION_CFLAGS = "-O0";
+				ZERO_LINK = YES;
+			};
+			isa = PBXBuildStyle;
+			name = Development;
+		};
+		4F9091AD011F3BD104CA0E50 = {
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				ZERO_LINK = NO;
+			};
+			isa = PBXBuildStyle;
+			name = Deployment;
+		};
+//4F0
+//4F1
+//4F2
+//4F3
+//4F4
+//E90
+//E91
+//E92
+//E93
+//E94
+		E90E51DB08091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = bound.cpp;
+			path = source/bound.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51DC08091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = clmeth.cpp;
+			path = source/clmeth.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51DD08091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = main.cpp;
+			path = source/main.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51DE08091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = main.h;
+			path = source/main.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51DF08091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = modmeth.cpp;
+			path = source/modmeth.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51E008091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = py.cpp;
+			path = source/py.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51E108091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = pyargs.cpp;
+			path = source/pyargs.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51E208091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = pybuffer.cpp;
+			path = source/pybuffer.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51E308091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = pybuffer.h;
+			path = source/pybuffer.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51E408091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = pydsp.cpp;
+			path = source/pydsp.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51E508091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = pyext.cpp;
+			path = source/pyext.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51E608091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = pyext.h;
+			path = source/pyext.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51E708091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = pyprefix.h;
+			path = source/pyprefix.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51E808091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = pysymbol.cpp;
+			path = source/pysymbol.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51E908091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = pysymbol.h;
+			path = source/pysymbol.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51EA08091989001341AC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = register.cpp;
+			path = source/register.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90E51FB080919EC001341AC = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = Python.framework;
+			path = /System/Library/Frameworks/Python.framework;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E90E51FD08091A06001341AC = {
+			isa = PBXFileReference;
+			lastKnownFileType = archive.ar;
+			name = "libflext-pd_t.a";
+			path = "/usr/local/lib/libflext-pd_t.a";
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E90E521108091CA5001341AC = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = ApplicationServices.framework;
+			path = /System/Library/Frameworks/ApplicationServices.framework;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E90E52D208091F79001341AC = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = vecLib.framework;
+			path = /System/Library/Frameworks/vecLib.framework;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E90E52E208092505001341AC = {
+			buildActionMask = 2147483647;
+			files = (
+				E90E52E908092581001341AC,
+				E90E52EA08092581001341AC,
+				E90E52EB08092581001341AC,
+				E90E52EC08092581001341AC,
+				E90E52ED08092581001341AC,
+			);
+			isa = PBXHeadersBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E90E52E308092505001341AC = {
+			buildActionMask = 2147483647;
+			files = (
+				E90E52EE0809258A001341AC,
+				E90E52EF0809258A001341AC,
+				E90E52F00809258A001341AC,
+				E90E52F10809258A001341AC,
+				E90E52F20809258A001341AC,
+				E90E52F30809258A001341AC,
+				E90E52F40809258A001341AC,
+				E90E52F50809258A001341AC,
+				E90E52F60809258A001341AC,
+				E90E52F70809258A001341AC,
+				E90E52F80809258A001341AC,
+			);
+			isa = PBXSourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E90E52E408092505001341AC = {
+			buildActionMask = 2147483647;
+			files = (
+				E90E535B08092593001341AC,
+				E90E535C08092593001341AC,
+				E90E535D08092593001341AC,
+				E90E535E08092593001341AC,
+			);
+			isa = PBXFrameworksBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E90E52E508092505001341AC = {
+			buildPhases = (
+				E90E52E208092505001341AC,
+				E90E52E308092505001341AC,
+				E90E52E408092505001341AC,
+			);
+			buildRules = (
+			);
+			buildSettings = {
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_EXTENSION = pd_darwin;
+				GCC_ALTIVEC_EXTENSIONS = YES;
+				GCC_MODEL_CPU = G4;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = source/pyprefix.h;
+				GCC_PREPROCESSOR_DEFINITIONS = "FLEXT_SYS=2 FLEXT_THREADS";
+				HEADER_SEARCH_PATHS = "/usr/local/include/flext $(PDApp)/src";
+				INSTALL_PATH = "$(PDApp)/extra";
+				LIBRARY_STYLE = BUNDLE;
+				OPTIMIZATION_CFLAGS = "";
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "-bundle_loader $(PDApp)/bin/pd";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = py;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
+			};
+			dependencies = (
+			);
+			isa = PBXNativeTarget;
+			name = py;
+			productName = py;
+			productReference = E90E52E608092505001341AC;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+		E90E52E608092505001341AC = {
+			explicitFileType = "compiled.mach-o.dylib";
+			includeInIndex = 0;
+			isa = PBXFileReference;
+			path = py.pd_darwin;
+			refType = 3;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		E90E52E908092581001341AC = {
+			fileRef = E90E51DE08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52EA08092581001341AC = {
+			fileRef = E90E51E308091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52EB08092581001341AC = {
+			fileRef = E90E51E608091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52EC08092581001341AC = {
+			fileRef = E90E51E708091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52ED08092581001341AC = {
+			fileRef = E90E51E908091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52EE0809258A001341AC = {
+			fileRef = E90E51DB08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52EF0809258A001341AC = {
+			fileRef = E90E51DC08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52F00809258A001341AC = {
+			fileRef = E90E51DD08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52F10809258A001341AC = {
+			fileRef = E90E51DF08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52F20809258A001341AC = {
+			fileRef = E90E51E008091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52F30809258A001341AC = {
+			fileRef = E90E51E108091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52F40809258A001341AC = {
+			fileRef = E90E51E208091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52F50809258A001341AC = {
+			fileRef = E90E51E408091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52F60809258A001341AC = {
+			fileRef = E90E51E508091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52F70809258A001341AC = {
+			fileRef = E90E51E808091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E52F80809258A001341AC = {
+			fileRef = E90E51EA08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E535B08092593001341AC = {
+			fileRef = E90E51FB080919EC001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E535C08092593001341AC = {
+			fileRef = E90E51FD08091A06001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E535D08092593001341AC = {
+			fileRef = E90E521108091CA5001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90E535E08092593001341AC = {
+			fileRef = E90E52D208091F79001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+	};
+	rootObject = 089C1669FE841209C02AAC07;
+}

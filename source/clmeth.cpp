@@ -80,7 +80,7 @@ PyObject* pyext::pyext__del__(PyObject *,PyObject *args)
 
 PyObject* pyext::pyext_setattr(PyObject *,PyObject *args)
 {
-    PyObject *self,*name,*val,*ret = NULL;
+    PyObject *self,*name,*val;
     if(!PyArg_ParseTuple(args, "OOO:test_foo", &self,&name,&val)) {
         // handle error
 		ERRINTERNAL();

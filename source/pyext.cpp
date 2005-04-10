@@ -97,7 +97,7 @@ void pyext::SetThis()
 {
 	// remember the this pointer
 	PyObject *th = PyLong_FromVoidPtr(this); 
-	int ret = PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
+	/*int ret =*/ PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
 }
 
 
@@ -105,10 +105,11 @@ PyObject *pyext::class_obj = NULL;
 PyObject *pyext::class_dict = NULL;
 
 pyext::pyext(int argc,const t_atom *argv,bool sig):
-	pyobj(NULL),pythr(NULL),
+	methname(NULL),
+	pyobj(NULL),
 	inlets(-1),outlets(-1),
     siginlets(0),sigoutlets(0),
-	methname(NULL)
+	pythr(NULL)
 { 
 #ifdef FLEXT_THREADS
     FLEXT_ADDTIMER(stoptmr,tick);

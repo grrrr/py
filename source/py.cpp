@@ -122,7 +122,7 @@ void pyobj::Setup(t_classid c)
 }
 
 pyobj::pyobj(int argc,const t_atom *argv):
-	function(NULL),funname(NULL),withfunction(false)
+	funname(NULL),function(NULL),withfunction(false)
 { 
 	AddInAnything(2);  
 	AddOutAnything();  

@@ -398,13 +398,13 @@ static PyObject *buffer_repeat(pySamplebuffer *self,int rep)
 
 
 static PySequenceMethods buffer_as_seq = {
-	(inquiry)buffer_length,			/* inquiry sq_length;             /* __len__ */
+	(inquiry)buffer_length,			/* inquiry sq_length;             __len__ */
 	(binaryfunc)buffer_concat,          /* __add__ */
 	(intargfunc)buffer_repeat,          /* __mul__ */
-	(intargfunc)buffer_item,			/* intargfunc sq_item;            /* __getitem__ */
-	(intintargfunc)buffer_slice,		 /* intintargfunc sq_slice;        /* __getslice__ */
-	(intobjargproc)buffer_ass_item,		/* intobjargproc sq_ass_item;     /* __setitem__ */
-	(intintobjargproc)buffer_ass_slice,	/* intintobjargproc sq_ass_slice; /* __setslice__ */
+	(intargfunc)buffer_item,			/* intargfunc sq_item;            __getitem__ */
+	(intintargfunc)buffer_slice,		 /* intintargfunc sq_slice;        __getslice__ */
+	(intobjargproc)buffer_ass_item,		/* intobjargproc sq_ass_item;     __setitem__ */
+	(intintobjargproc)buffer_ass_slice,	/* intintobjargproc sq_ass_slice; __setslice__ */
 };
 
 static PyObject *buffer_iter(PyObject *obj)

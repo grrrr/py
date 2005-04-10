@@ -160,10 +160,11 @@ FLEXT_LIB_SETUP(py,pybase::lib_setup)
 
 
 pybase::pybase()
-    : module(NULL),detach(0)
+    : module(NULL)
 #ifdef FLEXT_THREADS
     , shouldexit(false),thrcount(0),stoptick(0)
 #endif
+	, detach(0)
 {
     PyThreadState *state = PyLockSys();
 	Py_INCREF(module_obj);
@@ -244,7 +245,7 @@ void pybase::m__doc(PyObject *obj)
 				}
 				else {
 					// copy string before newline to temp buffer and post
-					int l = nl-s;
+					unsigned int l = nl-s;
 					if(l >= sizeof(buf)) l = sizeof buf-1;
 					strncpy(buf,s,l); // copy all but newline
 					buf[l] = 0;
