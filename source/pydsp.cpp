@@ -47,10 +47,12 @@ bool pydsp::DoInit()
     if(pyobj) 
 	{ 
         dspfun = PyObject_GetAttrString(pyobj,"_dsp"); // get ref
-	    if(dspfun && !PyMethod_Check(dspfun)) {
+	    if(!dspfun)
+			PyErr_Clear();
+		else if(!PyMethod_Check(dspfun)) {
             Py_DECREF(dspfun);
 		    dspfun = NULL;
-	    }
+		}
 	}
     return true;
 }
@@ -118,10 +120,13 @@ bool pydsp::CbDsp()
 
         NewBuffers();
 
+		bool dodsp = true;
         if(dspfun) {
             PyObject *ret = PyObject_CallObject(dspfun,NULL);
-            if(ret)
+            if(ret) {
+				dodsp = PyObject_IsTrue(ret);
                 Py_DECREF(ret);
+			}
             else {
 #ifdef FLEXT_DEBUG
                 PyErr_Print();
@@ -135,11 +140,18 @@ bool pydsp::CbDsp()
         // _signal can be assigned in _dsp
         // optimizations may be done there to assign the right _signal version
         Py_XDECREF(sigfun);
-        sigfun = PyObject_GetAttrString(pyobj,"_signal"); // get ref
-	    if(sigfun && !PyMethod_Check(sigfun)) {
-            Py_DECREF(sigfun);
-		    sigfun = NULL;
-	    }
+		
+		if(dodsp) {
+			sigfun = PyObject_GetAttrString(pyobj,"_signal"); // get ref
+			if(!sigfun)
+				PyErr_Clear();
+			else if(!PyMethod_Check(sigfun)) {
+				Py_DECREF(sigfun);
+				sigfun = NULL;
+			}
+		}
+		else
+			sigfun = NULL;
 
         PyUnlock(state);
         return sigfun != NULL;

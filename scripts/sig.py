@@ -39,7 +39,10 @@ class gain(pyext._class):
 
     def _signal(self):
         # Multiply input vector by gain and copy to output
-        self._outvec(0)[:] = self._invec(0)*self.gain
+		try:
+			self._outvec(0)[:] = self._invec(0)*self.gain
+		except:
+			pass
 
 
 class gain2(pyext._class):
@@ -48,6 +51,10 @@ class gain2(pyext._class):
     gain = 0
 
     def _dsp(self):
+        if not self._arraysupport():
+            print "No DSP support"
+            return False
+
         # cache vectors in this scope
         self.invec = self._invec(0)
         self.outvec = self._outvec(0)
@@ -56,6 +63,7 @@ class gain2(pyext._class):
             self._signal = self.signal1
         else:
             self._signal = self.signal2
+        return True
 
     def signal1(self):
         # Multiply signal vector in place
@@ -77,6 +85,10 @@ class pan(pyext._class):
         x = pos*math.pi/2
         self.fl = math.cos(x)
         self.fr = math.sin(x)
+    
+    def _dsp(self):
+        # if _dsp is present it must return True to enable DSP
+        return pyext._arraysupport()
     
     def _signal(self):
         # Multiply input vector by gain and copy to output

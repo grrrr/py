@@ -1,11 +1,11 @@
-#N canvas 52 147 659 311 12;
+#N canvas 52 147 663 315 12;
 #X obj 56 234 dac~;
 #X msg 523 211 \; pd dsp 1;
 #X obj 524 184 loadbang;
 #X obj 194 114 hsl 128 15 0.01 1 1 1 empty empty gain -2 -6 0 8 -225271
--1 -1 0 1;
+-1 -1 11200 1;
 #X obj 89 116 noise~;
-#X msg 28 117 reload;
+#X msg 21 116 reload;
 #X obj 16 13 cnv 15 600 40 empty empty py/pyext 10 22 0 24 -260818
 -1 0;
 #X text 213 32 http://grrrr.org/ext;
@@ -13,7 +13,7 @@
 #X text 17 66 This demonstrates signal support. See the sig.py file.
 ;
 #X obj 191 131 nbx 5 14 0.001 1 1 0 empty empty empty 0 -6 0 10 -225271
--1 -1 0.001 256;
+-1 -1 0.58047 256;
 #X msg 192 148 set gain \$1;
 #X text 123 202 message inlets \, outlets;
 #X text 123 217 signal inlets \, outlets;

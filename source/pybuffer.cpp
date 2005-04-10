@@ -44,6 +44,20 @@ inline bool arrsupport() { return numtype != PyArray_NOTYPE; }
 #endif
 #endif
 
+
+PyObject *pybase::py_arraysupport(PyObject *self,PyObject *args)
+{
+	PyObject *ret;
+#ifdef PY_ARRAYS
+	ret = Py_True;
+#else
+	ret = Py_False;
+#endif
+	Py_INCREF(ret);
+	return ret;
+}
+
+
 // PD defines a T_OBJECT symbol
 #undef T_OBJECT
 

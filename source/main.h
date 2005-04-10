@@ -107,6 +107,7 @@ protected:
 	static PyObject *py_priority(PyObject *,PyObject *args);
 #endif
 
+	static PyObject *py_arraysupport(PyObject *,PyObject *args);
 	static PyObject *py_samplerate(PyObject *,PyObject *args);
 	static PyObject *py_blocksize(PyObject *,PyObject *args);
 

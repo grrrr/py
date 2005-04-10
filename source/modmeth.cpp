@@ -19,6 +19,7 @@ PyMethodDef pybase::func_tbl[] =
 	{ "_priority", pybase::py_priority, METH_VARARGS,"Set priority of current thread" },
 #endif
 
+	{ "_arraysupport", pybase::py_arraysupport, METH_NOARGS,"Query Python array support" },
 	{ "_samplerate", pybase::py_samplerate, METH_NOARGS,"Get system sample rate" },
 	{ "_blocksize", pybase::py_blocksize, METH_NOARGS,"Get system block size" },
 
