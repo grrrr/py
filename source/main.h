@@ -20,6 +20,10 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <unistd.h>
 #endif
 
+#if FLEXT_SYS == FLEXT_SYS_PD && (!defined (PD_MINOR_VERSION) || PD_MINOR_VERSION < 37)
+#error PD version >= 0.37 required, please upgrade! 
+#endif
+
 #define PY__VERSION "0.2.0pre"
 
 
