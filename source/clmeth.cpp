@@ -188,23 +188,20 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 					ext->ToOutList(o-1,lst);
                 else
                     ext->ToOutAtom(o-1,*lst.Atoms());
+    			ok = true;
 			}
 			else
-				post("pyext: outlet index out of range");
-
-			ok = true;
+                PyErr_SetString(PyExc_ValueError,"pyext - _outlet: index out of range");
 		}
 		else 
-			post("py/pyext - No data to send");
+            PyErr_SetString(PyExc_ValueError,"pyext - _outlet: invalid arguments");
 
 		if(!tp) Py_DECREF(val);
 	}
-
-    if(!ok)	{
+    else
 		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _outlet(self,outlet,args...)");
-        return NULL;
-    }
 
+    if(!ok) return NULL;
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -219,12 +216,16 @@ PyObject *pyext::pyext_detach(PyObject *,PyObject *args)
 	int val;
     if(!PyArg_ParseTuple(args, "Oi:pyext_detach",&self,&val)) {
         // handle error
-		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _detach(self,[0/1])");
+		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _detach(self,[0/1/2])");
+        return NULL;
+    }
+    else if(val < 0 || val > 2) {
+		PyErr_SetString(PyExc_ValueError,"pyext - _detach must be in the range 0..2");
         return NULL;
     }
 	else {
 		pyext *ext = GetThis(self);
-		ext->detach = val != 0;
+		ext->detach = val;
 	}
 
     Py_INCREF(Py_None);
@@ -239,6 +240,10 @@ PyObject *pyext::pyext_stop(PyObject *,PyObject *args)
     if(!PyArg_ParseTuple(args, "O|i:pyext_stop",&self,&val)) {
         // handle error
 		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _stop(self,{wait time})");
+        return NULL;
+    }
+    else if(val < 0) {
+		PyErr_SetString(PyExc_ValueError,"pyext - _stop time must be >= 0");
         return NULL;
     }
 	else {
@@ -332,6 +337,10 @@ PyObject *pyext::pyext_invec(PyObject *,PyObject *args)
 		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _invec(self,inlet)");
         return NULL;
     }
+    else if(val < 0) {
+        PyErr_SetString(PyExc_ValueError,"pyext - _invec: index out of range");
+        return NULL;
+    }
 	else {
 		pyext *ext = GetThis(self);
         PyObject *b = ext->GetSig(val,true);
@@ -349,6 +358,10 @@ PyObject *pyext::pyext_outvec(PyObject *,PyObject *args)
     if(!PyArg_ParseTuple(args, "O|i:pyext_outvec",&self,&val)) {
         // handle error
 		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _outvec(self,inlet)");
+        return NULL;
+    }
+    else if(val < 0) {
+        PyErr_SetString(PyExc_ValueError,"pyext - _outvec: index out of range");
         return NULL;
     }
 	else {

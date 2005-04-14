@@ -124,7 +124,7 @@ bool pydsp::CbDsp()
         if(dspfun) {
             PyObject *ret = PyObject_CallObject(dspfun,NULL);
             if(ret) {
-				dodsp = PyObject_IsTrue(ret);
+				dodsp = PyObject_IsTrue(ret) != 0;
                 Py_DECREF(ret);
 			}
             else {
