@@ -61,8 +61,8 @@ protected:
 
     void m_help();
 
-	void m_reload();
-    void m_reload_(int argc,const t_atom *argv) { initargs(argc,argv); m_reload(); }
+    void m_reload() { Reload(); }
+    void m_reload_(int argc,const t_atom *argv) { initargs(argc,argv); Reload(); }
     void ms_initargs(const AtomList &a) { m_reload_(a.Count(),a.Atoms()); }
     void m_dir_() { m__dir(pyobj); }
     void mg_dir_(AtomList &lst) { GetDir(pyobj,lst); }
@@ -78,7 +78,12 @@ protected:
 
     flext::AtomListStatic<16> initargs;
 
-	virtual bool Reload();
+	virtual void LoadModule();
+	virtual void UnloadModule();
+
+	virtual void Load();
+	virtual void Unload();
+
 	virtual bool DoInit();
 	virtual void DoExit();
 
@@ -90,6 +95,7 @@ private:
 	static void Setup(t_classid);
 
 	void SetThis();
+	void ClearThis();
 
 	void ClearBinding();
 	bool MakeInstance();

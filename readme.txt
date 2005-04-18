@@ -100,6 +100,7 @@ Version history:
 - FIX: solved py->py messaging problem with lock count instead of message queuing
 - ADD: buffer handling with optional numarray support (if present)
 - ADD: new objects for dsp processing: pyext~,pyx~,pyext.~,pyx.~
+- FIX: correctly report Python errors while contructing the object
 
 0.1.4:
 - ADD: better (and independent) handling of inlet and outlet count (as class variables or dynamically initialized in __init__)

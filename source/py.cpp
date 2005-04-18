@@ -29,8 +29,8 @@ protected:
 
     void m_help();    
 
-	void m_reload();
-    void m_reload_(int argc,const t_atom *argv) { args(argc,argv); m_reload(); }
+    void m_reload() { Reload(); }
+    void m_reload_(int argc,const t_atom *argv) { args(argc,argv); Reload(); }
 	void m_set(int argc,const t_atom *argv);
     void m_dir_() { m__dir(function); }
     void m_doc_() { m__doc(function); }
@@ -48,7 +48,11 @@ protected:
 	PyObject *function;
     bool withfunction;
 
-	virtual bool Reload();
+	virtual void LoadModule();
+	virtual void UnloadModule();
+
+	virtual void Load();
+	virtual void Unload();
 
 	bool SetFunction(const char *func);
 	bool ResetFunction();
@@ -165,7 +169,7 @@ pyobj::pyobj(int argc,const t_atom *argv):
             PyErr_SetString(PyExc_ValueError,"Invalid module name");
 	}
 
-	Register("_py");
+	Register(GetRegistry(REGNAME));
 
     if(argc >= 2) {
 	    const char *fn = GetAString(argv[1]);
@@ -183,7 +187,7 @@ pyobj::pyobj(int argc,const t_atom *argv):
 pyobj::~pyobj() 
 {
 	PyThreadState *state = PyLockSys();
-	Unregister("_py");
+	Unregister(GetRegistry(REGNAME));
     Report();
 	PyUnlock(state);
 }
@@ -201,21 +205,6 @@ bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 	return false;
 }
 
-void pyobj::m_reload()
-{
-	PyThreadState *state = PyLockSys();
-
-	Unregister("_py");
-
-	ReloadModule();
-	Reregister("_py");
-	Register("_py");
-	SetFunction(funname?GetString(funname):NULL);
-
-    Report();
-	PyUnlock(state);
-}
-
 void pyobj::m_set(int argc,const t_atom *argv)
 {
 	PyThreadState *state = PyLockSys();
@@ -228,7 +217,7 @@ void pyobj::m_set(int argc,const t_atom *argv)
         if(sn) {
 		    if(!module || !strcmp(sn,PyModule_GetName(module))) {
 			    ImportModule(sn);
-			    Register("_py");
+			    Register(GetRegistry(REGNAME));
 		    }
         }
         else
@@ -316,10 +305,23 @@ bool pyobj::SetFunction(const char *func)
 }
 
 
-bool pyobj::Reload()
+void pyobj::LoadModule() 
+{
+    SetFunction(funname?GetString(funname):NULL);
+}
+
+void pyobj::UnloadModule() 
+{
+}
+
+void pyobj::Load()
 {
 	ResetFunction();
-    return true;
+}
+
+void pyobj::Unload()
+{
+    SetFunction(NULL);
 }
 
 bool pyobj::callpy(PyObject *fun,PyObject *args)

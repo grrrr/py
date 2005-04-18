@@ -124,6 +124,10 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
 				pyext *ext = GetThis(self); 
 				if(ext)
 					ret = PyLong_FromLong(ext->shouldexit?1:0);
+                else {
+                    Py_INCREF(Py_True);
+                    ret = Py_True;
+                }
 			}
 //			post("pyext::getattr %s",sname);
 		}

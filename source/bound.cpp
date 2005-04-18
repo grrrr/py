@@ -174,13 +174,14 @@ void pyext::ClearBinding()
     // in case the object couldn't be constructed...
     if(!pyobj) return;
 
-    FLEXT_ASSERT(GetThis(pyobj));
+    pyext *th = GetThis(pyobj);
+    FLEXT_ASSERT(th);
 
     void *data = NULL;
     const t_symbol *sym = NULL;
 
     // unbind all 
-    while(GetThis(pyobj)->UnbindMethod(sym,NULL,&data)) {
+    while(th->UnbindMethod(sym,NULL,&data)) {
         bounddata *bdt = (bounddata *)data; 
         if(bdt) {
             for(FuncSet::iterator it = bdt->funcs.begin(); it != bdt->funcs.end(); ++it) 

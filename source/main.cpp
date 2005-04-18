@@ -288,12 +288,9 @@ void pybase::SetArgs()
 bool pybase::ImportModule(const char *name)
 {
 	if(!name) return false;
-
-    SetArgs();
-	module = PyImport_ImportModule((char *)name);  // increases module_obj ref count by one
-    dict = module?PyModule_GetDict(module):NULL;
-
-    return module != NULL;
+    if(modname == name) return true;
+    modname = name;
+    return ReloadModule();
 }
 
 void pybase::UnimportModule()
@@ -315,22 +312,22 @@ void pybase::UnimportModule()
 bool pybase::ReloadModule()
 {
     bool ok = false;
-	if(module) {
-        SetArgs();
-		PyObject *newmod = PyImport_ReloadModule(module);
-		if(!newmod) {
-			// old module still exists?!
-//			dict = NULL;
-		}
-		else {
-			Py_XDECREF(module);
-			module = newmod;
-			dict = PyModule_GetDict(module); // borrowed
-            ok = true;
-		}
+
+    SetArgs();
+    PyObject *newmod = module
+        ?PyImport_ReloadModule(module)
+        :PyImport_ImportModule((char *)modname.c_str());
+
+	if(!newmod) {
+		// unload faulty module
+        if(module) UnimportModule();
 	}
-    else
-		post("py/pyext - No module to reload");
+	else {
+		Py_XDECREF(module);
+		module = newmod;
+		dict = PyModule_GetDict(module); // borrowed
+        ok = true;
+	}
     return ok;
 }
 
@@ -400,6 +397,48 @@ void pybase::Respond(bool b)
         SetBool(a,b); 
         DumpOut(sym_response,1,&a); 
     } 
+}
+
+void pybase::Reload()
+{
+	PyThreadState *state = PyLockSys();
+
+	PyObject *reg = GetRegistry(REGNAME);
+
+    if(reg) {
+        PyObject *key;
+        int pos = 0;
+        while(PyDict_Next(reg,&pos,&key,NULL)) {
+            pybase *th = (pybase *)PyLong_AsLong(key);
+            FLEXT_ASSERT(th);
+            th->Unload();
+        }
+
+        UnloadModule();
+    }
+
+	bool ok = ReloadModule();
+
+    if(ok) {
+        LoadModule();
+
+        if(reg) {
+            SetRegistry(REGNAME,reg);
+
+            PyObject *key;
+            int pos = 0;
+            while(PyDict_Next(reg,&pos,&key,NULL)) {
+                pybase *th = (pybase *)PyLong_AsLong(key);
+                FLEXT_ASSERT(th);
+                th->Load();
+            }
+        }
+        else
+            Load();
+    }
+
+    Report();
+	PyUnlock(state);
 }
 
 

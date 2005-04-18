@@ -10,6 +10,74 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "main.h"
 
+#if 1
+
+PyObject *pybase::GetRegistry(const char *regnm)
+{
+	if(module) {
+        FLEXT_ASSERT(dict); // module must have a valid dict
+
+		// add this to module registry
+		PyObject *reg = PyDict_GetItemString(dict,(char *)regnm); // borrowed!!!
+		if(reg) 
+            FLEXT_ASSERT(PyDict_Check(reg));
+        else {
+            // make a new empty registry
+    		reg = PyDict_New();
+			PyDict_SetItemString(dict,(char *)regnm,reg);
+        }
+        return reg;
+	}
+    else
+        return NULL;
+}
+
+void pybase::SetRegistry(const char *regnm,PyObject *reg)
+{
+    if(module) {
+        FLEXT_ASSERT(dict); // module must have a valid dict
+        FLEXT_ASSERT(reg && PyDict_Check(reg));
+        PyDict_SetItemString(dict,(char *)regnm,reg);
+    }
+}
+
+void pybase::Register(PyObject *reg)
+{
+    if(!module) return;
+    FLEXT_ASSERT(reg && PyDict_Check(reg));
+	
+    // add this to module registry
+    Py_INCREF(Py_None);
+    PyObject *key = PyLong_FromUnsignedLong((size_t)this);
+    PyDict_SetItem(reg,key,Py_None);
+}
+
+void pybase::Unregister(PyObject *reg)
+{
+    if(!module) return;
+    FLEXT_ASSERT(reg && PyDict_Check(reg));
+	
+    // remove this from module registry
+    PyObject *key = PyLong_FromUnsignedLong((size_t)this);
+    PyObject *item = PyDict_GetItem(reg,key);		
+    if(!item)
+        post("py/pyext - Internal error: object not found in registry");
+    else
+		PyDict_DelItem(reg,key);
+}
+
+/*
+void pybase::RegLoad(PyObject *reg)
+{
+
+}
+
+void pybase::RegUnload(PyObject *reg)
+{
+}
+*/
+
+#else
 
 void pybase::Register(const char *regnm)
 {
@@ -79,3 +147,5 @@ void pybase::Reregister(const char *regnm)
 		}
 	}
 }
+
+#endif

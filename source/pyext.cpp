@@ -11,6 +11,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pyext.h"
 #include <flinternal.h>
 
+
 FLEXT_LIB_V("pyext pyext. pyx pyx.",pyext)
 
 
@@ -100,6 +101,11 @@ void pyext::SetThis()
 	/*int ret =*/ PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
 }
 
+void pyext::ClearThis()
+{
+	int ret = PyObject_DelAttrString(pyobj,"_this");
+    FLEXT_ASSERT(ret != -1);
+}
 
 PyObject *pyext::class_obj = NULL;
 PyObject *pyext::class_dict = NULL;
@@ -169,7 +175,7 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
         if(strrchr(thisName(),'.')) clname = scr;
 	}
 
- 	Register("_pyext");
+    Register(GetRegistry(REGNAME));
 
 	if(argc > apre || clname) {
         if(!clname) clname = GetASymbol(argv[apre++]);
@@ -208,6 +214,7 @@ bool pyext::Init()
 	    AddOutAnything(outlets);  
     }
 
+    Report();
 	PyUnlock(state);
 
     return pyobj && flext_dsp::Init();
@@ -219,9 +226,11 @@ void pyext::Exit()
 
 	PyThreadState *state = PyLockSys();
     DoExit();
-    Unregister("_pyext");
+
+    Unregister(GetRegistry(REGNAME));
 	UnimportModule();
 
+    Report();
 	PyUnlock(state);
 
     flext_dsp::Exit(); 
@@ -229,19 +238,20 @@ void pyext::Exit()
 
 bool pyext::DoInit()
 {
-    SetThis();
-
     // call init now, after _this has been set, which is
 	// important for eventual callbacks from __init__ to c
 	PyObject *pargs = MakePyArgs(NULL,initargs.Count(),initargs.Atoms(),-1,true);
     if(pargs) {
         bool ok = true;
 
+        SetThis();
+
 	    PyObject *init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
         if(init) {
             if(PyMethod_Check(init)) {
 			    PyObject *res = PyObject_CallObject(init,pargs);
-			    if(!res)
+                if(!res)
+                    // exception is set
 				    ok = false;
 			    else
 				    Py_DECREF(res);
@@ -277,6 +287,8 @@ void pyext::DoExit()
         else
             // _del has not been found - don't care
             PyErr_Clear();
+
+        ClearThis();
 
         gcrun = pyobj->ob_refcnt > 1;
     	Py_DECREF(pyobj);  // opposite of SetClssMeth
@@ -368,16 +380,19 @@ bool pyext::MakeInstance()
 		return false;
 }
 
-bool pyext::Reload()
+void pyext::LoadModule() 
 {
-	DoExit();
+}
 
-	// by here, the Python class destructor should have been called!
+void pyext::UnloadModule() 
+{
+}
 
-//	SetArgs(0,NULL);
-	bool ok = ReloadModule();
-	
-	if(ok) ok = MakeInstance();
+void pyext::Load()
+{
+    FLEXT_ASSERT(!pyobj);
+    
+    bool ok = MakeInstance();
 
     if(ok) {
         int inl = -1,outl = -1;
@@ -387,26 +402,13 @@ bool pyext::Reload()
             post("%s - Inlet and outlet count can't be changed by reload",thisName());
     }
 
-    return ok;
+//    return ok;
 }
 
-
-void pyext::m_reload()
-{
-	PyThreadState *state = PyLockSys();
-
-	Unregister("_pyext"); // self
-
-	Reload();
-
-	Reregister("_pyext"); // the others
-	Register("_pyext"); // self
-
-    SetThis();
-
-    Report();
-
-	PyUnlock(state);
+void pyext::Unload() 
+{ 
+    DoExit(); 
+    pyobj = NULL;
 }
 
 void pyext::m_get(const t_symbol *s)
