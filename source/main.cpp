@@ -624,3 +624,9 @@ bool pybase::collect()
     }
     return true;
 }
+
+/*
+PY_EXPORT PyThreadState *py_Lock(PyThreadState *st = NULL) { return pybase::PyLock(st?st:pybase::FindThreadState()); }
+PY_EXPORT PyThreadState *py_LockSys() { return pybase::PyLockSys(); }
+PY_EXPORT void py_Unlock(PyThreadState *st) { pybase::PyUnlock(st); }
+*/
