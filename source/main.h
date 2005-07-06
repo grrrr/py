@@ -25,7 +25,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error PD version >= 0.37 required, please upgrade! 
 #endif
 
-#define PY__VERSION "0.2.0pre"
+#define PY__VERSION "0.2.0"
 
 
 #define PYEXT_MODULE "pyext" // name for module
