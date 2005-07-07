@@ -11,7 +11,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #ifndef __PYEXT_H
 #define __PYEXT_H
 
-#include "main.h"
+#include "pybase.h"
 
 class pyext
     : public pybase
@@ -138,7 +138,9 @@ private:
 
 	// callbacks
 	FLEXT_ATTRVAR_I(detach)
+	FLEXT_ATTRVAR_B(xlate)
 	FLEXT_ATTRVAR_B(respond)
+
 	FLEXT_CALLBACK_V(m_stop)
 	FLEXT_CALLBACK(m_dir)
 	FLEXT_CALLGET_V(mg_dir)

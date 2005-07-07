@@ -85,6 +85,10 @@ It has been thoroughly tested with versions 2.2 to 2.4
 
 Version history:
 
+0.2.1:
+- FIX: some simplifications in py and pyext
+- ADD: Python objects can be sent/received through outlets/inlets
+
 0.2.0:
 - ADD: handling of Python threads
 - FIX: output of single atoms instead of 1-element lists

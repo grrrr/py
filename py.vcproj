@@ -634,176 +634,616 @@
 			Name="make"
 			Filter="">
 			<File
-				RelativePath=".\build\config-win.def">
-			</File>
-			<File
-				RelativePath=".\config.txt">
-			</File>
-			<File
-				RelativePath=".\build\nmake-win-msvc.inc">
-			</File>
-			<File
 				RelativePath=".\package.txt">
 			</File>
 		</Filter>
-		<File
-			RelativePath="source\bound.cpp">
-			<FileConfiguration
-				Name="PD Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="source\clmeth.cpp">
-			<FileConfiguration
-				Name="PD Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-		</File>
+		<Filter
+			Name="ext"
+			Filter="">
+			<File
+				RelativePath="source\bound.cpp">
+				<FileConfiguration
+					Name="PD Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="source\clmeth.cpp">
+				<FileConfiguration
+					Name="PD Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="source\pyext.cpp">
+				<FileConfiguration
+					Name="PD Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="source\pyext.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="base"
+			Filter="">
+			<File
+				RelativePath="source\modmeth.cpp">
+				<FileConfiguration
+					Name="PD Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="source\pyargs.cpp">
+				<FileConfiguration
+					Name="PD Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\source\pybase.cpp">
+			</File>
+			<File
+				RelativePath=".\source\pybase.h">
+			</File>
+			<File
+				RelativePath="source\register.cpp">
+				<FileConfiguration
+					Name="PD Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<Filter
+			Name="array"
+			Filter="">
+			<File
+				RelativePath=".\source\pybuffer.cpp">
+			</File>
+			<File
+				RelativePath=".\source\pybuffer.h">
+			</File>
+			<File
+				RelativePath=".\source\pydsp.cpp">
+			</File>
+		</Filter>
+		<Filter
+			Name="sym"
+			Filter="">
+			<File
+				RelativePath=".\source\pysymbol.cpp">
+			</File>
+			<File
+				RelativePath=".\source\pysymbol.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="atom"
+			Filter="">
+			<File
+				RelativePath=".\source\pyatom.cpp">
+			</File>
+			<File
+				RelativePath=".\source\pyatom.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="obj"
+			Filter="">
+			<File
+				RelativePath="source\py.cpp">
+				<FileConfiguration
+					Name="PD Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Threads Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""
+						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="PD Shared Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="2"
+						AdditionalIncludeDirectories=""/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Shared Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Max Threaded Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						Optimization="0"
+						AdditionalIncludeDirectories=""
+						BasicRuntimeChecks="3"
+						BrowseInformation="1"/>
+				</FileConfiguration>
+			</File>
+		</Filter>
 		<File
 			RelativePath="source\main.cpp">
 			<FileConfiguration
@@ -887,420 +1327,7 @@
 			RelativePath="source\main.h">
 		</File>
 		<File
-			RelativePath="source\modmeth.cpp">
-			<FileConfiguration
-				Name="PD Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="source\py.cpp">
-			<FileConfiguration
-				Name="PD Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="source\pyargs.cpp">
-			<FileConfiguration
-				Name="PD Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\source\pybuffer.cpp">
-		</File>
-		<File
-			RelativePath=".\source\pybuffer.h">
-		</File>
-		<File
-			RelativePath=".\source\pydsp.cpp">
-		</File>
-		<File
-			RelativePath="source\pyext.cpp">
-			<FileConfiguration
-				Name="PD Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="source\pyext.h">
-		</File>
-		<File
 			RelativePath=".\source\pyprefix.h">
-		</File>
-		<File
-			RelativePath=".\source\pysymbol.cpp">
-		</File>
-		<File
-			RelativePath=".\source\pysymbol.h">
-		</File>
-		<File
-			RelativePath="source\register.cpp">
-			<FileConfiguration
-				Name="PD Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Threads Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;FLEXT_SYS=2;$(NoInherit)"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="PD Shared Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					AdditionalIncludeDirectories=""/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Shared Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Debug|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Max Threaded Release|Win32">
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					AdditionalIncludeDirectories=""
-					BasicRuntimeChecks="3"
-					BrowseInformation="1"/>
-			</FileConfiguration>
 		</File>
 	</Files>
 	<Globals>

@@ -8,8 +8,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 */
 
-#include "main.h"
-
+#include "pybase.h"
 
 class pyobj
     : public pybase
@@ -35,14 +34,7 @@ protected:
     void m_dir_() { m__dir(function); }
     void m_doc_() { m__doc(function); }
 
-	// methods for python arguments
-	void callwork(const t_symbol *s,int argc,const t_atom *argv);
-	
-	inline void m_bang() { callwork(NULL,0,NULL); }
-	inline void m_py_list(int argc,const t_atom *argv) { callwork(sym_list,argc,argv); }
-	inline void m_py_float(int argc,const t_atom *argv) { callwork(sym_float,argc,argv); }
-	inline void m_py_int(int argc,const t_atom *argv) { callwork(sym_int,argc,argv); }
-	inline void m_py_any(const t_symbol *s,int argc,const t_atom *argv) { callwork(s,argc,argv); }
+	inline void m_bang() { CbMethodResort(1,NULL,0,NULL); }
 
 	const t_symbol *funname;
 	PyObject *function;
@@ -74,14 +66,11 @@ private:
 	FLEXT_CALLBACK(m_dir_)
 	FLEXT_CALLBACK(m_doc_)
 
-	FLEXT_CALLBACK_V(m_py_float)
-	FLEXT_CALLBACK_V(m_py_list)
-	FLEXT_CALLBACK_V(m_py_int)
-	FLEXT_CALLBACK_A(m_py_any)
-
 	// callbacks
 	FLEXT_ATTRVAR_I(detach)
+	FLEXT_ATTRVAR_B(xlate)
 	FLEXT_ATTRVAR_B(respond)
+
 	FLEXT_CALLBACK_V(m_stop)
 	FLEXT_CALLBACK(m_dir)
 	FLEXT_CALLGET_V(mg_dir)
@@ -117,16 +106,14 @@ void pyobj::Setup(t_classid c)
 	FLEXT_CADDBANG(c,0,m_bang);
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
-	FLEXT_CADDMETHOD_(c,1,"float",m_py_float);
-	FLEXT_CADDMETHOD_(c,1,"int",m_py_int);
-	FLEXT_CADDMETHOD(c,1,m_py_list);
-	FLEXT_CADDMETHOD(c,1,m_py_any);
-
+  	FLEXT_CADDATTR_VAR1(c,"translate",xlate);
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
 }
 
-pyobj::pyobj(int argc,const t_atom *argv):
-	funname(NULL),function(NULL),withfunction(false)
+pyobj::pyobj(int argc,const t_atom *argv)
+    : funname(NULL)
+    , function(NULL)
+    , withfunction(false)
 { 
 	AddInAnything(2);  
 	AddOutAnything();  
@@ -143,25 +130,13 @@ pyobj::pyobj(int argc,const t_atom *argv):
 
 	// init script module
 	if(argc >= 1) {
+        AddCurrentPath(thisCanvas());
+
 	    const char *sn = GetAString(argv[0]);
         if(sn) {
-		    char dir[1024];
+    		char dir[1024];
 		    GetModulePath(sn,dir,sizeof(dir));
-		    // set script path
 		    AddToPath(dir);
-
-#if FLEXT_SYS == FLEXT_SYS_PD
-			// add dir of current patch to path
-			AddToPath(GetString(canvas_getdir(thisCanvas())));
-			// add current dir to path
-			AddToPath(GetString(canvas_getcurrentdir()));
-#elif FLEXT_SYS == FLEXT_SYS_MAX 
-			short path = patcher_myvol(thisCanvas());
-			path_topathname(path,NULL,dir); 
-			AddToPath(dir);       
-#else 
-	        #pragma message("Adding current dir to path is not implemented")
-#endif
 
 			ImportModule(sn);
         }
@@ -196,13 +171,6 @@ void pyobj::Exit()
 { 
     pybase::Exit(); 
     flext_base::Exit(); 
-}
-
-bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
-{
-	if(n == 1)
-		post("%s - no method for type %s",thisName(),GetString(s));
-	return false;
 }
 
 void pyobj::m_set(int argc,const t_atom *argv)
@@ -333,22 +301,17 @@ bool pyobj::callpy(PyObject *fun,PyObject *args)
         return false;
     }
     else {
-        flext::AtomListStatic<16> rargs;
-        if(GetPyArgs(rargs,ret)) {
-            // call to outlet _outside_ the Mutex lock!
-            // otherwise (if not detached) deadlock will occur
-            if(rargs.Count()) ToOutList(0,rargs);
-        }
-        else if(PyErr_Occurred())
+        if(ret != Py_None && !OutObject(this,0,ret) && PyErr_Occurred())
             PyErr_Print();
-
         Py_DECREF(ret);
         return true;
     }
 } 
 
-void pyobj::callwork(const t_symbol *s,int argc,const t_atom *argv)
+bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
+    if(n == 0) return false;
+
     bool ret = false;
  
     PyThreadState *state = PyLock();
@@ -380,6 +343,7 @@ void pyobj::callwork(const t_symbol *s,int argc,const t_atom *argv)
     PyUnlock(state);
 
     Respond(ret);
+    return ret;
 }
 
 void pyobj::CbClick() { pybase::OpenEditor(); }

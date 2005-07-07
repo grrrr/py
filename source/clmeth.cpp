@@ -177,28 +177,18 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 		if(!tp)
 			val = PySequence_GetSlice(args,2,sz);  // new ref
 
-        flext::AtomListStatic<16> lst;
-		if(GetPyArgs(lst,val)) {
-			int o = PyInt_AsLong(outl);
-			if(o >= 1 && o <= ext->Outlets()) {
-                // offset outlet by signal outlets
-                o += ext->sigoutlets;
+		int o = PyInt_AsLong(outl);
+		if(o >= 1 && o <= ext->Outlets()) {
+            // offset outlet by signal outlets
+            o += ext->sigoutlets;
 
-				// by using the queue there is no immediate call of the next object
-				// deadlock would occur if this was another py/pyext object!
-				if(lst.Count() && IsSymbol(lst[0]))
-					ext->ToOutAnything(o-1,GetSymbol(lst[0]),lst.Count()-1,lst.Atoms()+1);
-				else if(lst.Count() > 1)
-					ext->ToOutList(o-1,lst);
-                else
-                    ext->ToOutAtom(o-1,*lst.Atoms());
+            if(ext->OutObject(ext,o,val))
     			ok = true;
-			}
-			else
-                PyErr_SetString(PyExc_ValueError,"pyext - _outlet: index out of range");
+		    else 
+                PyErr_SetString(PyExc_ValueError,"pyext - _outlet: invalid arguments");
 		}
-		else 
-            PyErr_SetString(PyExc_ValueError,"pyext - _outlet: invalid arguments");
+		else
+            PyErr_SetString(PyExc_ValueError,"pyext - _outlet: index out of range");
 
 		if(!tp) Py_DECREF(val);
 	}

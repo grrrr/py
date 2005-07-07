@@ -8,14 +8,17 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 */
 
-#include "main.h"
+#include "pybase.h"
+#include "pyatom.h"
+
+static const t_symbol *symatom = flext::MakeSymbol(" py ");
 
 static PyObject *MakePyAtom(const t_atom &at)
 {
 	if(flext::IsSymbol(at)) 
         return pySymbol_FromSymbol(flext::GetSymbol(at));
     else if(flext::CanbeInt(at) || flext::CanbeFloat(at)) {
-        // if a number can be an integer... let at be an integer!
+        // if a number can be an integer... let it be an integer!
         int ival = flext::GetAInt(at);
         double fval = flext::GetAFloat(at);
         return (double)ival == fval?PyInt_FromLong(ival):PyFloat_FromDouble(fval);
@@ -31,31 +34,46 @@ static PyObject *MakePyAtom(const t_atom &at)
 
 PyObject *pybase::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet,bool withself)
 {
-	PyObject *pArgs;
+	PyObject *ret;
 
-/*
-    if(!s && args.Count() == 1) {
-        pArgs = MakePyAtom(args[0]);
-        if(!pArgs)
-			post("py/pyext: cannot convert argument(s)");
+    if(s == symatom && argc == sizeof(PyObject *)/2) {
+        size_t atom = 0;
+        for(int i = sizeof(PyObject *)/2-1; i >= 0; --i)
+            if(!flext::CanbeInt(argv[i])) { 
+                atom = 0; 
+                break; 
+            }
+            else
+                atom = (atom<<16)+flext::GetAInt(argv[i]);
+
+        if(atom) {
+            PyObject *el = (PyObject *)atom;
+            Py_INCREF(el);
+
+            // atom not needed any more
+            PyAtom::Collect();
+
+    	    ret = PyTuple_New(1);
+		    PyTuple_SET_ITEM(ret,0,el);             
+        }
+        else
+            ret = NULL;
     }
-    else 
-*/
-    {
+    else {
 	    bool any = IsAnything(s);
-	    pArgs = PyTuple_New(argc+(any?1:0)+(inlet >= 0?1:0));
+	    ret = PyTuple_New(argc+(any?1:0)+(inlet >= 0?1:0));
 
 	    int pix = 0;
 
 	    if(inlet >= 0)
-		    PyTuple_SetItem(pArgs, pix++, PyInt_FromLong(inlet)); 
+		    PyTuple_SetItem(ret, pix++, PyInt_FromLong(inlet)); 
 
 	    int ix;
 	    PyObject *tmp;
-//	    if(!withself || argc < (any?1:2)) 
-            tmp = pArgs,ix = pix;
-//	    else 
-//            tmp = PyTuple_New(argc+(any?1:0)),ix = 0;
+    //	    if(!withself || argc < (any?1:2)) 
+            tmp = ret,ix = pix;
+    //	    else 
+    //            tmp = PyTuple_New(argc+(any?1:0)),ix = 0;
 
 	    if(any)
 		    PyTuple_SET_ITEM(tmp, ix++, pySymbol_FromSymbol(s)); 
@@ -71,20 +89,20 @@ PyObject *pybase::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int i
 		    PyTuple_SET_ITEM(tmp, ix++, pValue); 
 	    }
 
-	    if(tmp != pArgs) {
-		    PyTuple_SET_ITEM(pArgs, pix++, tmp); 
+	    if(tmp != ret) {
+		    PyTuple_SET_ITEM(ret, pix++, tmp); 
     #if PY_VERSION_HEX >= 0x02020000
-		    _PyTuple_Resize(&pArgs,pix);
+		    _PyTuple_Resize(&ret,pix);
     #else
-		    _PyTuple_Resize(&pArgs,pix,0);
+		    _PyTuple_Resize(&ret,pix,0);
     #endif
 	    }
     }
 
-	return pArgs;
+	return ret;
 }
 
-bool pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs,PyObject **self)
+bool pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs /*,PyObject **self*/)
 {
 	if(pValue == NULL) return false; 
 
@@ -124,11 +142,13 @@ bool pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs,PyObject **self)
 		else if(PyFloat_Check(arg)) SetFloat(at,(float)PyFloat_AsDouble(arg));
 		else if(pySymbol_Check(arg)) SetSymbol(at,pySymbol_AS_SYMBOL(arg));
 		else if(PyString_Check(arg)) SetString(at,PyString_AS_STRING(arg));
-		else if(ix == 0 && self && PyInstance_Check(arg)) {
+/*
+        else if(ix == 0 && self && PyInstance_Check(arg)) {
 			// assumed to be self ... that should be checked _somehow_ !!!
             Py_INCREF(arg);
 			*self = arg;
 		}
+*/
 		else {
 			PyObject *tp = PyObject_Type(arg);
 			PyObject *stp = tp?PyObject_Str(tp):NULL;
@@ -145,4 +165,17 @@ bool pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs,PyObject **self)
 	}
 
     return ok;
+}
+
+
+bool pybase::GetPyAtom(AtomList &lst,PyObject *obj)
+{
+    PyAtom::Register(obj);
+
+    size_t szat = sizeof(obj)/2,atom = (size_t)obj;
+    lst(1+szat);
+    SetSymbol(lst[0],symatom);
+    for(size_t i = 0; i < szat; ++i,atom >>= 16)
+        flext::SetInt(lst[i+1],(int)(atom&((1<<16)-1)));
+    return true;
 }

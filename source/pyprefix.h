@@ -24,4 +24,16 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.5.0
 #endif
 
+#if FLEXT_OS == FLEXT_LINUX || FLEXT_OS == FLEXT_IRIX
+#include <unistd.h>
+#endif
+
+#if FLEXT_SYS == FLEXT_SYS_PD && (!defined (PD_MINOR_VERSION) || PD_MINOR_VERSION < 37)
+#error PD version >= 0.37 required, please upgrade! 
+#endif
+
+#include <flcontainers.h>
+#include <string>
+
+
 #endif

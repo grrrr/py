@@ -41,6 +41,7 @@ void pyext::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"get",m_get);
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
+  	FLEXT_CADDATTR_VAR1(c,"translate",xlate);
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
 
 	// ----------------------------------------------------
@@ -142,32 +143,19 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
 
 	// init script module
 	if(argc > apre) {
-		char dir[1024];
+        AddCurrentPath(thisCanvas());
 
-#if FLEXT_SYS == FLEXT_SYS_PD
-		// add dir of current patch to path
-		AddToPath(GetString(canvas_getdir(thisCanvas())));
-		// add current dir to path
-		AddToPath(GetString(canvas_getcurrentdir()));
-#elif FLEXT_SYS == FLEXT_SYS_MAX 
-        short path = patcher_myvol(thisCanvas());
-        path_topathname(path,NULL,dir); 
-		AddToPath(dir);       
-#else 
-        #pragma message("Adding current dir to path is not implemented")
-#endif
         const t_symbol *scr = GetASymbol(argv[apre]);
         if(scr) {
+    		char dir[1024];
 		    GetModulePath(GetString(scr),dir,sizeof(dir));
 		    // add to path
 		    AddToPath(dir);
 
-//			SetArgs(0,NULL);
-
 			ImportModule(GetString(scr));
 		}
         else
-			post("%s - script name argument is invalid",thisName());
+            PyErr_SetString(PyExc_ValueError,"Invalid module name");
 
         ++apre;
 
@@ -182,7 +170,7 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
     
 		// class name
 		if(!clname) 
-			post("%s - class name argument is invalid",thisName());
+            PyErr_SetString(PyExc_ValueError,"Invalid class name");
 		else
 			methname = clname;
 	}
