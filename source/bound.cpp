@@ -66,7 +66,7 @@ bool pyext::boundmeth(flext_base *th,t_symbol *sym,int argc,t_atom *argv,void *d
 
 	PyThreadState *state = pyth->PyLock();
 
-	PyObject *args = MakePyArgs(sym,argc,argv,-1,obj->self != NULL);
+	PyObject *args = MakePyArgs(sym,argc,argv);
 
     // call all functions bound by this symbol
     for(FuncSet::iterator it = obj->funcs.begin(); it != obj->funcs.end(); ++it) {

@@ -34,8 +34,6 @@ protected:
     void m_dir_() { m__dir(function); }
     void m_doc_() { m__doc(function); }
 
-	inline void m_bang() { CbMethodResort(1,NULL,0,NULL); }
-
 	const t_symbol *funname;
 	PyObject *function;
     bool withfunction;
@@ -52,6 +50,8 @@ protected:
     virtual bool thrcall(void *data);
     virtual void DumpOut(const t_symbol *sym,int argc,const t_atom *argv);
 
+    PyObject **objects;
+
 private:
 
     virtual bool callpy(PyObject *fun,PyObject *args);
@@ -59,7 +59,6 @@ private:
 	static void Setup(t_classid c);
 
 	FLEXT_CALLBACK(m_help)
-	FLEXT_CALLBACK(m_bang)
 	FLEXT_CALLBACK(m_reload)
 	FLEXT_CALLBACK_V(m_reload_)
 	FLEXT_CALLBACK_V(m_set)
@@ -103,10 +102,9 @@ void pyobj::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
 	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
 
-	FLEXT_CADDBANG(c,0,m_bang);
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
-  	FLEXT_CADDATTR_VAR1(c,"translate",xlate);
+  	FLEXT_CADDATTR_VAR1(c,"xlate",xlate);
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
 }
 
@@ -114,31 +112,54 @@ pyobj::pyobj(int argc,const t_atom *argv)
     : funname(NULL)
     , function(NULL)
     , withfunction(false)
+    , objects(NULL)
 { 
-	AddInAnything(2);  
-	AddOutAnything();  
-
 #ifdef FLEXT_THREADS
     FLEXT_ADDTIMER(stoptmr,tick);
     // launch thread worker
     FLEXT_CALLMETHOD(threadworker);
 #endif
 
-	if(argc > 2) args(argc-2,argv+2);
-
 	PyThreadState *state = PyLockSys();
 
+    int inlets = -1; // -1 signals non-explicit definition
+    if(argc && CanbeInt(*argv)) {
+        inlets = GetAInt(*argv);
+        argv++,argc--;
+    }
+
+    if(inlets >= 1) {
+        objects = new PyObject *[inlets];
+        for(int i = 0; i < inlets; ++i) { objects[i] = Py_None; Py_INCREF(Py_None); }
+    }
+
+    AddInAnything(1+(inlets < 0?1:inlets));
+	AddOutAnything();  
+
+    const char *funnm = NULL;
+
 	// init script module
-	if(argc >= 1) {
+	if(argc) {
         AddCurrentPath(thisCanvas());
 
-	    const char *sn = GetAString(argv[0]);
+	    const char *sn = GetAString(*argv);
+        argv++,argc--;
+
         if(sn) {
+            char modnm[64];
+            strcpy(modnm,sn);
+
+            char *pt = strrchr(modnm,'.'); // search for last dot
+            if(pt && *pt) {
+                funnm = pt+1;
+                *pt = 0;
+            }
+
     		char dir[1024];
-		    GetModulePath(sn,dir,sizeof(dir));
+		    GetModulePath(modnm,dir,sizeof(dir));
 		    AddToPath(dir);
 
-			ImportModule(sn);
+			ImportModule(modnm);
         }
         else
             PyErr_SetString(PyExc_ValueError,"Invalid module name");
@@ -146,13 +167,19 @@ pyobj::pyobj(int argc,const t_atom *argv)
 
 	Register(GetRegistry(REGNAME));
 
-    if(argc >= 2) {
-	    const char *fn = GetAString(argv[1]);
-        if(fn)
-	        SetFunction(fn);
+    if(funnm || argc) {
+        if(!funnm) {
+	        funnm = GetAString(*argv);
+            argv++,argc--;
+        }
+
+        if(funnm)
+	        SetFunction(funnm);
         else
             PyErr_SetString(PyExc_ValueError,"Invalid function name");
     }
+
+	if(argc) args(argc,argv);
 
     Report();
 
@@ -161,7 +188,12 @@ pyobj::pyobj(int argc,const t_atom *argv)
 
 pyobj::~pyobj() 
 {
-	PyThreadState *state = PyLockSys();
+    if(objects) {
+        for(int i = 0; i < CntIn()-1; ++i) Py_DECREF(objects[i]);
+        delete[] objects;
+    }
+    
+    PyThreadState *state = PyLockSys();
 	Unregister(GetRegistry(REGNAME));
     Report();
 	PyUnlock(state);
@@ -310,17 +342,43 @@ bool pyobj::callpy(PyObject *fun,PyObject *args)
 
 bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
-    if(n == 0) return false;
-
     bool ret = false;
  
+    if(n == 0 && s != sym_bang) goto end;
+
+    if(objects && n >= 1) {
+        // store args
+        PyObject *&obj = objects[n-1];
+        Py_DECREF(obj);
+        obj = MakePyArg(s,argc,argv); // steal reference
+
+        if(n > 1) {
+            ret = true; // just store, don't trigger
+            goto end;
+        }
+    }
+
     PyThreadState *state = PyLock();
 
     if(withfunction) {
         if(function) {
-		    PyObject *pargs = MakePyArgs(s,argc,argv);
             Py_INCREF(function);
-            ret = gencall(function,pargs);
+
+		    PyObject *pargs;
+        
+            if(objects) {
+                int inlets = CntIn()-1;
+            	pargs = PyTuple_New(inlets);
+                for(int i = 0; i < inlets; ++i) {
+                    Py_INCREF(objects[i]);
+    		        PyTuple_SET_ITEM(pargs,i,objects[i]);
+                }
+            }
+            else
+                // construct tuple from args
+                pargs = MakePyArgs(s,argc,argv);
+
+            ret = gencall(function,pargs); // references are stolen
         }
 	    else
 		    PyErr_SetString(PyExc_RuntimeError,"No function set");
@@ -343,7 +401,9 @@ bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
     PyUnlock(state);
 
     Respond(ret);
-    return ret;
+
+end:
+    return ret || flext_base::CbMethodResort(n,s,argc,argv);
 }
 
 void pyobj::CbClick() { pybase::OpenEditor(); }

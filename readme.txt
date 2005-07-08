@@ -88,6 +88,9 @@ Version history:
 0.2.1:
 - FIX: some simplifications in py and pyext
 - ADD: Python objects can be sent/received through outlets/inlets
+- ADD: py can have multiple inlets for multiple function arguments (right inlets are non-triggering)
+- ADD: allow module.function syntax for py and pyext
+- FIX: pyext: cleanup up float vs. int ... first decision is made by tag, afterwards a conversion is tried
 
 0.2.0:
 - ADD: handling of Python threads

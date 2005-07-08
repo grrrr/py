@@ -24,8 +24,9 @@ public:
 
     void Exit();
 
-	static PyObject *MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet = -1,bool withself = false);
-	static bool GetPyArgs(AtomList &lst,PyObject *pValue,int offs = 0 /*,PyObject **self = NULL*/);
+	static PyObject *MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet = -1);
+	static PyObject *MakePyArg(const t_symbol *s,int argc,const t_atom *argv);
+	static bool GetPyArgs(AtomList &lst,PyObject *pValue,int offs = 0);
 	static bool GetPyAtom(AtomList &lst,PyObject *pValue);
 
     static void lib_setup();
@@ -48,7 +49,7 @@ protected:
 
     void GetDir(PyObject *obj,AtomList &lst);
 
-	AtomListStatic<16> args;
+	AtomList args;
 
     void AddCurrentPath(t_canvas *cnv);
 	void GetModulePath(const char *mod,char *dir,int len);
@@ -86,6 +87,7 @@ protected:
     void Report() { while(PyErr_Occurred()) PyErr_Print(); }
 
 	static bool IsAnything(const t_symbol *s) { return s && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
+	static bool IsAtom(const t_symbol *s) { return s == sym_float || s == sym_int || s == sym_symbol || s == sym_pointer; }
 
 	enum retval { nothing,atom,sequ };
 

@@ -19,7 +19,7 @@ static ObjMap objmap;
 static size_t collix = 0,curix = 0;
 static double last = 0;
 
-void PyAtom::Register(PyObject *obj)
+size_t PyAtom::Register(PyObject *obj)
 {
     Collect();
 
@@ -29,6 +29,15 @@ void PyAtom::Register(PyObject *obj)
 #ifdef _DEBUG
 //    post("REG %p (%i)\n",obj,objmap.size());
 #endif
+    return curix;
+}
+
+PyObject *PyAtom::Retrieve(size_t id)
+{
+    ObjMap::iterator it = objmap.find(id);
+    PyObject *ret = it == objmap.end()?NULL:it->second;
+    Collect();
+    return ret;
 }
 
 void PyAtom::Collect()
@@ -46,6 +55,7 @@ void PyAtom::Collect()
 #endif
     }
 
+    // schedule next collect time
     double tm = flext::GetTime();
     if(tm > last+INTV) last = tm,collix = curix;
 }

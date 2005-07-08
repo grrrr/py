@@ -76,7 +76,7 @@ protected:
 	int inlets,outlets;
     int siginlets,sigoutlets;
 
-    flext::AtomListStatic<16> initargs;
+    flext::AtomList initargs;
 
 	virtual void LoadModule();
 	virtual void UnloadModule();

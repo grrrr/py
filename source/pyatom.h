@@ -13,6 +13,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 class PyAtom
 {
 public:
-    static void Register(PyObject *obj);
+    static size_t Register(PyObject *obj);
+    static PyObject *Retrieve(size_t id);
     static void Collect();
 };

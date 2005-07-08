@@ -41,7 +41,7 @@ void pyext::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"get",m_get);
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
-  	FLEXT_CADDATTR_VAR1(c,"translate",xlate);
+  	FLEXT_CADDATTR_VAR1(c,"xlate",xlate);
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
 
 	// ----------------------------------------------------
@@ -124,58 +124,72 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
     FLEXT_CALLMETHOD(threadworker);
 #endif
 
-    int apre = 0;
-    if(argc >= apre+2 && CanbeInt(argv[apre]) && CanbeInt(argv[apre+1])) {
-        inlets = GetAInt(argv[apre]);
-        outlets = GetAInt(argv[apre+1]);
-        apre += 2;
+    if(argc >= 2 && CanbeInt(argv[0]) && CanbeInt(argv[1])) {
+        inlets = GetAInt(argv[0]);
+        outlets = GetAInt(argv[1]);
+        argv += 2,argc -= 2;
     }
 
-    if(sig && argc >= apre+2 && CanbeInt(argv[apre]) && CanbeInt(argv[apre+1])) {
-        siginlets = GetAInt(argv[apre]);
-        sigoutlets = GetAInt(argv[apre+1]);
-        apre += 2;
+    if(sig && argc >= 2 && CanbeInt(argv[0]) && CanbeInt(argv[1])) {
+        siginlets = GetAInt(argv[0]);
+        sigoutlets = GetAInt(argv[1]);
+        argv += 2,argc -= 2;
     }
 
     const t_symbol *clname = NULL;
 
+    // check if the object name is pyext. , pyx. or similar
+    bool dotted = strrchr(thisName(),'.') != NULL;
+
     PyThreadState *state = PyLockSys();
 
 	// init script module
-	if(argc > apre) {
+	if(argc) {
         AddCurrentPath(thisCanvas());
 
-        const t_symbol *scr = GetASymbol(argv[apre]);
+        const t_symbol *scr = GetASymbol(*argv);
+        argv++,argc--;
+
         if(scr) {
+            char modnm[64];
+            strcpy(modnm,GetString(scr));
+
+            if(!dotted) {
+                char *pt = strrchr(modnm,'.'); // search for last dot
+                if(pt && *pt) {
+                    clname = MakeSymbol(pt+1);
+                    *pt = 0;
+                }
+            }
+
     		char dir[1024];
-		    GetModulePath(GetString(scr),dir,sizeof(dir));
-		    // add to path
+		    GetModulePath(modnm,dir,sizeof(dir));
 		    AddToPath(dir);
 
-			ImportModule(GetString(scr));
+			ImportModule(modnm);
 		}
         else
             PyErr_SetString(PyExc_ValueError,"Invalid module name");
 
-        ++apre;
-
         // check for alias creation names
-        if(strrchr(thisName(),'.')) clname = scr;
+        if(dotted) clname = scr;
 	}
 
     Register(GetRegistry(REGNAME));
 
-	if(argc > apre || clname) {
-        if(!clname) clname = GetASymbol(argv[apre++]);
+	if(argc || clname) {
+        if(!clname) {
+            clname = GetASymbol(*argv);
+            argv++,argc--;
+        }
     
-		// class name
-		if(!clname) 
-            PyErr_SetString(PyExc_ValueError,"Invalid class name");
-		else
+		if(clname) 
 			methname = clname;
+		else
+            PyErr_SetString(PyExc_ValueError,"Invalid class name");
 	}
 
-	if(argc > apre) initargs(argc-apre,argv+apre);
+	if(argc) initargs(argc,argv);
 
     Report();
 
@@ -228,7 +242,7 @@ bool pyext::DoInit()
 {
     // call init now, after _this has been set, which is
 	// important for eventual callbacks from __init__ to c
-	PyObject *pargs = MakePyArgs(NULL,initargs.Count(),initargs.Atoms(),-1,true);
+	PyObject *pargs = MakePyArgs(NULL,initargs.Count(),initargs.Atoms());
     if(pargs) {
         bool ok = true;
 
@@ -431,7 +445,7 @@ void pyext::m_set(int argc,const t_atom *argv)
     else {
         char *ch = const_cast<char *>(GetString(argv[0]));
         if(PyObject_HasAttrString(pyobj,ch)) {
-            PyObject *pval = MakePyArgs(NULL,argc-1,argv+1,-1,false);
+            PyObject *pval = MakePyArgs(NULL,argc-1,argv+1);
             if(pval) {
                 if(PySequence_Size(pval) == 1) {
                     // reduce lists of one element to element itself
@@ -455,10 +469,7 @@ void pyext::m_set(int argc,const t_atom *argv)
 
 bool pyext::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
-	if(pyobj && n >= 1)
-		return work(n,s,argc,argv);
-    else
-        return flext_dsp::CbMethodResort(n,s,argc,argv);
+	return (pyobj && n >= 1 && work(n,s,argc,argv)) || flext_dsp::CbMethodResort(n,s,argc,argv);
 }
 
 
@@ -515,7 +526,7 @@ bool pyext::call(const char *meth,int inlet,const t_symbol *s,int argc,const t_a
 		PyErr_Clear(); // no method found
 	}
 	else {
-		PyObject *pargs = MakePyArgs(s,argc,argv,inlet?inlet:-1,true);
+		PyObject *pargs = MakePyArgs(s,argc,argv,inlet?inlet:-1); //,true);
         if(!pargs) {
 			PyErr_Print();
     		Py_DECREF(pmeth);
@@ -535,17 +546,9 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
     // should be enough...
 	char str[256];
 
-    bool isfloat = s == sym_float && argc == 1;
-
     // offset inlet index by signal inlets
     // \note first one is shared with messages!
     if(siginlets) n += siginlets-1;
-
-	// if float equals an integer, try int_* method
-    if(isfloat && GetAFloat(argv[0]) == GetAInt(argv[0])) {
-		sprintf(str,"int_%i",n);
-		ret = call(str,0,NULL,1,argv);
-    }
 
 	// try tag/inlet
 	if(!ret) {
@@ -553,11 +556,19 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 		ret = call(str,0,NULL,argc,argv);
 	}
 
-	// try truncated int
-	if(!ret && isfloat) {
-        t_atom at; SetInt(at,GetAInt(argv[0]));
-		sprintf(str,"int_%i",n);
-		ret = call(str,0,NULL,1,&at);
+    if(!ret && argc == 1) {
+        if(s == sym_float) {
+    	    // try truncated float
+            t_atom at; SetInt(at,GetAInt(argv[0]));
+		    sprintf(str,"int_%i",n);
+		    ret = call(str,0,NULL,1,&at);
+        }
+	    else if(s == sym_int) {
+    	    // try floating int
+            t_atom at; SetFloat(at,GetAFloat(argv[0]));
+		    sprintf(str,"float_%i",n);
+		    ret = call(str,0,NULL,1,&at);
+	    }
 	}
 
 	// try anything/inlet
@@ -566,21 +577,23 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 		ret = call(str,0,s,argc,argv);
 	}
 
-    // try int at any inlet
-	if(!ret && isfloat && GetAFloat(argv[0]) == GetAInt(argv[0])) {
-		ret = call("int_",0,NULL,1,argv);
-	}
-
 	// try tag at any inlet
     if(!ret) {
 		sprintf(str,"%s_",GetString(s));
 		ret = call(str,n,NULL,argc,argv);
 	}
 
-    // try truncated int at any inlet
-	if(!ret && isfloat) {
-        t_atom at; SetInt(at,GetAInt(argv[0]));
-		ret = call("int_",0,NULL,1,&at);
+    if(!ret && argc == 1) {
+        if(s == sym_float) {
+            // try truncated float at any inlet
+            t_atom at; SetInt(at,GetAInt(argv[0]));
+		    ret = call("int_",0,NULL,1,&at);
+        }
+        else if(s == sym_int) {
+            // try floating int at any inlet
+            t_atom at; SetFloat(at,GetAFloat(argv[0]));
+		    ret = call("float_",0,NULL,1,&at);
+	    }
 	}
 
     if(!ret) {
