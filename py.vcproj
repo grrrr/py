@@ -1244,6 +1244,13 @@
 				</FileConfiguration>
 			</File>
 		</Filter>
+		<Filter
+			Name="meth"
+			Filter="">
+			<File
+				RelativePath=".\source\pymeth.cpp">
+			</File>
+		</Filter>
 		<File
 			RelativePath="source\main.cpp">
 			<FileConfiguration

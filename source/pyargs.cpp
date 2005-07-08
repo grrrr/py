@@ -99,7 +99,8 @@ PyObject *pybase::MakePyArg(const t_symbol *s,int argc,const t_atom *argv)
     if(s == symatom && (ret = MakePyAtom(argc,argv)) != NULL) {
         // ok!
     }
-    else if(argc == 1 && IsAtom(s))
+    else if(argc == 1 && !IsAnything(s))
+        // convert atoms and one-element lists
 		ret = MakePyAtom(*argv);       
     else {
 	    bool any = s != sym_list;

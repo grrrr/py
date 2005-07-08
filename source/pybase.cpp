@@ -147,6 +147,7 @@ void pybase::lib_setup()
 	// -------------------------------------------------------------
 
 	FLEXT_SETUP(pyobj);
+	FLEXT_SETUP(pymeth);
 	FLEXT_SETUP(pyext);
 	FLEXT_DSP_SETUP(pydsp);
 

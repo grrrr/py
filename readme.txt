@@ -91,6 +91,7 @@ Version history:
 - ADD: py can have multiple inlets for multiple function arguments (right inlets are non-triggering)
 - ADD: allow module.function syntax for py and pyext
 - FIX: pyext: cleanup up float vs. int ... first decision is made by tag, afterwards a conversion is tried
+- ADD: pymeth: object-oriented object... Python methods for any object type
 
 0.2.0:
 - ADD: handling of Python threads

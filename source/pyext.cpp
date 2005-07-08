@@ -469,7 +469,10 @@ void pyext::m_set(int argc,const t_atom *argv)
 
 bool pyext::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
-	return (pyobj && n >= 1 && work(n,s,argc,argv)) || flext_dsp::CbMethodResort(n,s,argc,argv);
+    if(!n) 
+        return flext_dsp::CbMethodResort(n,s,argc,argv);
+
+	return pyobj && work(n,s,argc,argv);
 }
 
 

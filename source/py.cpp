@@ -44,7 +44,7 @@ protected:
 	virtual void Load();
 	virtual void Unload();
 
-	bool SetFunction(const char *func);
+	bool SetFunction(const t_symbol *func);
 	bool ResetFunction();
 
     virtual bool thrcall(void *data);
@@ -122,11 +122,15 @@ pyobj::pyobj(int argc,const t_atom *argv)
 
 	PyThreadState *state = PyLockSys();
 
-    int inlets = -1; // -1 signals non-explicit definition
+    int inlets;
     if(argc && CanbeInt(*argv)) {
         inlets = GetAInt(*argv);
+        if(inlets < 1) inlets = 1;
         argv++,argc--;
     }
+    else
+         // -1 signals non-explicit definition
+        inlets = -1;
 
     if(inlets >= 1) {
         objects = new PyObject *[inlets];
@@ -136,7 +140,7 @@ pyobj::pyobj(int argc,const t_atom *argv)
     AddInAnything(1+(inlets < 0?1:inlets));
 	AddOutAnything();  
 
-    const char *funnm = NULL;
+    const t_symbol *funnm = NULL;
 
 	// init script module
 	if(argc) {
@@ -151,7 +155,7 @@ pyobj::pyobj(int argc,const t_atom *argv)
 
             char *pt = strrchr(modnm,'.'); // search for last dot
             if(pt && *pt) {
-                funnm = pt+1;
+                funnm = MakeSymbol(pt+1);
                 *pt = 0;
             }
 
@@ -169,7 +173,7 @@ pyobj::pyobj(int argc,const t_atom *argv)
 
     if(funnm || argc) {
         if(!funnm) {
-	        funnm = GetAString(*argv);
+	        funnm = GetASymbol(*argv);
             argv++,argc--;
         }
 
@@ -225,7 +229,7 @@ void pyobj::m_set(int argc,const t_atom *argv)
 	}
 
     if(argc) {
-	    const char *fn = GetAString(*argv);
+	    const t_symbol *fn = GetASymbol(*argv);
         if(fn)
 	        SetFunction(fn);
         else
@@ -269,6 +273,7 @@ void pyobj::m_help()
 
 bool pyobj::ResetFunction()
 {
+    // function was borrowed from dict!
     function = NULL;
     
     if(!module || !dict)
@@ -289,10 +294,10 @@ bool pyobj::ResetFunction()
     return function != NULL;
 }
 
-bool pyobj::SetFunction(const char *func)
+bool pyobj::SetFunction(const t_symbol *func)
 {
 	if(func) {
-		funname = MakeSymbol(func);
+		funname = func;
         withfunction = ResetFunction();
 	}
     else {
@@ -307,7 +312,7 @@ bool pyobj::SetFunction(const char *func)
 
 void pyobj::LoadModule() 
 {
-    SetFunction(funname?GetString(funname):NULL);
+    SetFunction(funname);
 }
 
 void pyobj::UnloadModule() 
@@ -342,68 +347,67 @@ bool pyobj::callpy(PyObject *fun,PyObject *args)
 
 bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
+    if(n == 0 && s != sym_bang) 
+        return flext_base::CbMethodResort(n,s,argc,argv);
+
+    PyThreadState *state = PyLock();
+
     bool ret = false;
  
-    if(n == 0 && s != sym_bang) goto end;
-
     if(objects && n >= 1) {
         // store args
         PyObject *&obj = objects[n-1];
         Py_DECREF(obj);
         obj = MakePyArg(s,argc,argv); // steal reference
 
-        if(n > 1) {
-            ret = true; // just store, don't trigger
-            goto end;
-        }
+        if(n > 1) ret = true; // just store, don't trigger
     }
 
-    PyThreadState *state = PyLock();
+    if(!ret) {
+        if(withfunction) {
+            if(function) {
+                Py_INCREF(function);
 
-    if(withfunction) {
-        if(function) {
-            Py_INCREF(function);
+		        PyObject *pargs;
+            
+                if(objects) {
+                    int inlets = CntIn()-1;
+            	    pargs = PyTuple_New(inlets);
+                    for(int i = 0; i < inlets; ++i) {
+                        Py_INCREF(objects[i]);
+    		            PyTuple_SET_ITEM(pargs,i,objects[i]);
+                    }
+                }
+                else
+                    // construct tuple from args
+                    pargs = MakePyArgs(s,argc,argv);
 
-		    PyObject *pargs;
-        
-            if(objects) {
-                int inlets = CntIn()-1;
-            	pargs = PyTuple_New(inlets);
-                for(int i = 0; i < inlets; ++i) {
-                    Py_INCREF(objects[i]);
-    		        PyTuple_SET_ITEM(pargs,i,objects[i]);
+                ret = gencall(function,pargs); // references are stolen
+            }
+	        else
+		        PyErr_SetString(PyExc_RuntimeError,"No function set");
+        }
+        else if(module) {
+            // no function defined as creation argument -> use message tag
+            if(s) {
+                PyObject *func = PyObject_GetAttrString(module,const_cast<char *>(GetString(s)));
+                if(func) {
+		            PyObject *pargs = MakePyArgs(sym_list,argc,argv);
+                    ret = gencall(func,pargs);
                 }
             }
             else
-                // construct tuple from args
-                pargs = MakePyArgs(s,argc,argv);
-
-            ret = gencall(function,pargs); // references are stolen
+		        PyErr_SetString(PyExc_RuntimeError,"No function set");
         }
-	    else
-		    PyErr_SetString(PyExc_RuntimeError,"No function set");
-    }
-    else if(module) {
-        // no function defined as creation argument -> use message tag
-        if(s) {
-            PyObject *func = PyObject_GetAttrString(module,const_cast<char *>(GetString(s)));
-            if(func) {
-		        PyObject *pargs = MakePyArgs(sym_list,argc,argv);
-                ret = gencall(func,pargs);
-            }
-        }
-        else
-		    PyErr_SetString(PyExc_RuntimeError,"No function set");
-    }
 
-    Report();
+        Report();
+    }
 
     PyUnlock(state);
 
     Respond(ret);
 
-end:
-    return ret || flext_base::CbMethodResort(n,s,argc,argv);
+    return ret;
 }
 
 void pyobj::CbClick() { pybase::OpenEditor(); }
