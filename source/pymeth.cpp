@@ -15,30 +15,40 @@ struct xlt { const t_symbol *from,*to; };
 
 static const xlt xtdefs[] = { 
     { flext::MakeSymbol("+"),flext::MakeSymbol("__add__") },
+    { flext::MakeSymbol("+="),flext::MakeSymbol("__iadd__") },
     { flext::MakeSymbol("!+"),flext::MakeSymbol("__radd__") },
     { flext::MakeSymbol("-"),flext::MakeSymbol("__sub__") },
+    { flext::MakeSymbol("-="),flext::MakeSymbol("__isub__") },
     { flext::MakeSymbol("!-"),flext::MakeSymbol("__rsub__") },
     { flext::MakeSymbol("*"),flext::MakeSymbol("__mul__") },
+    { flext::MakeSymbol("*="),flext::MakeSymbol("__imul__") },
     { flext::MakeSymbol("!*"),flext::MakeSymbol("__rmul__") },
     { flext::MakeSymbol("/"),flext::MakeSymbol("__div__") },
+    { flext::MakeSymbol("/="),flext::MakeSymbol("__idiv__") },
     { flext::MakeSymbol("!/"),flext::MakeSymbol("__rdiv__") },
     { flext::MakeSymbol("//"),flext::MakeSymbol("__floordiv__") },
+    { flext::MakeSymbol("//="),flext::MakeSymbol("__ifloordiv__") },
     { flext::MakeSymbol("!//"),flext::MakeSymbol("__rfloordiv__") },
     { flext::MakeSymbol("%"),flext::MakeSymbol("__mod__") },
+    { flext::MakeSymbol("%="),flext::MakeSymbol("__imod__") },
     { flext::MakeSymbol("!%"),flext::MakeSymbol("__rmod__") },
     { flext::MakeSymbol("**"),flext::MakeSymbol("__pow__") },
+    { flext::MakeSymbol("**="),flext::MakeSymbol("__ipow__") },
     { flext::MakeSymbol("!**"),flext::MakeSymbol("__rpow__") },
-    { flext::MakeSymbol("~"),flext::MakeSymbol("__invert__") },
     { flext::MakeSymbol("&"),flext::MakeSymbol("__and__") },
+    { flext::MakeSymbol("&="),flext::MakeSymbol("__iand__") },
     { flext::MakeSymbol("!&"),flext::MakeSymbol("__rand__") },
     { flext::MakeSymbol("|"),flext::MakeSymbol("__or__") },
+    { flext::MakeSymbol("|="),flext::MakeSymbol("__ior__") },
     { flext::MakeSymbol("!|"),flext::MakeSymbol("__ror__") },
     { flext::MakeSymbol("^"),flext::MakeSymbol("__xor__") },
+    { flext::MakeSymbol("^="),flext::MakeSymbol("__ixor__") },
     { flext::MakeSymbol("!^"),flext::MakeSymbol("__rxor__") },
-    { flext::MakeSymbol("!"),flext::MakeSymbol("__nonzero__") },
     { flext::MakeSymbol("<<"),flext::MakeSymbol("__lshift__") },
+    { flext::MakeSymbol("<<="),flext::MakeSymbol("__ilshift__") },
     { flext::MakeSymbol("!<<"),flext::MakeSymbol("__rlshift__") },
     { flext::MakeSymbol(">>"),flext::MakeSymbol("__rshift__") },
+    { flext::MakeSymbol(">>="),flext::MakeSymbol("__irshift__") },
     { flext::MakeSymbol("!>>"),flext::MakeSymbol("__rrshift__") },
     { flext::MakeSymbol("=="),flext::MakeSymbol("__eq__") },
     { flext::MakeSymbol("!="),flext::MakeSymbol("__ne__") },
@@ -46,6 +56,8 @@ static const xlt xtdefs[] = {
     { flext::MakeSymbol(">"),flext::MakeSymbol("__gt__") },
     { flext::MakeSymbol("<="),flext::MakeSymbol("__le__") },
     { flext::MakeSymbol(">="),flext::MakeSymbol("__ge__") },
+    { flext::MakeSymbol("!"),flext::MakeSymbol("__nonzero__") },
+    { flext::MakeSymbol("~"),flext::MakeSymbol("__invert__") },
     { flext::MakeSymbol("[]"),flext::MakeSymbol("__getitem__") },
 
     { flext::MakeSymbol(".abs"),flext::MakeSymbol("__abs__") },
@@ -71,6 +83,7 @@ static const xlt xtdefs[] = {
 
 typedef std::map<const t_symbol *,const t_symbol *> XTable;
 static XTable xtable;
+
 
 class pymeth
     : public pybase
@@ -307,7 +320,7 @@ void pymeth::ResetFunction()
     function = NULL;
     
     if(funname && objects[0] != Py_None) {
-	    function = PyObject_GetAttrString(objects[0],(char *)GetString(funname)); // new reference
+        function = PyObject_GetAttrString(objects[0],(char *)GetString(funname)); // new reference
         if(!function) 
             PyErr_SetString(PyExc_AttributeError,"Method not found");
     }

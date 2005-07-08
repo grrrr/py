@@ -157,6 +157,10 @@ pyobj::pyobj(int argc,const t_atom *argv)
             if(pt && *pt) {
                 funnm = MakeSymbol(pt+1);
                 *pt = 0;
+
+                if(!*modnm) 
+                    // if module name is empty set it to __builtin__
+                    strcpy(modnm,"__builtin__");
             }
 
     		char dir[1024];
@@ -283,9 +287,9 @@ bool pyobj::ResetFunction()
 	        function = PyDict_GetItemString(dict,(char *)GetString(funname)); // borrowed!!!
             if(!function) 
                 PyErr_SetString(PyExc_AttributeError,"Function not found");
-            else if(!PyFunction_Check(function)) {
+            else if(!PyCallable_Check(function)) {
     		    function = NULL;
-                PyErr_SetString(PyExc_TypeError,"Attribute is not a function");
+                PyErr_SetString(PyExc_TypeError,"Attribute is not callable");
             }
 	    }
     }
