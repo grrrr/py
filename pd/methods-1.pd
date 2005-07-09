@@ -1,0 +1,24 @@
+#N canvas 540 469 714 349 12;
+#X obj 16 13 cnv 15 650 40 empty empty py/pyext 10 22 0 24 -260818
+-1 0;
+#X text 235 16 Python script objects \, (C)2003-2005 Thomas Grill;
+#X text 235 32 http://grrrr.org/ext;
+#X symbolatom 21 139 10 0 0 0 - - -;
+#X symbolatom 25 298 10 0 0 0 - - -;
+#X obj 25 252 pym upper;
+#X obj 22 179 py .str @xlate 0;
+#X text 93 167 convert the symbol to a Python string;
+#X text 35 216 pass it as a true Python object;
+#X text 105 251 use string.upper method;
+#X obj 363 252 py string.upper;
+#X symbolatom 364 288 10 0 0 0 - - -;
+#X text 495 254 use module function;
+#X text 23 119 enter some text;
+#X text 21 73 Py can act on Python objects in a object-oriented manner
+;
+#X text 93 184 using the built-in str function;
+#X connect 3 0 6 1;
+#X connect 5 0 4 0;
+#X connect 6 0 5 1;
+#X connect 6 0 10 1;
+#X connect 10 0 11 0;

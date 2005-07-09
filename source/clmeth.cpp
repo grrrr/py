@@ -182,7 +182,7 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
             // offset outlet by signal outlets
             o += ext->sigoutlets;
 
-            if(ext->OutObject(ext,o,val))
+            if(ext->OutObject(ext,o-1,val))
     			ok = true;
 		    else 
                 PyErr_SetString(PyExc_ValueError,"pyext - _outlet: invalid arguments");
@@ -295,11 +295,12 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 			val = PyTuple_GetSlice(args,1,sz);  // new ref
 
 		flext::AtomListStatic<16> lst;
-        if(GetPyArgs(lst,val)) {
+        const t_symbol *sym = GetPyArgs(lst,val);
+        if(sym) {
 			t_glist *gl = ext->thisCanvas(); //canvas_getcurrent();
 			t_class **cl = (t_pd *)gl;
 			if(cl)
-				pd_forwardmess(cl,lst.Count(),lst.Atoms());
+			    pd_forwardmess(cl,lst.Count(),lst.Atoms());
 #ifdef FLEXT_DEBUG
 			else
 				post("pyext - no parent canvas?!");

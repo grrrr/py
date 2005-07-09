@@ -394,7 +394,8 @@ bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
                 }
                 else
                     // construct tuple from args
-                    pargs = MakePyArgs(s,argc,argv);
+                    // if n == 0, it's a pure bang
+                    pargs = MakePyArgs(n?s:NULL,argc,argv);
 
                 ret = gencall(function,pargs); // references are stolen
             }

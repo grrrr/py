@@ -81,6 +81,89 @@ static long symbol_hash(PyObject *self)
     return (long)pySymbol_AS_SYMBOL(self);
 }
 
+
+static int symbol_length(pySymbol *self)
+{
+    return strlen(flext::GetString(self->sym));
+}
+
+static PyObject *symbol_item(pySymbol *self, int i)
+{
+    const char *str = flext::GetString(self->sym);
+    int len = strlen(str);
+    if(i < 0) i += len;
+
+    if(i >= 0 && i < len)
+        return PyString_FromStringAndSize(str+i,1);
+    else {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+}
+
+static PyObject *symbol_slice(pySymbol *self,int ilow = 0,int ihigh = 1<<(sizeof(int)*8-2))
+{
+    const char *str = flext::GetString(self->sym);
+    int len = strlen(str);
+    if(ilow < 0) {
+        ilow += len;
+        if(ilow < 0) ilow = 0;
+    }
+    if(ihigh < 0) ihigh += len;
+    if(ihigh >= len) ihigh = len-1;
+
+    return PyString_FromStringAndSize(str+ilow,ilow <= ihigh?ihigh-ilow+1:0);
+}
+
+static PyObject *symbol_concat(pySymbol *self,PyObject *op)
+{
+    PyObject *nobj = symbol_slice(self); // take all
+    if(nobj) {
+        PyObject *ret = PySequence_Concat(nobj,op);
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *symbol_repeat(pySymbol *self,int rep)
+{
+    PyObject *nobj = symbol_slice(self); // take all
+    if(nobj) {
+        PyObject *ret = PySequence_Repeat(nobj,rep);
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PySequenceMethods symbol_as_seq = {
+	(inquiry)symbol_length,			/* inquiry sq_length;             __len__ */
+	(binaryfunc)symbol_concat,          /* __add__ */
+	(intargfunc)symbol_repeat,          /* __mul__ */
+	(intargfunc)symbol_item,			/* intargfunc sq_item;            __getitem__ */
+	(intintargfunc)symbol_slice,		 /* intintargfunc sq_slice;        __getslice__ */
+	NULL,		/* intobjargproc sq_ass_item;     __setitem__ */
+	NULL,	/* intintobjargproc sq_ass_slice; __setslice__ */
+};
+
+static PyObject *symbol_iter(PyObject *obj)
+{
+    pySymbol *self = (pySymbol *)obj;
+    PyObject *nobj = symbol_slice(self);
+    if(nobj) {
+        PyObject *it = PyObject_GetIter(nobj);
+        Py_DECREF(nobj);
+        return it;
+    }
+    else
+        return NULL;
+}
+
+
+
 PyTypeObject pySymbol_Type = {
     PyObject_HEAD_INIT(NULL)
     0,                         /*ob_size*/
@@ -94,7 +177,7 @@ PyTypeObject pySymbol_Type = {
     0,            /*tp_compare*/
     symbol_repr,               /*tp_repr*/
     0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
+    &symbol_as_seq,            /*tp_as_sequence*/
     0,                         /*tp_as_mapping*/
     symbol_hash,               /*tp_hash */
     0,                         /*tp_call*/
@@ -108,7 +191,7 @@ PyTypeObject pySymbol_Type = {
     0,		               /* tp_clear */
     symbol_richcompare,	       /* tp_richcompare */
     0,		               /* tp_weaklistoffset */
-    0,		               /* tp_iter */
+    symbol_iter,		    /* tp_iter */
     0,		               /* tp_iternext */
     0,                          /* tp_methods */
     0,                          /* tp_members */

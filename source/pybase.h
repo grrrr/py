@@ -26,8 +26,8 @@ public:
 
 	static PyObject *MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet = -1);
 	static PyObject *MakePyArg(const t_symbol *s,int argc,const t_atom *argv);
-	static bool GetPyArgs(AtomList &lst,PyObject *pValue,int offs = 0);
-	static bool GetPyAtom(AtomList &lst,PyObject *pValue);
+	static const t_symbol *GetPyArgs(AtomList &lst,PyObject *pValue,int offs = 0);
+	static const t_symbol *GetPyAtom(AtomList &lst,PyObject *pValue);
 
     static void lib_setup();
 
@@ -161,6 +161,8 @@ protected:
 #else
     static PyThreadState *FindThreadState() { return NULL; }
 #endif
+
+    static const t_symbol *sym_fint; // float or int symbol, depending on native number message type
 
 public:
 

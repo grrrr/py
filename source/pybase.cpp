@@ -65,6 +65,8 @@ PyObject *pybase::module_dict = NULL;
 PyObject *pybase::builtins_obj = NULL;
 PyObject *pybase::builtins_dict = NULL;
 
+const t_symbol *pybase::sym_fint = NULL;
+
 // -----------------------------------------------------------------------------------------------------------
 
 
@@ -149,6 +151,12 @@ void pybase::lib_setup()
     initsamplebuffer();
     PyModule_AddObject(module_obj,"Buffer",(PyObject *)&pySamplebuffer_Type);
 
+#if FLEXT_SYS == FLEXT_SYS_PD
+    sym_fint = sym_float;
+#else
+    sym_fint = sym_int;
+#endif
+
 	// -------------------------------------------------------------
 
 	FLEXT_SETUP(pyobj);
@@ -219,8 +227,11 @@ void pybase::GetDir(PyObject *obj,AtomList &lst)
 	    if(!pvar)
 		    PyErr_Print(); // no method found
 	    else {
-            if(!GetPyArgs(lst,pvar))
+            const t_symbol *sym = GetPyArgs(lst,pvar);
+            if(!sym)
                 post("py/pyext - Argument list could not be created");
+            else
+                FLEXT_ASSERT(sym == sym_list);
             Py_DECREF(pvar);
         }
 
@@ -432,15 +443,11 @@ void pybase::AddCurrentPath(t_canvas *cnv)
 bool pybase::OutObject(flext_base *ext,int o,PyObject *obj)
 {
     flext::AtomListStatic<16> lst;
-    if(xlate?GetPyArgs(lst,obj):GetPyAtom(lst,obj)) {
+    const t_symbol *sym = xlate?GetPyArgs(lst,obj):GetPyAtom(lst,obj);
+    if(sym) {
         // call to outlet _outside_ the Mutex lock!
         // otherwise (if not detached) deadlock will occur
-        if(lst.Count() && IsSymbol(lst[0])) 
-            ext->ToOutAnything(o,GetSymbol(lst[0]),lst.Count()-1,lst.Atoms()+1);
-        else if(lst.Count() > 1)
-            ext->ToOutList(o,lst);
-        else
-            ext->ToOutAtom(o,lst[0]);
+        ext->ToOutAnything(o,sym,lst.Count(),lst.Atoms());
         return true;
     }
     else

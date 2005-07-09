@@ -128,13 +128,9 @@ PyObject *pybase::py_send(PyObject *,PyObject *args)
 			val = PySequence_GetSlice(args,1,sz);  // new ref
 
         AtomListStatic<16> lst;
-		if(GetPyArgs(lst,val)) {
-			bool ok;
-			if(lst.Count() && IsSymbol(lst[0]))
-				ok = Forward(recv,GetSymbol(lst[0]),lst.Count()-1,lst.Atoms()+1);
-			else
-				ok = Forward(recv,lst);
-
+        const t_symbol *sym = GetPyArgs(lst,val);
+		if(sym) {
+    		bool ok = Forward(recv,sym,lst.Count(),lst.Atoms());
 #ifdef FLEXT_DEBUG
             if(!ok)
 				post("py/pyext - Receiver doesn't exist");

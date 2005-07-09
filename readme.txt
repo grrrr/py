@@ -94,6 +94,7 @@ Version history:
 - ADD: pymeth: object-oriented object... Python methods for any object type
 - ADD: py: allow all callables (also object constructors and builtins)
 - ADD: py: enable Python built-in functions (like range, str etc.)
+- ADD: sequence protocol for symbol type
 
 0.2.0:
 - ADD: handling of Python threads

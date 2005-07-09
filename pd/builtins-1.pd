@@ -1,4 +1,4 @@
-#N canvas 327 349 698 413 12;
+#N canvas 327 349 706 421 12;
 #X obj 36 241 py .range @xlate 0;
 #X floatatom 35 356 5 0 0 0 - - -;
 #X obj 35 323 py .sum;
@@ -7,12 +7,12 @@
 #X text 235 16 Python script objects \, (C)2003-2005 Thomas Grill;
 #X text 235 32 http://grrrr.org/ext;
 #X obj 36 159 nbx 5 14 -1e+037 1e+037 0 1 empty empty min 0 -6 0 10
--262131 -1 -1 83 256;
+-262131 -1 -1 38 256;
 #X obj 95 159 nbx 5 14 -1e+037 1e+037 0 1 empty empty max 0 -6 0 10
--262131 -1 -1 97 256;
+-262131 -1 -1 100 256;
 #X obj 154 159 nbx 5 14 1 100000 1 1 empty empty step 0 -6 0 10 -262131
 -1 -1 1 256;
-#N canvas 0 0 454 304 pak3 0;
+#N canvas 0 0 462 312 pak3 0;
 #X obj 34 26 inlet;
 #X obj 81 28 inlet;
 #X obj 129 28 inlet;
@@ -20,6 +20,8 @@
 #X obj 36 123 pack 0 0 0;
 #X obj 61 78 t b f;
 #X obj 108 80 t b f;
+#X obj 208 46 loadbang;
+#X obj 208 73 1;
 #X connect 0 0 4 0;
 #X connect 1 0 5 0;
 #X connect 2 0 6 0;
@@ -28,6 +30,8 @@
 #X connect 5 1 4 1;
 #X connect 6 0 4 0;
 #X connect 6 1 4 2;
+#X connect 7 0 8 0;
+#X connect 8 0 4 2;
 #X restore 36 195 pd pak3;
 #X text 115 240 construct a Python list;
 #X text 78 282 Python object pointer is propagated to next object;
