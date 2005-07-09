@@ -94,6 +94,7 @@ protected:
 	// --- module stuff -----
 
 	static PyObject *module_obj,*module_dict;
+	static PyObject *builtins_obj,*builtins_dict;
 	static PyMethodDef func_tbl[];
 
 	static PyObject *py__doc__(PyObject *,PyObject *args);

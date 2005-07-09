@@ -158,16 +158,21 @@ pyobj::pyobj(int argc,const t_atom *argv)
                 funnm = MakeSymbol(pt+1);
                 *pt = 0;
 
+#if 0
                 if(!*modnm) 
                     // if module name is empty set it to __builtin__
                     strcpy(modnm,"__builtin__");
+#endif
             }
 
-    		char dir[1024];
-		    GetModulePath(modnm,dir,sizeof(dir));
-		    AddToPath(dir);
-
-			ImportModule(modnm);
+            if(*modnm) {
+    		    char dir[1024];
+		        GetModulePath(modnm,dir,sizeof(dir));
+		        AddToPath(dir);
+                ImportModule(modnm);
+            }
+            else
+                ImportModule(NULL);          
         }
         else
             PyErr_SetString(PyExc_ValueError,"Invalid module name");
@@ -280,11 +285,16 @@ bool pyobj::ResetFunction()
     // function was borrowed from dict!
     function = NULL;
     
-    if(!module || !dict)
-		post("%s - No module loaded",thisName());
+    if(!dict)
+		post("%s - No namespace available",thisName());
     else {
         if(funname) {
 	        function = PyDict_GetItemString(dict,(char *)GetString(funname)); // borrowed!!!
+
+            if(!function && dict == module_dict)
+                // search also in __builtins__
+    	        function = PyDict_GetItemString(builtins_dict,(char *)GetString(funname)); // borrowed!!!
+
             if(!function) 
                 PyErr_SetString(PyExc_AttributeError,"Function not found");
             else if(!PyCallable_Check(function)) {

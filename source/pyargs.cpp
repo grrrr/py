@@ -17,19 +17,19 @@ static PyObject *MakePyAtom(const t_atom &at)
 {
 	if(flext::IsSymbol(at)) 
         return pySymbol_FromSymbol(flext::GetSymbol(at));
-/*
+#if 1
     else if(flext::CanbeInt(at) || flext::CanbeFloat(at)) {
         // if a number can be an integer... let it be an integer!
         int ival = flext::GetAInt(at);
         double fval = flext::GetAFloat(at);
         return (double)ival == fval?PyInt_FromLong(ival):PyFloat_FromDouble(fval);
     }
-*/
+#else
     else if(flext::IsFloat(at))
         return PyFloat_FromDouble(flext::GetFloat(at));
     else if(flext::IsInt(at))
         return PyInt_FromLong(flext::GetInt(at));
-
+#endif
     return NULL;
 }
 

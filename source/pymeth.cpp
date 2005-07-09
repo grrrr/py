@@ -59,6 +59,9 @@ static const xlt xtdefs[] = {
     { flext::MakeSymbol("!"),flext::MakeSymbol("__nonzero__") },
     { flext::MakeSymbol("~"),flext::MakeSymbol("__invert__") },
     { flext::MakeSymbol("[]"),flext::MakeSymbol("__getitem__") },
+    { flext::MakeSymbol("[]="),flext::MakeSymbol("__setitem__") },
+    { flext::MakeSymbol("[:]"),flext::MakeSymbol("__getslice__") },
+    { flext::MakeSymbol("[:]="),flext::MakeSymbol("__setslice__") },
 
     { flext::MakeSymbol(".abs"),flext::MakeSymbol("__abs__") },
     { flext::MakeSymbol(".neg"),flext::MakeSymbol("__neg__") },
@@ -396,7 +399,14 @@ bool pymeth::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
             PyObject *self = PyMethod_Self(function);
             PyErr_Clear();
             if(!self || self->ob_type != objects[0]->ob_type)
+                // type has changed, search for new method
                 ResetFunction();
+            else if(self != objects[0]) {
+                // type hasn't changed, but object has
+                PyObject *f = function;
+                function = PyMethod_New(PyMethod_GET_FUNCTION(f),objects[0],PyMethod_GET_CLASS(f));
+                Py_DECREF(f);
+            }
         }
         else
             ResetFunction();

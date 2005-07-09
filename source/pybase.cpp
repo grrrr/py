@@ -62,6 +62,8 @@ void pybase::FreeThreadState()
 PyObject *pybase::module_obj = NULL;
 PyObject *pybase::module_dict = NULL;
 
+PyObject *pybase::builtins_obj = NULL;
+PyObject *pybase::builtins_dict = NULL;
 
 // -----------------------------------------------------------------------------------------------------------
 
@@ -127,6 +129,9 @@ void pybase::lib_setup()
         gcollect = PyObject_GetAttrString(gcobj,"collect");
         Py_DECREF(gcobj);
     }
+
+    builtins_obj = PyImport_ImportModule("__builtin__");
+	builtins_dict = PyModule_GetDict(builtins_obj); // borrowed reference
 
     // add symbol type
     initsymbol();
@@ -295,9 +300,12 @@ void pybase::SetArgs()
 
 bool pybase::ImportModule(const char *name)
 {
-	if(!name) return false;
-    if(modname == name) return true;
-    modname = name;
+    if(name) {
+        if(modname == name) return true;
+        modname = name;
+    }
+    else
+        modname.clear();
     return ReloadModule();
 }
 
@@ -322,9 +330,17 @@ bool pybase::ReloadModule()
     bool ok = false;
 
     SetArgs();
-    PyObject *newmod = module
-        ?PyImport_ReloadModule(module)
-        :PyImport_ImportModule((char *)modname.c_str());
+    PyObject *newmod;
+    
+    if(modname.length())
+        newmod = module
+            ?PyImport_ReloadModule(module)
+            :PyImport_ImportModule((char *)modname.c_str());
+    else {
+        // if no module name given, take py module
+        newmod = module_obj; 
+        Py_INCREF(newmod);
+    }
 
 	if(!newmod) {
 		// unload faulty module
