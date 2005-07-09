@@ -93,6 +93,7 @@ Version history:
 - FIX: pyext: cleanup up float vs. int ... first decision is made by tag, afterwards a conversion is tried
 - ADD: pymeth: object-oriented object... Python methods for any object type
 - ADD: py: allow all callables (also object constructors and builtins)
+- ADD: py: enable Python built-in functions (like range, str etc.)
 
 0.2.0:
 - ADD: handling of Python threads
