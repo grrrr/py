@@ -130,12 +130,15 @@ const t_symbol *pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs)
 {
 	if(pValue == NULL) return false; 
 
+    // output bang on None returned
+    if(pValue == Py_None) return sym_bang;
+
 	// analyze return value or tuple
 
 	int rargc = 0;
 	retval tp = nothing;
 
-	if(PyString_Check(pValue)) {
+	if(PyString_Check(pValue) || pySymbol_Check(pValue)) {
 		rargc = 1;
 		tp = atom;
 	}
@@ -143,8 +146,8 @@ const t_symbol *pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs)
 		rargc = PySequence_Size(pValue);
 		tp = sequ;
 	}
-    else if(pValue != Py_None) {
-		rargc = 1;
+    else {
+        rargc = 1;
 		tp = atom;
 	}
 //    else

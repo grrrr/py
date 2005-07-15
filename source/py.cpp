@@ -125,7 +125,7 @@ pyobj::pyobj(int argc,const t_atom *argv)
     int inlets;
     if(argc && CanbeInt(*argv)) {
         inlets = GetAInt(*argv);
-        if(inlets < 1) inlets = 1;
+        if(inlets < 0) inlets = 1;
         argv++,argc--;
     }
     else
@@ -352,7 +352,7 @@ bool pyobj::callpy(PyObject *fun,PyObject *args)
         return false;
     }
     else {
-        if(ret != Py_None && !OutObject(this,0,ret) && PyErr_Occurred())
+        if(!OutObject(this,0,ret) && PyErr_Occurred())
             PyErr_Print();
         Py_DECREF(ret);
         return true;
@@ -384,7 +384,7 @@ bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 
 		        PyObject *pargs;
             
-                if(objects) {
+                if(objects || CntIn() == 1) {
                     int inlets = CntIn()-1;
             	    pargs = PyTuple_New(inlets);
                     for(int i = 0; i < inlets; ++i) {

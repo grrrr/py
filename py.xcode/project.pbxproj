@@ -45,6 +45,11 @@
 		};
 		08FB77ADFE841716C02AAC07 = {
 			children = (
+				E90043820887A302008AEAFC,
+				E90043830887A302008AEAFC,
+				E90043840887A302008AEAFC,
+				E90043850887A302008AEAFC,
+				E90043860887A302008AEAFC,
 				E90E51DB08091989001341AC,
 				E90E51DC08091989001341AC,
 				E90E51DD08091989001341AC,
@@ -130,6 +135,81 @@
 //E92
 //E93
 //E94
+		E90043820887A302008AEAFC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = pyatom.cpp;
+			path = source/pyatom.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90043830887A302008AEAFC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = pyatom.h;
+			path = source/pyatom.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90043840887A302008AEAFC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = pybase.cpp;
+			path = source/pybase.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90043850887A302008AEAFC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = pybase.h;
+			path = source/pybase.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90043860887A302008AEAFC = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = pymeth.cpp;
+			path = source/pymeth.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E90043870887A302008AEAFC = {
+			fileRef = E90043820887A302008AEAFC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90043880887A302008AEAFC = {
+			fileRef = E90043830887A302008AEAFC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E90043890887A302008AEAFC = {
+			fileRef = E90043840887A302008AEAFC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E900438A0887A302008AEAFC = {
+			fileRef = E90043850887A302008AEAFC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E900438B0887A302008AEAFC = {
+			fileRef = E90043860887A302008AEAFC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		E90E51DB08091989001341AC = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
@@ -314,6 +394,8 @@
 				E90E52EB08092581001341AC,
 				E90E52EC08092581001341AC,
 				E90E52ED08092581001341AC,
+				E90043880887A302008AEAFC,
+				E900438A0887A302008AEAFC,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -332,6 +414,9 @@
 				E90E52F60809258A001341AC,
 				E90E52F70809258A001341AC,
 				E90E52F80809258A001341AC,
+				E90043870887A302008AEAFC,
+				E90043890887A302008AEAFC,
+				E900438B0887A302008AEAFC,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -367,7 +452,6 @@
 				HEADER_SEARCH_PATHS = "/usr/local/include/flext $(PDApp)/src";
 				INSTALL_PATH = "$(PDApp)/extra";
 				LIBRARY_STYLE = BUNDLE;
-				OPTIMIZATION_CFLAGS = "";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-bundle_loader $(PDApp)/bin/pd";
 				OTHER_REZFLAGS = "";
