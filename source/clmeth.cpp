@@ -167,15 +167,26 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 		pyext *ext = GetThis(self);
 
 		PyObject *val;
-        
-        bool tp = 
-            sz == 3 && 
-            PySequence_Check(
-                val = PyTuple_GET_ITEM(args,2) // borrow reference
-            );
+        bool tp;   
+#if 0
+        if(sz == 3) {
+            val = PyTuple_GET_ITEM(args,2); // borrow reference
+            Py_INCREF(val);
+            tp = PySequence_Check(val);
+        }
+        else
+            tp = false;
 
 		if(!tp)
-			val = PySequence_GetSlice(args,2,sz);  // new ref
+            val = PySequence_GetSlice(args,2,sz);  // new ref
+#else
+        if(sz == 3) {
+            val = PyTuple_GET_ITEM(args,2); // borrow reference
+            Py_INCREF(val);
+        }
+        else
+            val = PySequence_GetSlice(args,2,sz);  // new ref
+#endif
 
 		int o = PyInt_AsLong(outl);
 		if(o >= 1 && o <= ext->Outlets()) {
@@ -190,7 +201,7 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 		else
             PyErr_SetString(PyExc_ValueError,"pyext - _outlet: index out of range");
 
-		if(!tp) Py_DECREF(val);
+		Py_DECREF(val);
 	}
     else
 		PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _outlet(self,outlet,args...)");
