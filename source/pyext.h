@@ -114,7 +114,7 @@ private:
 	bool call(const char *meth,int inlet,const t_symbol *s,int argc,const t_atom *argv);
 
     virtual bool thrcall(void *data);
-    virtual bool callpy(PyObject *fun,PyObject *args);
+    virtual void callpy(PyObject *fun,PyObject *args);
     static bool stcallpy(PyObject *fun,PyObject *args);
 
 	PyThreadState *pythr;

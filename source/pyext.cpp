@@ -506,18 +506,13 @@ void pyext::m_help()
 	post("");
 }
 
-bool pyext::callpy(PyObject *fun,PyObject *args)
+void pyext::callpy(PyObject *fun,PyObject *args)
 {
     PyObject *ret = PyObject_CallObject(fun,args);
-    if(ret == NULL) {
-        // function not found resp. arguments not matching
-        PyErr_Print();
-        return false;
-    }
-    else {
+    if(ret) {
+        // function worked fine
 		if(!PyObject_Not(ret)) post("pyext - returned value is ignored");
 		Py_DECREF(ret);
-        return true;
     }
 } 
 
@@ -536,8 +531,10 @@ bool pyext::call(const char *meth,int inlet,const t_symbol *s,int argc,const t_a
 			PyErr_Print();
     		Py_DECREF(pmeth);
         }
-		else 
-            ret = gencall(pmeth,pargs);
+        else {
+            gencall(pmeth,pargs);
+            ret = true;
+        }
 	}
 	return ret;
 }

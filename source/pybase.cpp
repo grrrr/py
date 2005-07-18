@@ -568,7 +568,7 @@ bool pybase::gencall(PyObject *pmeth,PyObject *pargs)
     // Now call method
     switch(detach) {
         case 0:
-            ret = callpy(pmeth,pargs);
+            ret = docall(pmeth,pargs);
         	Py_DECREF(pargs);
         	Py_DECREF(pmeth);
             break;
@@ -591,6 +591,24 @@ bool pybase::gencall(PyObject *pmeth,PyObject *pargs)
     return ret;
 }
 
+void pybase::exchandle()
+{
+#if 0
+    // want to use that, but exception keeps a reference to the object
+    PyErr_Print();
+#else
+    // must use that instead... clear the exception
+    PyObject *type,*value,*traceback;
+    PyErr_Fetch(&type,&value,&traceback);
+    PyErr_NormalizeException(&type,&value,&traceback);
+    PyErr_Display(type,value,traceback);
+
+    Py_XDECREF(type);
+    Py_XDECREF(value);
+    Py_XDECREF(traceback);
+#endif
+}
+
 void pybase::work_wrapper(void *data)
 {
     FLEXT_ASSERT(data);
@@ -603,7 +621,7 @@ void pybase::work_wrapper(void *data)
 
     // call worker
 	work_data *w = (work_data *)data;
-	callpy(w->fun,w->args);
+	docall(w->fun,w->args);
 	delete w;
 
     PyUnlock(state);
@@ -634,7 +652,7 @@ void pybase::threadworker()
         while(el = qufifo.Get()) {
         	++thrcount;
             state = PyLock(my);
-            callpy(el->fun,el->args);
+            docall(el->fun,el->args);
             Py_XDECREF(el->fun);
             Py_XDECREF(el->args);
             PyUnlock(state);

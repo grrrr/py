@@ -54,7 +54,7 @@ protected:
 
 private:
 
-    virtual bool callpy(PyObject *fun,PyObject *args);
+    virtual void callpy(PyObject *fun,PyObject *args);
 
 	static void Setup(t_classid c);
 
@@ -343,19 +343,12 @@ void pyobj::Unload()
     SetFunction(NULL);
 }
 
-bool pyobj::callpy(PyObject *fun,PyObject *args)
+void pyobj::callpy(PyObject *fun,PyObject *args)
 {
     PyObject *ret = PyObject_CallObject(fun,args); 
-    if(ret == NULL) {
-        // function not found resp. arguments not matching
-        PyErr_Print();
-        return false;
-    }
-    else {
-        if(!OutObject(this,0,ret) && PyErr_Occurred())
-            PyErr_Print();
+    if(ret) {
+        OutObject(this,0,ret); // exception might be raised here
         Py_DECREF(ret);
-        return true;
     }
 } 
 
@@ -397,7 +390,8 @@ bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
                     // if n == 0, it's a pure bang
                     pargs = MakePyArgs(n?s:NULL,argc,argv);
 
-                ret = gencall(function,pargs); // references are stolen
+                gencall(function,pargs); // references are stolen
+                ret = true;
             }
 	        else
 		        PyErr_SetString(PyExc_RuntimeError,"No function set");
@@ -408,7 +402,8 @@ bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
                 PyObject *func = PyObject_GetAttrString(module,const_cast<char *>(GetString(s)));
                 if(func) {
 		            PyObject *pargs = MakePyArgs(sym_list,argc,argv);
-                    ret = gencall(func,pargs);
+                    gencall(func,pargs);
+                    ret = true;
                 }
             }
             else

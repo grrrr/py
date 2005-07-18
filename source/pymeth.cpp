@@ -131,7 +131,7 @@ protected:
 
 private:
 
-    virtual bool callpy(PyObject *fun,PyObject *args);
+    virtual void callpy(PyObject *fun,PyObject *args);
 
 	static void Setup(t_classid c);
 
@@ -360,19 +360,12 @@ void pymeth::Unload()
     SetFunction(NULL);
 }
 
-bool pymeth::callpy(PyObject *fun,PyObject *args)
+void pymeth::callpy(PyObject *fun,PyObject *args)
 {
     PyObject *ret = PyObject_CallObject(fun,args); 
-    if(ret == NULL) {
-        // function not found resp. arguments not matching
-        PyErr_Print();
-        return false;
-    }
-    else {
-        if(ret != Py_None && !OutObject(this,0,ret) && PyErr_Occurred())
-            PyErr_Print();
+    if(ret) {
+        OutObject(this,0,ret); // exception might be raised here
         Py_DECREF(ret);
-        return true;
     }
 } 
 
@@ -421,7 +414,8 @@ bool pymeth::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
     		    PyTuple_SET_ITEM(pargs,i-1,objects[i]);
             }
 
-            ret = gencall(function,pargs); // references are stolen
+            gencall(function,pargs); // references are stolen
+            ret = true;
         }
 	    else
 		    PyErr_SetString(PyExc_RuntimeError,"No function set");

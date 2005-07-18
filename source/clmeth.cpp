@@ -167,7 +167,6 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 		pyext *ext = GetThis(self);
 
 		PyObject *val;
-        bool tp;   
 #if 0
         if(sz == 3) {
             val = PyTuple_GET_ITEM(args,2); // borrow reference

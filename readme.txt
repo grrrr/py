@@ -96,6 +96,8 @@ Version history:
 - ADD: py: enable Python built-in functions (like range, str etc.)
 - ADD: sequence protocol for symbol type
 - FIX: cleanup for outbound messages (e.g. symbol atoms instead of one-element general messages)
+- FIX: better exception handling (no longer leaves reference to function object) and cleared misleading error message
+- FIX: better definition of output values for atoms, lists and anythings
 
 0.2.0:
 - ADD: handling of Python threads

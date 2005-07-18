@@ -126,6 +126,47 @@ PyObject *pybase::MakePyArg(const t_symbol *s,int argc,const t_atom *argv)
 	return ret;
 }
 
+inline bool issym(PyObject *p)
+{
+    return PyString_Check(p) || pySymbol_Check(p);
+}
+
+inline bool isseq(PyObject *p)
+{
+    return PySequence_Check(p) && !issym(p);
+}
+
+const t_symbol *pybase::getone(t_atom &at,PyObject *arg)
+{
+    if(PyInt_Check(arg)) { flext::SetInt(at,PyInt_AsLong(arg)); return sym_fint; }
+    else if(PyLong_Check(arg)) { flext::SetInt(at,PyLong_AsLong(arg)); return sym_fint; }
+    else if(PyFloat_Check(arg)) { flext::SetFloat(at,(float)PyFloat_AsDouble(arg)); return flext::sym_float; }
+    else if(pySymbol_Check(arg)) { flext::SetSymbol(at,pySymbol_AS_SYMBOL(arg)); return flext::sym_symbol; }
+    else if(PyString_Check(arg)) { flext::SetString(at,PyString_AS_STRING(arg)); return flext::sym_symbol; }
+	else {
+		PyObject *tp = PyObject_Type(arg);
+		PyObject *stp = tp?PyObject_Str(tp):NULL;
+		char *tmp = "";
+		if(stp) tmp = PyString_AS_STRING(stp);
+		flext::post("py/pyext: Could not convert argument %s",tmp);
+		Py_XDECREF(stp);
+		Py_XDECREF(tp);
+
+        flext::SetSymbol(at,flext::sym__); 
+        return sym_symbol;
+	}
+}
+
+const t_symbol *pybase::getlist(t_atom *lst,PyObject *seq,int cnt,int offs)
+{
+	for(int ix = 0; ix < cnt; ++ix) {
+		PyObject *arg = PySequence_GetItem(seq,ix+offs); // new reference
+        getone(lst[ix],arg);
+        Py_DECREF(arg);
+	}
+    return flext::sym_list;
+}
+
 const t_symbol *pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs)
 {
 	if(pValue == NULL) return false; 
@@ -134,66 +175,36 @@ const t_symbol *pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs)
     if(pValue == Py_None) return sym_bang;
 
 	// analyze return value or tuple
-
 	int rargc = 0;
-	retval tp = nothing;
-
-	if(PyString_Check(pValue) || pySymbol_Check(pValue)) {
-		rargc = 1;
-		tp = atom;
-	}
-	else if(PySequence_Check(pValue)) {
-		rargc = PySequence_Size(pValue);
-		tp = sequ;
-	}
-    else {
-        rargc = 1;
-		tp = atom;
-	}
-//    else
-//        Py_DECREF(pValue);
-
-	lst(offs+rargc);
-
     const t_symbol *sym = NULL;
 
-	for(int ix = 0; ix < rargc; ++ix) {
-		PyObject *arg;
-		if(tp == sequ)
-            arg = PySequence_GetItem(pValue,ix); // new reference
-		else
-            arg = pValue;
+	if(isseq(pValue)) {
+		int rargc = PySequence_Size(pValue);
+        if(rargc == 2) {
+            // check if syntax is symbol/string, list -> anything message
+            PyObject *s = PySequence_GetItem(pValue,0);
+            PyObject *l = PySequence_GetItem(pValue,1);
 
-        t_atom &at = lst[offs+ix];
-        if(PyInt_Check(arg)) { SetInt(at,PyInt_AsLong(arg)); sym = sym_fint; }
-        else if(PyLong_Check(arg)) { SetInt(at,PyLong_AsLong(arg)); sym = sym_fint; }
-        else if(PyFloat_Check(arg)) { SetFloat(at,(float)PyFloat_AsDouble(arg)); sym = sym_float; }
-        else if(pySymbol_Check(arg)) { SetSymbol(at,pySymbol_AS_SYMBOL(arg)); sym = sym_symbol; }
-        else if(PyString_Check(arg)) { SetString(at,PyString_AS_STRING(arg)); sym = sym_symbol; }
-/*
-        else if(ix == 0 && self && PyInstance_Check(arg)) {
-			// assumed to be self ... that should be checked _somehow_ !!!
-            Py_INCREF(arg);
-			*self = arg;
-		}
-*/
-		else {
-			PyObject *tp = PyObject_Type(arg);
-			PyObject *stp = tp?PyObject_Str(tp):NULL;
-			char *tmp = "";
-			if(stp) tmp = PyString_AS_STRING(stp);
-			post("py/pyext: Could not convert argument %s",tmp);
-			Py_XDECREF(stp);
-			Py_XDECREF(tp);
+            if(issym(s) && isseq(l)) {
+                // is anything message
+                rargc = PySequence_Size(l);
+            	lst(offs+rargc);           
+                getlist(lst.Atoms(),l,rargc);
+                sym = pyObject_AsSymbol(s);
+            }
 
-            SetSymbol(at,sym__); sym = sym_symbol;
-		}
-
-		if(tp == sequ) 
-            Py_DECREF(arg);
+            Py_DECREF(s);
+            Py_DECREF(l);
+        }
+        else {
+        	lst(offs+rargc);           
+		    sym = getlist(lst.Atoms(),pValue,rargc);
+        }
 	}
-
-    if(sym && tp == sequ) sym = sym_list;
+    else {
+        lst(offs+1);
+        sym = getone(lst[offs],pValue);
+	}
 
     return sym;
 }

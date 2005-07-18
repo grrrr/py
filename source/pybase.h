@@ -89,7 +89,7 @@ protected:
 	static bool IsAnything(const t_symbol *s) { return s && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
 	static bool IsAtom(const t_symbol *s) { return s == sym_float || s == sym_int || s == sym_symbol || s == sym_pointer; }
 
-	enum retval { nothing,atom,sequ };
+//	enum retval { nothing,atom,sequ };
 
 	// --- module stuff -----
 
@@ -136,8 +136,22 @@ protected:
     bool xlate;
 
     bool gencall(PyObject *fun,PyObject *args);
+
+    bool docall(PyObject *fun,PyObject *args)
+    {
+        callpy(fun,args);
+        if(PyErr_Occurred()) { 
+            exchandle(); 
+            return false; 
+        }
+        else 
+            return true;
+    }
+
     virtual bool thrcall(void *data) = 0;
-    virtual bool callpy(PyObject *fun,PyObject *args) = 0;
+    virtual void callpy(PyObject *fun,PyObject *args) = 0;
+
+    void exchandle();
 
 #if FLEXT_SYS == FLEXT_SYS_MAX
     static short patcher_myvol(t_patcher *x);
@@ -163,6 +177,9 @@ protected:
 #endif
 
     static const t_symbol *sym_fint; // float or int symbol, depending on native number message type
+
+    static const t_symbol *getone(t_atom &at,PyObject *arg);
+    static const t_symbol *getlist(t_atom *lst,PyObject *seq,int cnt,int offs = 0);
 
 public:
 
