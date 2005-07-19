@@ -192,6 +192,11 @@ const t_symbol *pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs)
                 getlist(lst.Atoms(),l,rargc);
                 sym = pyObject_AsSymbol(s);
             }
+            else
+                // (symbol,atom) list
+            	lst(offs+rargc);           
+	    	    sym = getlist(lst.Atoms(),pValue,rargc);
+            }
 
             Py_DECREF(s);
             Py_DECREF(l);
