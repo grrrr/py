@@ -47,7 +47,6 @@ protected:
 	bool SetFunction(const t_symbol *func);
 	bool ResetFunction();
 
-    virtual bool thrcall(void *data);
     virtual void DumpOut(const t_symbol *sym,int argc,const t_atom *argv);
 
     PyObject **objects;
@@ -77,10 +76,6 @@ private:
 
 #ifdef FLEXT_THREADS
     FLEXT_CALLBACK_T(tick)
-    FLEXT_THREAD(threadworker)
-	FLEXT_THREAD_X(work_wrapper)
-#else
-	FLEXT_CALLBACK_X(work_wrapper)
 #endif
 };
 
@@ -104,7 +99,7 @@ void pyobj::Setup(t_classid c)
 
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
-  	FLEXT_CADDATTR_VAR1(c,"xlate",xlate);
+  	FLEXT_CADDATTR_VAR1(c,"py",xlate);
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
 }
 
@@ -116,8 +111,6 @@ pyobj::pyobj(int argc,const t_atom *argv)
 { 
 #ifdef FLEXT_THREADS
     FLEXT_ADDTIMER(stoptmr,tick);
-    // launch thread worker
-    FLEXT_CALLMETHOD(threadworker);
 #endif
 
 	PyThreadState *state = PyLockSys();
@@ -425,9 +418,4 @@ void pyobj::CbClick() { pybase::OpenEditor(); }
 void pyobj::DumpOut(const t_symbol *sym,int argc,const t_atom *argv)
 {
     ToOutAnything(GetOutAttr(),sym?sym:thisTag(),argc,argv);
-}
-
-bool pyobj::thrcall(void *data)
-{ 
-    return FLEXT_CALLMETHOD_X(work_wrapper,data);
 }

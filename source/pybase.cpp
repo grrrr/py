@@ -56,6 +56,9 @@ void pybase::FreeThreadState()
         pythrmap.erase(it);
     }
 }
+
+PyFifo pybase::qufifo;
+flext::ThrCond pybase::qucond;
 #endif
 
 
@@ -167,6 +170,9 @@ void pybase::lib_setup()
 #ifdef FLEXT_THREADS
     // release global lock
     PyEval_ReleaseLock();
+
+    // launch thread worker
+    LaunchThread(quworker,NULL);
 #endif
 
 	post("------------------------------------------------");
@@ -182,7 +188,8 @@ FLEXT_LIB_SETUP(py,pybase::lib_setup)
 pybase::pybase()
     : module(NULL)
 #ifdef FLEXT_THREADS
-    , shouldexit(false),thrcount(0),stoptick(0)
+    , thrcount(0)
+    , shouldexit(false),stoptick(0)
 #endif
 	, detach(0)
     , xlate(true)
@@ -202,8 +209,11 @@ pybase::~pybase()
 void pybase::Exit()
 {
 #ifdef FLEXT_THREADS
+    erasethreads();
+
     shouldexit = true;
     qucond.Signal();
+
     if(thrcount) {
 		// Wait for a certain time
 		for(int i = 0; i < (PY_STOP_WAIT/PY_STOP_TICK) && thrcount; ++i) 
@@ -580,7 +590,10 @@ bool pybase::gencall(PyObject *pmeth,PyObject *pargs)
         case 2:
             // each call a new thread
             if(!shouldexit) {
-			    ret = thrcall(new work_data(pmeth,pargs));
+                thr_params *p = new thr_params;
+                p->cl = (flext_base *)this;
+                p->var->_ext = new work_data(pmeth,pargs);
+			    ret = LaunchThread(thrworker,p);
 			    if(!ret) post("py/pyext - Failed to launch thread!");
 		    }
             break;
@@ -609,62 +622,54 @@ void pybase::exchandle()
 #endif
 }
 
-void pybase::work_wrapper(void *data)
-{
-    FLEXT_ASSERT(data);
-
 #ifdef FLEXT_THREADS
-	++thrcount;
-#endif
+void pybase::thrworker(thr_params *p)
+{
+    FLEXT_ASSERT(p);
+    pybase *th = (pybase *)p->cl;
+	work_data *w = (work_data *)p->var->_ext;
 
+	++th->thrcount; // \todo this should be atomic
     PyThreadState *state = PyLock();
 
     // call worker
-	work_data *w = (work_data *)data;
-	docall(w->fun,w->args);
+	th->docall(w->fun,w->args);
 	delete w;
 
     PyUnlock(state);
-
-#ifdef FLEXT_THREADS
-    --thrcount;
-#endif
+    --th->thrcount; // \todo this should be atomic
 }
 
-#ifdef FLEXT_THREADS
 bool pybase::qucall(PyObject *fun,PyObject *args)
 {
     FifoEl *el = qufifo.New();
-    el->Set(fun,args);
+    el->Set(this,fun,args);
     qufifo.Put(el);
     qucond.Signal();
     return true;
 }
 
-void pybase::threadworker()
+void pybase::quworker(thr_params *)
 {
-   	++thrcount;
-
     FifoEl *el;
     PyThreadState *my = FindThreadState(),*state;
 
     for(;;) {
         while(el = qufifo.Get()) {
-        	++thrcount;
+        	++el->th->thrcount; // \todo this should be atomic
             state = PyLock(my);
-            docall(el->fun,el->args);
+            el->th->docall(el->fun,el->args);
             Py_XDECREF(el->fun);
             Py_XDECREF(el->args);
             PyUnlock(state);
+            --el->th->thrcount; // \todo this should be atomic
             qufifo.Free(el);
-            --thrcount;
         }
-        if(shouldexit) 
-            break;
-        else
-            qucond.Wait();
+        qucond.Wait();
     }
 
+    // we never end
+#if 0
     state = PyLock(my);
     // unref remaining Python objects
     while(el = qufifo.Get()) {
@@ -673,8 +678,24 @@ void pybase::threadworker()
         qufifo.Free(el);
     }
     PyUnlock(state);
+#endif
+}
 
-    --thrcount;
+void pybase::erasethreads()
+{
+    PyFifo tmp;
+    FifoEl *el;
+    while(el = qufifo.Get()) {
+        if(el->th == this) {
+            Py_XDECREF(el->fun);
+            Py_XDECREF(el->args);
+            qufifo.Free(el);
+        }
+        else
+            tmp.Put(el);
+    }
+    // Push back
+    while(el = tmp.Get()) qufifo.Put(el);
 }
 #endif
 

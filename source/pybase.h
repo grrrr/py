@@ -148,7 +148,7 @@ protected:
             return true;
     }
 
-    virtual bool thrcall(void *data) = 0;
+//    virtual bool thrcall(void *data) = 0;
     virtual void callpy(PyObject *fun,PyObject *args) = 0;
 
     void exchandle();
@@ -161,13 +161,16 @@ protected:
 
 protected:
 
-	void work_wrapper(void *data); 
-
 #ifdef FLEXT_THREADS
+    static void thrworker(thr_params *data); 
+
     bool qucall(PyObject *fun,PyObject *args);
-    void threadworker();
-    PyFifo qufifo;
-    ThrCond qucond;
+
+    static void quworker(thr_params *);
+    void erasethreads();
+
+    static PyFifo qufifo;
+    static ThrCond qucond;
     static PyThreadState *pythrsys;
 
     static PyThreadState *FindThreadState();

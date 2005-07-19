@@ -41,7 +41,7 @@ void pyext::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"get",m_get);
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
-  	FLEXT_CADDATTR_VAR1(c,"xlate",xlate);
+  	FLEXT_CADDATTR_VAR1(c,"py",xlate);
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
 
 	// ----------------------------------------------------
@@ -120,8 +120,6 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
 { 
 #ifdef FLEXT_THREADS
     FLEXT_ADDTIMER(stoptmr,tick);
-    // launch thread worker
-    FLEXT_CALLMETHOD(threadworker);
 #endif
 
     if(argc >= 2 && CanbeInt(argv[0]) && CanbeInt(argv[1])) {
@@ -628,9 +626,4 @@ bool pyext::CbDsp() { return false; }
 void pyext::DumpOut(const t_symbol *sym,int argc,const t_atom *argv)
 {
     ToOutAnything(GetOutAttr(),sym?sym:thisTag(),argc,argv);
-}
-
-bool pyext::thrcall(void *data)
-{ 
-    return FLEXT_CALLMETHOD_X(work_wrapper,data);
 }

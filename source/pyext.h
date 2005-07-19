@@ -113,7 +113,6 @@ private:
 
 	bool call(const char *meth,int inlet,const t_symbol *s,int argc,const t_atom *argv);
 
-    virtual bool thrcall(void *data);
     virtual void callpy(PyObject *fun,PyObject *args);
     static bool stcallpy(PyObject *fun,PyObject *args);
 
@@ -148,10 +147,6 @@ private:
 
 #ifdef FLEXT_THREADS
     FLEXT_CALLBACK_T(tick)
-    FLEXT_THREAD(threadworker)
-	FLEXT_THREAD_X(work_wrapper)
-#else
-	FLEXT_CALLBACK_X(work_wrapper)
 #endif
 };
 

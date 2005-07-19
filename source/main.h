@@ -25,11 +25,14 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #define PY_STOP_TICK 1  // ms
 
 
+class pybase;
+
 class FifoEl
     : public Fifo::Cell
 {
 public:
-    void Set(PyObject *f,PyObject *a) { fun = f,args = a; }
+    void Set(pybase *t,PyObject *f,PyObject *a) { th = t,fun = f,args = a; }
+    pybase *th;
     PyObject *fun,*args;
 };
 

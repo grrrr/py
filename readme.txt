@@ -98,6 +98,7 @@ Version history:
 - FIX: cleanup for outbound messages (e.g. symbol atoms instead of one-element general messages)
 - FIX: better exception handling (no longer leaves reference to function object) and cleared misleading error message
 - FIX: better definition of output values for atoms, lists and anythings
+- FIX: much better detached method handling (one thread for all object instances!)
 
 0.2.0:
 - ADD: handling of Python threads
