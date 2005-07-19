@@ -1,0 +1,8 @@
+DEFS += -DPY_EXPORTS
+INCPATH += -I$(PYTHONPATH)/include
+LIBPATH += -L$(PYTHONPATH)/libs
+LIBS += -lpython$(PYTHONVER)
+
+ifdef PY_NUMARRAY
+DEFS += -DPY_NUMARRAY
+endif

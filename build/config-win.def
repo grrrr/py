@@ -1,5 +1,8 @@
+# which major python version?
+PYTHONVER=24
+
 # where is the Python installation?
-PYTHONPATH=c:\programme\prog\python24
+PYTHONPATH=c:/programme/prog/python$(PYTHONVER)
 
 # uncomment if numarray support should be compiled in
 # for info about numarray see http://numeric.scipy.org
