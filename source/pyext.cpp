@@ -41,7 +41,7 @@ void pyext::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"get",m_get);
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
-  	FLEXT_CADDATTR_VAR1(c,"py",xlate);
+  	FLEXT_CADDATTR_VAR1(c,"py",pymsg);
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
 
 	// ----------------------------------------------------

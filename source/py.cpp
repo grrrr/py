@@ -66,7 +66,7 @@ private:
 
 	// callbacks
 	FLEXT_ATTRVAR_I(detach)
-	FLEXT_ATTRVAR_B(xlate)
+	FLEXT_ATTRVAR_B(pymsg)
 	FLEXT_ATTRVAR_B(respond)
 
 	FLEXT_CALLBACK_V(m_stop)
@@ -99,7 +99,7 @@ void pyobj::Setup(t_classid c)
 
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
-  	FLEXT_CADDATTR_VAR1(c,"py",xlate);
+  	FLEXT_CADDATTR_VAR1(c,"py",pymsg);
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
 }
 

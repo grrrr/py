@@ -192,7 +192,7 @@ pybase::pybase()
     , shouldexit(false),stoptick(0)
 #endif
 	, detach(0)
-    , xlate(true)
+    , pymsg(false)
 {
     PyThreadState *state = PyLockSys();
 	Py_INCREF(module_obj);
@@ -453,7 +453,7 @@ void pybase::AddCurrentPath(t_canvas *cnv)
 bool pybase::OutObject(flext_base *ext,int o,PyObject *obj)
 {
     flext::AtomListStatic<16> lst;
-    const t_symbol *sym = xlate?GetPyArgs(lst,obj):GetPyAtom(lst,obj);
+    const t_symbol *sym = pymsg?GetPyAtom(lst,obj):GetPyArgs(lst,obj);
     if(sym) {
         // call to outlet _outside_ the Mutex lock!
         // otherwise (if not detached) deadlock will occur

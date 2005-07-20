@@ -133,7 +133,7 @@ protected:
 #endif
 
     int detach;
-    bool xlate;
+    bool pymsg;
 
     bool gencall(PyObject *fun,PyObject *args);
 
