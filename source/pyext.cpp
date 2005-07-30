@@ -143,7 +143,7 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
 
 	// init script module
 	if(argc) {
-        AddCurrentPath(thisCanvas());
+        AddCurrentPath(this);
 
         const t_symbol *scr = GetASymbol(*argv);
         argv++,argc--;

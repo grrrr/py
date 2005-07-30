@@ -179,7 +179,10 @@ const t_symbol *pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs)
     const t_symbol *sym = NULL;
 
 	if(isseq(pValue)) {
-		int rargc = PySequence_Size(pValue);
+        // Python might crash here if pValue is no "real" sequence, but rather e.g. an instance
+
+        int rargc = PySequence_Size(pValue);
+
         if(rargc == 2) {
             // check if syntax is symbol/string, list -> anything message
             PyObject *s = PySequence_GetItem(pValue,0);

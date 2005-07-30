@@ -51,7 +51,7 @@ protected:
 
 	AtomList args;
 
-    void AddCurrentPath(t_canvas *cnv);
+    void AddCurrentPath(flext_base *o);
 	void GetModulePath(const char *mod,char *dir,int len);
 	void AddToPath(const char *dir);
 	void SetArgs();
@@ -152,10 +152,6 @@ protected:
     virtual void callpy(PyObject *fun,PyObject *args) = 0;
 
     void exchandle();
-
-#if FLEXT_SYS == FLEXT_SYS_MAX
-    static short patcher_myvol(t_patcher *x);
-#endif
 
     static bool collect();
 

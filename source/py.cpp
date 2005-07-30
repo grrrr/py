@@ -137,7 +137,7 @@ pyobj::pyobj(int argc,const t_atom *argv)
 
 	// init script module
 	if(argc) {
-        AddCurrentPath(thisCanvas());
+        AddCurrentPath(this);
 
 	    const char *sn = GetAString(*argv);
         argv++,argc--;

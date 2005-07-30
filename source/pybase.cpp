@@ -433,20 +433,21 @@ void pybase::AddToPath(const char *dir)
 	}
 }
 
-void pybase::AddCurrentPath(t_canvas *cnv)
+void pybase::AddCurrentPath(flext_base *o)
 {
-#if FLEXT_SYS == FLEXT_SYS_PD
-	// add dir of current patch to path
-	AddToPath(GetString(canvas_getdir(cnv)));
-	// add current dir to path
-	AddToPath(GetString(canvas_getcurrentdir()));
-#elif FLEXT_SYS == FLEXT_SYS_MAX 
 	char dir[1024];
-	short path = patcher_myvol(cnv);
-	path_topathname(path,NULL,dir); 
-	AddToPath(dir);       
-#else 
-	#pragma message("Adding current dir to path is not implemented")
+
+    // add dir of current patch to path
+    o->GetCanvasDir(dir,sizeof(dir));
+	if(*dir) AddToPath(dir);
+
+	// add current dir to path
+#if FLEXT_SYS == FLEXT_SYS_PD
+	AddToPath(GetString(canvas_getcurrentdir()));
+#elif FLEXT_SYS == FLEXT_SYS_MAX
+    short path = path_getdefault();
+	path_topathname(path,NULL,dir);
+	AddToPath(dir);
 #endif
 }
 
@@ -696,19 +697,6 @@ void pybase::erasethreads()
     }
     // Push back
     while(el = tmp.Get()) qufifo.Put(el);
-}
-#endif
-
-#if FLEXT_SYS == FLEXT_SYS_MAX
-short pybase::patcher_myvol(t_patcher *x)
-{
-    t_box *w;
-    if (x->p_vol)
-        return x->p_vol;
-    else if (w = (t_box *)x->p_vnewobj)
-        return patcher_myvol(w->b_patcher);
-    else
-        return 0;
 }
 #endif
 
