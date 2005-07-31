@@ -102,7 +102,6 @@ protected:
     virtual void Exit();
 
 	virtual bool CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv);
-    virtual void CbClick();
 
     void m_help();    
 
@@ -422,8 +421,6 @@ bool pymeth::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 
     return ret;
 }
-
-void pymeth::CbClick() { pybase::OpenEditor(); }
 
 void pymeth::DumpOut(const t_symbol *sym,int argc,const t_atom *argv)
 {

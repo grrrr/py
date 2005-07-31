@@ -99,6 +99,7 @@ Version history:
 - FIX: better exception handling (no longer leaves reference to function object) and cleared misleading error message
 - FIX: better definition of output values for atoms, lists and anythings
 - FIX: much better detached method handling (one thread for all object instances!)
+- ADD: open module file in editor on "edit" message (or alt-click (PD) or double click (Max))
 
 0.2.0:
 - ADD: handling of Python threads

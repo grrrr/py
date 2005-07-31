@@ -41,6 +41,8 @@ void pyext::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"get",m_get);
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
+	FLEXT_CADDMETHOD_(c,0,"edit",CbClick);
+
   	FLEXT_CADDATTR_VAR1(c,"py",pymsg);
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);
 
@@ -99,7 +101,7 @@ void pyext::SetThis()
 {
 	// remember the this pointer
 	PyObject *th = PyLong_FromVoidPtr(this); 
-	/*int ret =*/ PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
+	PyObject_SetAttrString(pyobj,"_this",th); // ref is taken
 }
 
 void pyext::ClearThis()

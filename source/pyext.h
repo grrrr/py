@@ -145,6 +145,8 @@ private:
 	FLEXT_CALLGET_V(mg_dir)
 	FLEXT_CALLBACK(m_doc)
 
+	FLEXT_CALLBACK(CbClick)
+
 #ifdef FLEXT_THREADS
     FLEXT_CALLBACK_T(tick)
 #endif

@@ -74,6 +74,8 @@ private:
 	FLEXT_CALLGET_V(mg_dir)
 	FLEXT_CALLBACK(m_doc)
 
+	FLEXT_CALLBACK(CbClick)
+
 #ifdef FLEXT_THREADS
     FLEXT_CALLBACK_T(tick)
 #endif
@@ -98,6 +100,8 @@ void pyobj::Setup(t_classid c)
 	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
 
 	FLEXT_CADDMETHOD_(c,0,"set",m_set);
+
+    FLEXT_CADDMETHOD_(c,0,"edit",CbClick);
 
   	FLEXT_CADDATTR_VAR1(c,"py",pymsg);
   	FLEXT_CADDATTR_VAR1(c,"respond",respond);

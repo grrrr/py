@@ -11,6 +11,10 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pybase.h"
 #include <map>
 
+#if FLEXT_OS == FLEXT_OS_WIN
+#include <windows.h>
+#endif
+
 static PyMethodDef StdOut_Methods[] =
 {
 	{ "write", pybase::StdOut_Write, 1 },
@@ -295,7 +299,44 @@ void pybase::m__doc(PyObject *obj)
 
 void pybase::OpenEditor()
 {
-    // this should once open the editor....
+    if(!module) return;
+    const char *mname = PyModule_GetFilename(module);
+    if(!mname) {
+        PyErr_Clear();
+        return;
+    }
+
+    char fname[1024];
+    strcpy(fname,mname);
+
+    // replacing .pyc or .pyo for source file name
+    char *dt = strrchr(fname,'.');
+    if(dt && !strncmp(dt,".py",2)) strcpy(dt,".py");
+
+    // this should open the editor....
+#if FLEXT_OS == FLEXT_OS_WIN
+    int err = (int)ShellExecute(NULL,"edit",fname,NULL,NULL,SW_SHOW);
+    if(err == SE_ERR_NOASSOC) {
+        // no association found - try notepad
+        err = (int)ShellExecute(NULL,NULL,"notepad.exe",fname,NULL,SW_SHOW);
+    }
+    else if(err == ERROR_FILE_NOT_FOUND || err == SE_ERR_FNF)
+        post("py/pyext - File not %s found",fname);
+    else if(err <= 32)
+        post("py/pyext - Unknown error opening %s",fname);
+       
+#elif FLEXT_OS == FLEXT_OS_MACOS
+    const FSRef *ref;
+    OSStatus err = FSPathMakeRef(fname,&ref,NULL);
+    if(err)
+        post("py/pyext - Error interpreting path %s",fname);
+    else {
+        err = LSOpenFSRef(ref,NULL);
+        if(err) 
+            post("py/pyext - Error opening %s",fname);
+    }
+#elif FLEXT_OS == FLEXT_OS_LINUX
+#endif
 }
 
 void pybase::SetArgs()
