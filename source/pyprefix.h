@@ -14,6 +14,10 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #define FLEXT_ATTRIBUTES 1
 #include <flext.h>
 
+// hack: must include math.h before Python.h (at least on OSX)
+// otherwise some functions don't get defined
+#include <math.h>
+
 #if FLEXT_OS == FLEXT_OS_MAC
 #include <Python/Python.h>
 #else

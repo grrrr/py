@@ -13,6 +13,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #if FLEXT_OS == FLEXT_OS_WIN
 #include <windows.h>
+#elif FLEXT_OS == FLEXT_OS_MAC
+#include <ApplicationServices/ApplicationServices.h>
 #endif
 
 static PyMethodDef StdOut_Methods[] =
@@ -325,15 +327,33 @@ void pybase::OpenEditor()
     else if(err <= 32)
         post("py/pyext - Unknown error opening %s",fname);
        
-#elif FLEXT_OS == FLEXT_OS_MACOS
-    const FSRef *ref;
+#elif FLEXT_OS == FLEXT_OS_MAC
+	FSRef ref;
     OSStatus err = FSPathMakeRef(fname,&ref,NULL);
     if(err)
         post("py/pyext - Error interpreting path %s",fname);
     else {
-        err = LSOpenFSRef(ref,NULL);
-        if(err) 
-            post("py/pyext - Error opening %s",fname);
+		FSRef editor;
+		err = LSGetApplicationForItem(&ref,kLSRolesEditor,&editor,NULL);
+        if(err) {
+			// Can't find associated application... try Textedit
+			err = FSPathMakeRef("/Applications/TextEdit.app",&editor,NULL);
+			if(err)
+				post("py/pyext - Can't find Textedit application");
+		}
+		
+		if(!err) {
+			LSLaunchFSRefSpec lspec;
+			lspec.appRef = &editor;
+			lspec.numDocs = 1;
+			lspec.itemRefs = &ref;
+			lspec.passThruParams = NULL;
+			lspec.launchFlags = kLSLaunchDefaults;
+			lspec.asyncRefCon = NULL;
+			err = LSOpenFromRefSpec(&lspec,NULL);
+			if(err)
+				post("py/pyext - Couldn't launch editor");
+		}
     }
 #elif FLEXT_OS == FLEXT_OS_LINUX
 #endif

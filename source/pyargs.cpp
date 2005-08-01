@@ -175,7 +175,6 @@ const t_symbol *pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs)
     if(pValue == Py_None) return sym_bang;
 
 	// analyze return value or tuple
-	int rargc = 0;
     const t_symbol *sym = NULL;
 
 	if(isseq(pValue)) {

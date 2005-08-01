@@ -124,8 +124,8 @@ protected:
 
 	bool respond;
 #ifdef FLEXT_THREADS
-    bool shouldexit;
 	int thrcount;
+    bool shouldexit;
 	int stoptick;
     Timer stoptmr;
 
