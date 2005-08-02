@@ -18,7 +18,7 @@ static PyObject *MakePyAtom(const t_atom &at)
 	if(flext::IsSymbol(at)) 
         return pySymbol_FromSymbol(flext::GetSymbol(at));
 #if 1
-    else if(flext::CanbeInt(at) || flext::CanbeFloat(at)) {
+    else if(flext::CanbeFloat(at)) {
         // if a number can be an integer... let it be an integer!
         int ival = flext::GetAInt(at);
         double fval = flext::GetAFloat(at);

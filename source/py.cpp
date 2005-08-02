@@ -154,12 +154,6 @@ pyobj::pyobj(int argc,const t_atom *argv)
             if(pt && *pt) {
                 funnm = MakeSymbol(pt+1);
                 *pt = 0;
-
-#if 0
-                if(!*modnm) 
-                    // if module name is empty set it to __builtin__
-                    strcpy(modnm,"__builtin__");
-#endif
             }
 
             if(*modnm) {

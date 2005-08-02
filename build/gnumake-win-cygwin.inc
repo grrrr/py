@@ -1,7 +1,7 @@
 DEFS += -DPY_EXPORTS
 INCPATH += -I$(PYTHONPATH)/include
 LIBPATH += -L$(PYTHONPATH)/libs
-LIBS += -lpython$(PYTHONVER)
+LIBS += -lpython$(PYTHONVER) -lshell32
 
 ifdef PY_NUMARRAY
 DEFS += -DPY_NUMARRAY
