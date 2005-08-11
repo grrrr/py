@@ -366,7 +366,7 @@ bool pymeth::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
     if(n == 0 && s != sym_bang) 
         return flext_base::CbMethodResort(n,s,argc,argv);
 
-    PyThreadState *state = PyLock();
+    PyThreadState *state = PyLockSys();
 
     bool ret = false;
  

@@ -200,14 +200,14 @@ pybase::pybase()
 	, detach(0)
     , pymsg(false)
 {
-    PyThreadState *state = PyLockSys();
+    PyThreadState *state = PyLock();
 	Py_INCREF(module_obj);
     PyUnlock(state);
 }
 
 pybase::~pybase()
 {
-    PyThreadState *state = PyLockSys();
+    PyThreadState *state = PyLock();
    	Py_XDECREF(module_obj);
     PyUnlock(state);
 }
@@ -355,7 +355,24 @@ void pybase::OpenEditor()
 				post("py/pyext - Couldn't launch editor");
 		}
     }
-#elif FLEXT_OS == FLEXT_OS_LINUX
+#else
+    // thanks to Tim Blechmann
+
+    char *editor = getenv("EDITOR");
+
+    if(!editor || !strcmp(editor, "/usr/bin/nano") || !strcmp(editor, "/usr/bin/pico") || !strcmp(editor, "/usr/bin/vi")) {
+        // no environment variable or console text editor found ... use idle instead (should have come with Python)
+        editor = "idle";
+    }
+
+    pid_t child = fork();  
+    if(!child) {
+        char cmd[80];
+        strcpy(cmd,editor);
+        strcat(cmd," ");
+        strcat(cmd,fname);
+        execl("/bin/sh", "sh", "-c", cmd, (char *) NULL);
+    }
 #endif
 }
 
@@ -539,7 +556,7 @@ void pybase::Respond(bool b)
 
 void pybase::Reload()
 {
-	PyThreadState *state = PyLockSys();
+	PyThreadState *state = PyLock();
 
 	PyObject *reg = GetRegistry(REGNAME);
 
@@ -670,6 +687,7 @@ void pybase::exchandle()
 {
 #if 0
     // want to use that, but exception keeps a reference to the object
+    // might be a Python bug!
     PyErr_Print();
 #else
     // must use that instead... clear the exception
@@ -776,9 +794,3 @@ bool pybase::collect()
     }
     return true;
 }
-
-/*
-PY_EXPORT PyThreadState *py_Lock(PyThreadState *st = NULL) { return pybase::PyLock(st?st:pybase::FindThreadState()); }
-PY_EXPORT PyThreadState *py_LockSys() { return pybase::PyLockSys(); }
-PY_EXPORT void py_Unlock(PyThreadState *st) { pybase::PyUnlock(st); }
-*/

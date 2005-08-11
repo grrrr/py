@@ -53,7 +53,6 @@ protected:
 
     void AddCurrentPath(flext_base *o);
 	void GetModulePath(const char *mod,char *dir,int len);
-	void AddToPath(const char *dir);
 	void SetArgs();
 
     bool OutObject(flext_base *ext,int o,PyObject *obj);
@@ -148,7 +147,6 @@ protected:
             return true;
     }
 
-//    virtual bool thrcall(void *data) = 0;
     virtual void callpy(PyObject *fun,PyObject *args) = 0;
 
     void exchandle();
@@ -168,11 +166,6 @@ protected:
     static PyFifo qufifo;
     static ThrCond qucond;
     static PyThreadState *pythrsys;
-
-    static PyThreadState *FindThreadState();
-    static void FreeThreadState();
-#else
-    static PyThreadState *FindThreadState() { return NULL; }
 #endif
 
     static const t_symbol *sym_fint; // float or int symbol, depending on native number message type
@@ -182,10 +175,11 @@ protected:
 
 public:
 
+	static void AddToPath(const char *dir);
+
 #ifdef FLEXT_THREADS
-	ThrMutex mutex;
-	inline void Lock() { mutex.Unlock(); }
-	inline void Unlock() { mutex.Unlock(); }
+    static PyThreadState *FindThreadState();
+    static void FreeThreadState();
 
     // this is especially needed when one py/pyext object calls another one
     // we don't want the message to be queued, but otoh we have to avoid deadlock
@@ -209,11 +203,7 @@ public:
         PyThreadState *old = PyThreadState_Swap(st);
         if(old != pythrsys || !--lockcount) PyEval_ReleaseLock();
     }
-
 #else
-	inline void Lock() {}
-	inline void Unlock() {}
-
 	static PyThreadState *PyLock(PyThreadState * = NULL) { return NULL; }
 	static PyThreadState *PyLockSys() { return NULL; }
 	static void PyUnlock(PyThreadState *st) {}
