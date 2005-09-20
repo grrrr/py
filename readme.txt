@@ -75,6 +75,7 @@ Known bugs:
 - The TCL/TK help patch is not usable under OSX.
 - With standard PD 0.37, threaded py scripts will cause "Stack overflows" under some circumstances
   -> use PD 0.38 or the devel_0_37 cvs branch instead
+- It has been reported that pyext crashes on AMD64 with SSE enabled (for these CPUs, disable the respective compiler flags)
 
 ----------------------------------------------------------------------------
 
@@ -99,7 +100,8 @@ Version history:
 - FIX: better exception handling (no longer leaves reference to function object) and cleared misleading error message
 - FIX: better definition of output values for atoms, lists and anythings
 - FIX: much better detached method handling (one thread for all object instances!)
-- ADD: open module file in editor on "edit" message (or alt-click (PD) or double click (Max))
+- ADD: open module file in editor on "edit" message (or shift-click (PD) or double click (Max))
+- FIX: _inlets and _outlets default to 0 if not given
 
 0.2.0:
 - ADD: handling of Python threads

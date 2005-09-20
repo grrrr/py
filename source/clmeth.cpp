@@ -165,6 +165,7 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 		(outl = PyTuple_GET_ITEM(args,1)) != NULL && PyInt_Check(outl)
 	) {
 		pyext *ext = GetThis(self);
+        FLEXT_ASSERT(ext);
 
 		PyObject *val;
 #if 0
@@ -229,7 +230,8 @@ PyObject *pyext::pyext_detach(PyObject *,PyObject *args)
     }
 	else {
 		pyext *ext = GetThis(self);
-		ext->detach = val;
+        FLEXT_ASSERT(ext);
+        ext->detach = val;
 	}
 
     Py_INCREF(Py_None);
@@ -252,7 +254,8 @@ PyObject *pyext::pyext_stop(PyObject *,PyObject *args)
     }
 	else {
 		pyext *ext = GetThis(self);
-		int cnt;
+        FLEXT_ASSERT(ext);
+        int cnt;
 		t_atom at;
 		if(val >= 0) cnt = 1,flext::SetInt(at,val);
         else cnt = 0;
@@ -292,7 +295,7 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
         (self = PyTuple_GET_ITEM(args,0)) != NULL && PyInstance_Check(self)
     ) {
 		pyext *ext = GetThis(self);
-
+        FLEXT_ASSERT(ext);
 		PyObject *val;
 
         bool tp = 
@@ -348,6 +351,7 @@ PyObject *pyext::pyext_invec(PyObject *,PyObject *args)
     }
 	else {
 		pyext *ext = GetThis(self);
+        FLEXT_ASSERT(ext);
         PyObject *b = ext->GetSig(val,true);
         if(b) return b;
 	}
@@ -371,6 +375,7 @@ PyObject *pyext::pyext_outvec(PyObject *,PyObject *args)
     }
 	else {
 		pyext *ext = GetThis(self);
+        FLEXT_ASSERT(ext);
         PyObject *b = ext->GetSig(val,false);
         if(b) return b;
 	}

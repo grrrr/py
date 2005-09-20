@@ -8,6 +8,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 */
 
+#ifndef PY_NODSP
+
 #include "pyext.h"
 
 class pydsp
@@ -185,3 +187,4 @@ PyObject *pydsp::GetSig(int ix,bool in)
     return r;
 }
 
+#endif

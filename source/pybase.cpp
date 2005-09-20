@@ -171,7 +171,9 @@ void pybase::lib_setup()
 	FLEXT_SETUP(pyobj);
 	FLEXT_SETUP(pymeth);
 	FLEXT_SETUP(pyext);
+#ifndef PY_NODSP
 	FLEXT_DSP_SETUP(pydsp);
+#endif
 
 #ifdef FLEXT_THREADS
     // release global lock

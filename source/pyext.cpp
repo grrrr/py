@@ -207,14 +207,13 @@ bool pyext::Init()
     else
         inlets = outlets = 0;
 
-    if(inlets < 0 || outlets < 0)
-        InitProblem();
-    else {
-   	    AddInSignal(siginlets);  
-        AddInAnything((siginlets?0:1)+inlets);  
-        AddOutSignal(sigoutlets);
-	    AddOutAnything(outlets);  
-    }
+    if(inlets < 0) inlets = 0;
+    if(outlets < 0) outlets = 0;
+
+    AddInSignal(siginlets);  
+    AddInAnything((siginlets?0:1)+inlets);  
+    AddOutSignal(sigoutlets);
+	AddOutAnything(outlets);  
 
     Report();
 	PyUnlock(state);

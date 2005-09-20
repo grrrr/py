@@ -85,7 +85,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;c:\data\pd\pd-cvs\src&quot;;..\flext\source;c:\programme\prog\Python24\include"
+				AdditionalIncludeDirectories="c:\programme\audio\pd-0.39-0\src;..\flext\source;c:\programme\prog\Python24\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS;PY_NUMARRAY"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -473,7 +473,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\msp-includes&quot;;&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\max-includes&quot;;..\flext\source;C:\Programme\prog\Python24\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=1;FLEXT_THREADS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=1;FLEXT_THREADS;_WIN32_WINNT=0x501;PY_NODSP"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				StructMemberAlignment="2"
@@ -489,7 +489,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="maxapi.lib maxaudio.lib pthreadVC.lib"
-				OutputFile="$(outdir)/py.mxe"
+				OutputFile="&quot;C:\Programme\Gemeinsame Dateien\Cycling &apos;74\externals\flext\py.mxe&quot;"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\msp-includes&quot;;&quot;C:\data\prog\audio\maxmspsdk_win\4.5 headers\c74support\max-includes&quot;;&quot;c:\data\prog\packs\Python-2.4\PCbuild&quot;"
