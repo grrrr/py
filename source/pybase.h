@@ -81,7 +81,15 @@ protected:
 	virtual void Unload() = 0;
 
     void OpenEditor();
-    void Respond(bool b);
+
+    void Respond(bool b)
+    { 
+        if(respond) { 
+            t_atom a; 
+            SetBool(a,b); 
+            DumpOut(sym_response,1,&a); 
+        } 
+    }
 
     void Report() { while(PyErr_Occurred()) PyErr_Print(); }
 
@@ -158,7 +166,14 @@ protected:
 #ifdef FLEXT_THREADS
     static void thrworker(thr_params *data); 
 
-    bool qucall(PyObject *fun,PyObject *args);
+    bool qucall(PyObject *fun,PyObject *args)
+    {
+        FifoEl *el = qufifo.New();
+        el->Set(this,fun,args);
+        qufifo.Put(el);
+        qucond.Signal();
+        return true;
+    }
 
     static void quworker(thr_params *);
     void erasethreads();
@@ -169,6 +184,7 @@ protected:
 #endif
 
     static const t_symbol *sym_fint; // float or int symbol, depending on native number message type
+    static const t_symbol *sym_response;
 
     static const t_symbol *getone(t_atom &at,PyObject *arg);
     static const t_symbol *getlist(t_atom *lst,PyObject *seq,int cnt,int offs = 0);

@@ -106,7 +106,7 @@ Version history:
 - CHG: _isthreaded is now a data member instead of a method
 - FIX: more safety for calls where association python-pd has already been removed
 - ADD: __str__ method for pyext, to enable print self calls
-- CHG: enable symbol binding for all callables (not only functions and methods)
+- ADD: enable symbol binding for all callables (not only functions and methods)
 
 0.2.0:
 - ADD: handling of Python threads

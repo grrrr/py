@@ -75,6 +75,7 @@ PyObject *pybase::builtins_obj = NULL;
 PyObject *pybase::builtins_dict = NULL;
 
 const t_symbol *pybase::sym_fint = NULL;
+const t_symbol *pybase::sym_response = NULL;
 
 // -----------------------------------------------------------------------------------------------------------
 
@@ -83,8 +84,8 @@ void initsymbol();
 void initsamplebuffer();
 
 void pybase::lib_setup()
-{
-	post("");
+{   
+    post("");
 	post("------------------------------------------------");
 	post("py/pyext %s - python script objects",PY__VERSION);
 	post("(C)2002-2005 Thomas Grill - http://grrrr.org/ext");
@@ -94,6 +95,16 @@ void pybase::lib_setup()
 #ifdef FLEXT_DEBUG
     post("");
 	post("DEBUG version compiled on %s %s",__DATE__,__TIME__);
+#endif
+
+	// -------------------------------------------------------------
+
+    sym_response = flext::MakeSymbol("response");
+
+#if FLEXT_SYS == FLEXT_SYS_PD
+    sym_fint = sym_float;
+#else
+    sym_fint = sym_int;
 #endif
 
 	// -------------------------------------------------------------
@@ -162,12 +173,6 @@ void pybase::lib_setup()
     // add samplebuffer type
     initsamplebuffer();
     PyModule_AddObject(module_obj,"Buffer",(PyObject *)&pySamplebuffer_Type);
-
-#if FLEXT_SYS == FLEXT_SYS_PD
-    sym_fint = sym_float;
-#else
-    sym_fint = sym_int;
-#endif
 
 	// -------------------------------------------------------------
 
@@ -548,17 +553,6 @@ bool pybase::OutObject(flext_base *ext,int o,PyObject *obj)
         return false;
 }
 
-static const t_symbol *sym_response = flext::MakeSymbol("response");
-
-void pybase::Respond(bool b) 
-{ 
-    if(respond) { 
-        t_atom a; 
-        SetBool(a,b); 
-        DumpOut(sym_response,1,&a); 
-    } 
-}
-
 void pybase::Reload()
 {
 	PyThreadState *state = PyLock();
@@ -723,15 +717,6 @@ void pybase::thrworker(thr_params *p)
 
     PyUnlock(state);
     --th->thrcount; // \todo this should be atomic
-}
-
-bool pybase::qucall(PyObject *fun,PyObject *args)
-{
-    FifoEl *el = qufifo.New();
-    el->Set(this,fun,args);
-    qufifo.Put(el);
-    qucond.Signal();
-    return true;
 }
 
 void pybase::quworker(thr_params *)
