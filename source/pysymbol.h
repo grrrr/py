@@ -51,7 +51,7 @@ PY_EXPORT extern pySymbol *pySymbol_int;
 
 
 #define pySymbol_Check(op) PyObject_TypeCheck(op, &pySymbol_Type)
-#define pySymbol_CheckExact(op) ((op)->ob_type == &PySymbol_Type)
+#define pySymbol_CheckExact(op) ((op)->ob_type == &pySymbol_Type)
 
 
 PY_EXPORT PyObject *pySymbol_FromSymbol(const t_symbol *sym);

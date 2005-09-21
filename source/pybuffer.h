@@ -46,7 +46,7 @@ typedef struct {
 PY_EXPORT extern PyTypeObject pySamplebuffer_Type;
 
 #define pySamplebuffer_Check(op) PyObject_TypeCheck(op, &pySamplebuffer_Type)
-#define pySamplebuffer_CheckExact(op) ((op)->ob_type == &PySamplebuffer_Type)
+#define pySamplebuffer_CheckExact(op) ((op)->ob_type == &pySamplebuffer_Type)
 
 
 PY_EXPORT PyObject *pySamplebuffer_FromSymbol(const t_symbol *sym);
