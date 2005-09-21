@@ -46,7 +46,7 @@ public:
             if(PyMethod_Check(b))
                 return true;
             else
-                // both are functions
+                // both are non-method callables
                 return a < b;
     }
 };
@@ -88,12 +88,15 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
     PyObject *self,*meth,*name;
     if(!PyArg_ParseTuple(args, "OOO:pyext_bind", &self,&name,&meth)) // borrowed references
 		post("py/pyext - Wrong arguments!");
-	else if(!PyInstance_Check(self) || !(PyMethod_Check(meth) || PyFunction_Check(meth))) {
+	else if(!PyInstance_Check(self) || !PyCallable_Check(meth)) {
 		post("py/pyext - Wrong argument types!");
     }
 	else {
         pyext *th = GetThis(self);
-        FLEXT_ASSERT(th);
+        if(!th) {    
+            PyErr_SetString(PyExc_RuntimeError,"pyext - _bind: instance not associated with pd object");
+            return NULL;
+        }
 
 		const t_symbol *recv = pyObject_AsSymbol(name);
 
@@ -130,12 +133,15 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
     PyObject *self,*meth,*name;
     if(!PyArg_ParseTuple(args, "OOO:pyext_bind", &self,&name,&meth))  // borrowed references
 		post("py/pyext - Wrong arguments!");
-	else if(!PyInstance_Check(self) || !(PyMethod_Check(meth) || PyFunction_Check(meth))) {
+	else if(!PyInstance_Check(self) || !PyCallable_Check(meth)) {
 		post("py/pyext - Wrong argument types!");
     }
 	else {
         pyext *th = GetThis(self);
-        FLEXT_ASSERT(th);
+        if(!th) {    
+            PyErr_SetString(PyExc_RuntimeError,"pyext - _unbind: instance not associated with pd object");
+            return NULL;
+        }
 
 		const t_symbol *recv = pyObject_AsSymbol(name);
 
@@ -175,7 +181,7 @@ void pyext::ClearBinding()
     if(!pyobj) return;
 
     pyext *th = GetThis(pyobj);
-    FLEXT_ASSERT(th);
+    if(!th) return;
 
     void *data = NULL;
     const t_symbol *sym = NULL;

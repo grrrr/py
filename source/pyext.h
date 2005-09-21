@@ -22,9 +22,7 @@ class pyext
 public:
 	pyext(int argc,const t_atom *argv,bool sig = false);
 
-	static PyObject *pyext__doc__(PyObject *,PyObject *args);
-	static PyObject *pyext__init__(PyObject *,PyObject *args);
-	static PyObject *pyext__del__(PyObject *,PyObject *args);
+	static PyObject *pyext__str__(PyObject *,PyObject *args);
 
 	static PyObject *pyext_outlet(PyObject *,PyObject *args);
 #if FLEXT_SYS == FLEXT_SYS_PD

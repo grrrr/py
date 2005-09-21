@@ -102,6 +102,11 @@ Version history:
 - FIX: much better detached method handling (one thread for all object instances!)
 - ADD: open module file in editor on "edit" message (or shift-click (PD) or double click (Max))
 - FIX: _inlets and _outlets default to 0 if not given
+- ADD: enable optimization of Python code in reease build
+- CHG: _isthreaded is now a data member instead of a method
+- FIX: more safety for calls where association python-pd has already been removed
+- ADD: __str__ method for pyext, to enable print self calls
+- CHG: enable symbol binding for all callables (not only functions and methods)
 
 0.2.0:
 - ADD: handling of Python threads
