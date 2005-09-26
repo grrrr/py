@@ -259,6 +259,8 @@ bool pyext::DoInit()
             }
             Py_DECREF(init);
 	    }
+            // __init__ has not been found - don't care
+            PyErr_Clear();
         
 	    Py_DECREF(pargs);
         return ok;

@@ -18,6 +18,7 @@
 			projectDirPath = "";
 			targets = (
 				E90E52E508092505001341AC,
+				E926B6D2089F75950034D534,
 			);
 		};
 		089C166AFE841209C02AAC07 = {
@@ -25,6 +26,7 @@
 				08FB77ADFE841716C02AAC07,
 				089C1671FE841209C02AAC07,
 				19C28FB4FE9D528D11CA2CBB,
+				E926B6D4089F75950034D534,
 			);
 			isa = PBXGroup;
 			name = py;
@@ -33,9 +35,14 @@
 		};
 		089C1671FE841209C02AAC07 = {
 			children = (
+				E97CEC9508E803C600535D83,
+				E97CEBE008E8039F00535D83,
+				E926B819089F78400034D534,
+				E926B817089F782F0034D534,
+				E926B815089F77F10034D534,
+				E926B813089F77DE0034D534,
 				E90E52D208091F79001341AC,
 				E90E521108091CA5001341AC,
-				E90E51FD08091A06001341AC,
 				E90E51FB080919EC001341AC,
 			);
 			isa = PBXGroup;
@@ -85,6 +92,7 @@
 		19C28FB4FE9D528D11CA2CBB = {
 			children = (
 				E90E52E608092505001341AC,
+				E926B6D3089F75950034D534,
 			);
 			isa = PBXGroup;
 			name = Products;
@@ -110,6 +118,7 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = "$(GCC_PREPROCESSOR_DEFINITIONS) FLEXT_DEBUG";
+				LIBRARY_STYLE = STATIC;
 				OPTIMIZATION_CFLAGS = "-O0";
 				ZERO_LINK = YES;
 			};
@@ -362,14 +371,6 @@
 			refType = 0;
 			sourceTree = "<absolute>";
 		};
-		E90E51FD08091A06001341AC = {
-			isa = PBXFileReference;
-			lastKnownFileType = archive.ar;
-			name = "libflext-pd_t.a";
-			path = "/usr/local/lib/libflext-pd_t.a";
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
 		E90E521108091CA5001341AC = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -425,9 +426,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				E90E535B08092593001341AC,
-				E90E535C08092593001341AC,
 				E90E535D08092593001341AC,
 				E90E535E08092593001341AC,
+				E97CEC9608E803C600535D83,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -462,7 +463,7 @@
 			dependencies = (
 			);
 			isa = PBXNativeTarget;
-			name = py;
+			name = py.pd_darwin;
 			productName = py;
 			productReference = E90E52E608092505001341AC;
 			productType = "com.apple.product-type.library.dynamic";
@@ -577,12 +578,6 @@
 			settings = {
 			};
 		};
-		E90E535C08092593001341AC = {
-			fileRef = E90E51FD08091A06001341AC;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
 		E90E535D08092593001341AC = {
 			fileRef = E90E521108091CA5001341AC;
 			isa = PBXBuildFile;
@@ -591,6 +586,342 @@
 		};
 		E90E535E08092593001341AC = {
 			fileRef = E90E52D208091F79001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6CF089F75950034D534 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXResourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E926B6D0089F75950034D534 = {
+			buildActionMask = 2147483647;
+			files = (
+				E926B6D8089F76D90034D534,
+				E926B6D9089F76D90034D534,
+				E926B6DA089F76D90034D534,
+				E926B6DB089F76D90034D534,
+				E926B6DC089F76D90034D534,
+				E926B6DD089F76D90034D534,
+				E926B6DE089F76D90034D534,
+				E926B6DF089F76D90034D534,
+				E926B6E0089F76D90034D534,
+				E926B6E1089F76D90034D534,
+				E926B6E2089F76D90034D534,
+				E926B6E3089F76D90034D534,
+				E926B6E4089F76D90034D534,
+				E926B6E5089F76D90034D534,
+				E926B6E6089F76D90034D534,
+				E926B6E7089F76D90034D534,
+				E926B6E8089F76D90034D534,
+				E926B6E9089F76D90034D534,
+				E926B6EA089F76D90034D534,
+				E926B6EB089F76D90034D534,
+				E926B6EC089F76D90034D534,
+			);
+			isa = PBXSourcesBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E926B6D1089F75950034D534 = {
+			buildActionMask = 2147483647;
+			files = (
+				E926B833089F7CB50034D534,
+				E926B7B6089F77B90034D534,
+				E926B6F4089F77B20034D534,
+				E926B818089F782F0034D534,
+				E926B81A089F78400034D534,
+				E97CEBE108E803A000535D83,
+			);
+			isa = PBXFrameworksBuildPhase;
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E926B6D2089F75950034D534 = {
+			buildPhases = (
+				E926B6CF089F75950034D534,
+				E926B6D0089F75950034D534,
+				E926B6D1089F75950034D534,
+			);
+			buildRules = (
+			);
+			buildSettings = {
+				GCC_ALTIVEC_EXTENSIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = source/pyprefix.h;
+				GCC_PREPROCESSOR_DEFINITIONS = "FLEXT_SYS=1 FLEXT_THREADS";
+				GENERATE_PKGINFO_FILE = YES;
+				HEADER_SEARCH_PATHS = "/usr/local/include/flext \"/Users/thomas/Develop/MaxMSP-SDK/4.5 Headers/c74support/max-includes\" \"/Users/thomas/Develop/MaxMSP-SDK/4.5 Headers/c74support/msp-includes\"";
+				INFOPLIST_FILE = "py-Info.plist";
+				LIBRARY_SEARCH_PATHS = "\"/Users/thomas/Develop/MaxMSP-SDK/4.5 headers/c74support/max-includes\" \"/Users/thomas/Develop/MaxMSP-SDK/4.5 headers/c74support/msp-includes\"";
+				OTHER_CFLAGS = "";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = py;
+				SECTORDER_FLAGS = "";
+				SKIP_INSTALL = YES;
+				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
+				WRAPPER_EXTENSION = mxo;
+			};
+			dependencies = (
+			);
+			isa = PBXNativeTarget;
+			name = py;
+			productName = py;
+			productReference = E926B6D3089F75950034D534;
+			productSettingsXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+<plist version=\"1.0\">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>py</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.yourcompany.py</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1.0</string>
+	<key>CSResourcesFileMapped</key>
+	<string>yes</string>
+</dict>
+</plist>
+";
+			productType = "com.apple.product-type.bundle";
+		};
+		E926B6D3089F75950034D534 = {
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			isa = PBXFileReference;
+			path = py.mxo;
+			refType = 3;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		E926B6D4089F75950034D534 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.xml;
+			name = "py-Info.plist";
+			path = "/Users/thomas/Develop/pdmax/py/py-Info.plist";
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E926B6D8089F76D90034D534 = {
+			fileRef = E90043820887A302008AEAFC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6D9089F76D90034D534 = {
+			fileRef = E90043830887A302008AEAFC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6DA089F76D90034D534 = {
+			fileRef = E90043840887A302008AEAFC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6DB089F76D90034D534 = {
+			fileRef = E90043850887A302008AEAFC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6DC089F76D90034D534 = {
+			fileRef = E90043860887A302008AEAFC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6DD089F76D90034D534 = {
+			fileRef = E90E51DB08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6DE089F76D90034D534 = {
+			fileRef = E90E51DC08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6DF089F76D90034D534 = {
+			fileRef = E90E51DD08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6E0089F76D90034D534 = {
+			fileRef = E90E51DE08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6E1089F76D90034D534 = {
+			fileRef = E90E51DF08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6E2089F76D90034D534 = {
+			fileRef = E90E51E008091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6E3089F76D90034D534 = {
+			fileRef = E90E51E108091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6E4089F76D90034D534 = {
+			fileRef = E90E51E208091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6E5089F76D90034D534 = {
+			fileRef = E90E51E308091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6E6089F76D90034D534 = {
+			fileRef = E90E51E408091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6E7089F76D90034D534 = {
+			fileRef = E90E51E508091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6E8089F76D90034D534 = {
+			fileRef = E90E51E608091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6E9089F76D90034D534 = {
+			fileRef = E90E51E708091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6EA089F76D90034D534 = {
+			fileRef = E90E51E808091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6EB089F76D90034D534 = {
+			fileRef = E90E51E908091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6EC089F76D90034D534 = {
+			fileRef = E90E51EA08091989001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B6F4089F77B20034D534 = {
+			fileRef = E90E52D208091F79001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B7B6089F77B90034D534 = {
+			fileRef = E90E51FB080919EC001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B813089F77DE0034D534 = {
+			isa = PBXFileReference;
+			lastKnownFileType = archive.ar;
+			name = MaxAPI.lib;
+			path = "/Users/thomas/Develop/MaxMSP-SDK/4.5 headers/c74support/max-includes/MaxAPI.lib";
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E926B815089F77F10034D534 = {
+			isa = PBXFileReference;
+			lastKnownFileType = archive.ar;
+			name = MaxAudio.lib;
+			path = "/Users/thomas/Develop/MaxMSP-SDK/4.5 headers/c74support/msp-includes/MaxAudio.lib";
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E926B817089F782F0034D534 = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = MaxAPI.framework;
+			path = /Library/Frameworks/MaxAPI.framework;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E926B818089F782F0034D534 = {
+			fileRef = E926B817089F782F0034D534;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B819089F78400034D534 = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = MaxAudioAPI.framework;
+			path = /Library/Frameworks/MaxAudioAPI.framework;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E926B81A089F78400034D534 = {
+			fileRef = E926B819089F78400034D534;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E926B833089F7CB50034D534 = {
+			fileRef = E90E521108091CA5001341AC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E97CEBE008E8039F00535D83 = {
+			isa = PBXFileReference;
+			lastKnownFileType = archive.ar;
+			name = "libflext-max_td.a";
+			path = "/usr/local/lib/libflext-max_td.0.5.1.a";
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E97CEBE108E803A000535D83 = {
+			fileRef = E97CEBE008E8039F00535D83;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E97CEC9508E803C600535D83 = {
+			isa = PBXFileReference;
+			lastKnownFileType = archive.ar;
+			name = "libflext-pd_td.a";
+			path = "/usr/local/lib/libflext-pd_td.0.5.1.a";
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E97CEC9608E803C600535D83 = {
+			fileRef = E97CEC9508E803C600535D83;
 			isa = PBXBuildFile;
 			settings = {
 			};
