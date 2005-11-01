@@ -85,7 +85,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="c:\programme\audio\pd-0.39-0\src;..\flext\source;c:\programme\prog\Python24\include"
+				AdditionalIncludeDirectories="c:\programme\audio\pd-0.39-1\src;..\flext\source;c:\programme\prog\Python24\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS;PY_NUMARRAY"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -105,7 +105,7 @@
 				OutputFile="$(outdir)/py.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="&quot;C:\data\prog\packs\Python-2.4\PCbuild&quot;;&quot;c:/data/pd/pd-cvs/bin&quot;"
+				AdditionalLibraryDirectories="&quot;C:\data\prog\packs\Python-2.4\PCbuild&quot;;&quot;c:/programme/audio/pd-0.39-1/bin&quot;"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(outdir)/py.pdb"
 				SubSystem="2"

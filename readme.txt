@@ -9,6 +9,45 @@ Visit https://www.paypal.com/xclick/business=gr%40grrrr.org&item_name=pyext&no_n
 
 ----------------------------------------------------------------------------
 
+You need to have Python installed on your system for the py/pyext external to work.
+For Windows pick an up-to-date package from http://www.python.org .
+For linux use the package manager. 
+For OS X keep things as the are - it has Python installed by default.
+
+
+The py/pyext package should run with Python version >= 2.1.
+It has been thoroughly tested with versions 2.2 to 2.4
+
+----------------------------------------------------------------------------
+
+Goals/features of the package:
+
+Access the flexibility of the python language in PD and MaxMSP
+
+
+PD - Load it as i library with e.g. "pd -lib py -path scripts"
+
+
+
+Check out the sample patches and scripts
+
+
+Description:
+
+With the py object you can load python modules and execute the functions therein.
+With the pyext you can use python classes to represent full-featured pd/Max message objects.
+Multithreading (detached methods) is supported for both objects.
+You can send messages to named objects or receive (with pyext) with Python methods.
+
+
+Known bugs:
+- The TCL/TK help patch is not usable under OSX.
+- With standard PD 0.37, threaded py scripts will cause "Stack overflows" under some circumstances
+  -> use PD 0.38 or the devel_0_37 cvs branch instead
+- It has been reported that pyext crashes on AMD64 with SSE enabled (for these CPUs, disable the respective compiler flags)
+
+----------------------------------------------------------------------------
+
 BUILDING from source
 --------------------
 
@@ -48,39 +87,6 @@ to
     typedef unsigned int                    UInt32;
     typedef signed int                      SInt32;
 to avoid a compile-time type definition clash.
-
-----------------------------------------------------------------------------
-
-Goals/features of the package:
-
-Access the flexibility of the python language in PD and MaxMSP
-
-
-PD - Load it as i library with e.g. "pd -lib py -path scripts"
-
-
-
-Check out the sample patches and scripts
-
-
-Description:
-
-With the py object you can load python modules and execute the functions therein.
-With the pyext you can use python classes to represent full-featured pd/Max message objects.
-Multithreading (detached methods) is supported for both objects.
-You can send messages to named objects or receive (with pyext) with Python methods.
-
-
-Known bugs:
-- The TCL/TK help patch is not usable under OSX.
-- With standard PD 0.37, threaded py scripts will cause "Stack overflows" under some circumstances
-  -> use PD 0.38 or the devel_0_37 cvs branch instead
-- It has been reported that pyext crashes on AMD64 with SSE enabled (for these CPUs, disable the respective compiler flags)
-
-----------------------------------------------------------------------------
-
-The py/pyext package should run with Python version >= 2.1.
-It has been thoroughly tested with versions 2.2 to 2.4
 
 ----------------------------------------------------------------------------
 
