@@ -251,9 +251,12 @@ bool pyext::DoInit()
         if(init) {
             if(PyMethod_Check(init)) {
 			    PyObject *res = PyObject_CallObject(init,pargs);
-                if(!res)
+                if(!res) {
                     // exception is set
 				    ok = false;
+                    // we want to know why __init__ failed...
+                    PyErr_Print();
+                }
 			    else
 				    Py_DECREF(res);
             }
@@ -281,10 +284,8 @@ void pyext::DoExit()
             PyObject *ret = PyObject_CallObject(objdel,NULL);
             if(ret)
                 Py_DECREF(ret);
-#ifdef FLEXT_DEBUG
-            else 
-                post("%s - Could not call _del method",thisName());
-#endif
+            else
+                PyErr_Print();
             Py_DECREF(objdel);
         }
         else
