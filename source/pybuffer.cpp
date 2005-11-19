@@ -156,8 +156,29 @@ static PyObject *buffer_dirty(PyObject *obj)
     return Py_None;
 }
 
+static PyObject *buffer_resize(PyObject *obj,PyObject *args,PyObject *kwds)
+{
+    flext::buffer *b = ((pySamplebuffer *)obj)->buf;
+    if(b) {
+        int frames,keep = 1,zero = 1;
+        static char *kwlist[] = {"frames", "keep", "zero", NULL};
+        if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|ii", kwlist, &frames, &keep, &zero)) 
+            return NULL; 
+
+        b->Frames(frames,keep != 0,zero != 0);
+
+        Py_INCREF(obj);
+        return obj;
+    }
+    else {
+		PyErr_SetString(PyExc_RuntimeError,"Invalid buffer");
+        return NULL;
+    }
+}
+
 static PyMethodDef buffer_methods[] = {
     {"dirty", (PyCFunction)buffer_dirty,METH_NOARGS,"Mark buffer as dirty"},
+    {"resize", (PyCFunction)buffer_resize,METH_VARARGS|METH_KEYWORDS,"Resize buffer"},
     {NULL}  /* Sentinel */
 };
 

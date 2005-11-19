@@ -113,6 +113,7 @@ Version history:
 - FIX: more safety for calls where association python-pd has already been removed
 - ADD: __str__ method for pyext, to enable print self calls
 - ADD: enable symbol binding for all callables (not only functions and methods)
+- ADD: Buffer.resize(frames,keep=1,zero=1) method
 
 0.2.0:
 - ADD: handling of Python threads
