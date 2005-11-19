@@ -1,4 +1,4 @@
-#N canvas 123 58 712 492 12;
+#N canvas 123 58 716 496 12;
 #X obj 37 240 print;
 #X obj 107 241 print A;
 #X msg 30 139 reload;
@@ -42,16 +42,16 @@
 #X coords 0 1 99 -1 200 140 1;
 #X restore 65 301 graph;
 #X obj 36 199 py buffer @detach 1;
-#X msg 192 127 mul array3 array1 array2;
-#X msg 192 149 add array3 array1 array2;
+#X msg 200 123 mul array3 array1 array2;
+#X msg 200 145 add array3 array1 array2;
 #X obj 16 13 cnv 15 650 40 empty empty py/pyext 10 22 0 24 -260818
 -1 0;
 #X text 235 16 Python script objects \, (C)2003-2005 Thomas Grill;
 #X text 235 32 http://grrrr.org/ext;
 #X text 17 67 This demonstrates the usage of buffers. See the buffer.py
 script.;
-#X msg 193 176 fadein array1;
-#X msg 191 200 neg array2;
+#X msg 201 172 fadein array1;
+#X msg 199 196 neg array2;
 #X connect 2 0 6 0;
 #X connect 6 0 0 0;
 #X connect 6 1 1 0;
