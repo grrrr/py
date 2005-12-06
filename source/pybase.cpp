@@ -27,7 +27,19 @@ static PyObject *gcollect = NULL;
 
 #ifdef FLEXT_THREADS
 
-typedef std::map<flext::thrid_t,PyThreadState *> PyThrMap;
+class ThrCmp
+{
+public:
+    inline bool operator()(const flext::thrid_t &a,const flext::thrid_t &b) const
+    {
+        if(sizeof(a) == sizeof(size_t))
+            return *(size_t *)&a < *(size_t *)&b;
+        else
+            return memcmp(&a,&b,sizeof(a)) < 0;
+    }
+};
+
+typedef std::map<flext::thrid_t,PyThreadState *,ThrCmp> PyThrMap;
 
 static PyInterpreterState *pymain = NULL;
 static PyThrMap pythrmap;
