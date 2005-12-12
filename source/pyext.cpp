@@ -262,6 +262,7 @@ bool pyext::DoInit()
             }
             Py_DECREF(init);
 	    }
+        else
             // __init__ has not been found - don't care
             PyErr_Clear();
         
@@ -402,7 +403,7 @@ void pyext::Load()
         int inl = -1,outl = -1;
         ok = InitInOut(inl,outl);
 
-        if(inl != inlets || outl != outlets)
+        if((inl >= 0 && inl != inlets) || (outl >= 0 && outl != outlets))
             post("%s - Inlet and outlet count can't be changed by reload",thisName());
     }
 
