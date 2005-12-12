@@ -94,6 +94,7 @@ const t_symbol *pybase::sym_response = NULL;
 
 void initsymbol();
 void initsamplebuffer();
+void initbundle();
 
 void pybase::lib_setup()
 {   
@@ -185,6 +186,10 @@ void pybase::lib_setup()
     // add samplebuffer type
     initsamplebuffer();
     PyModule_AddObject(module_obj,"Buffer",(PyObject *)&pySamplebuffer_Type);
+
+    // add message bundle type
+    initbundle();
+    PyModule_AddObject(module_obj,"Bundle",(PyObject *)&pyBundle_Type);
 
 	// -------------------------------------------------------------
 

@@ -36,8 +36,10 @@ static int symbol_init(PyObject *self, PyObject *args, PyObject *kwds)
         ((pySymbol *)self)->sym = pySymbol_AS_SYMBOL(arg);
     else if(PyString_Check(arg))
         ((pySymbol *)self)->sym = flext::MakeSymbol(PyString_AS_STRING(arg));
-    else
+    else {
+        PyErr_SetString(PyExc_TypeError,"string or symbol argument expected");
         ret = -1;
+    }
     Py_DECREF(arg);
 
     return ret;

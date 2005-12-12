@@ -14,6 +14,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "main.h"
 #include "pysymbol.h"
 #include "pybuffer.h"
+#include "pybundle.h"
 
 class pybase
     : public flext

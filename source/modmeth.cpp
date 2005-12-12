@@ -118,6 +118,7 @@ PyObject *pybase::py_send(PyObject *,PyObject *args)
     ) {
 		PyObject *val;
 
+#if 0
 		bool tp = 
             sz == 2 && 
             PySequence_Check(
@@ -126,28 +127,47 @@ PyObject *pybase::py_send(PyObject *,PyObject *args)
 
 		if(!tp)
 			val = PySequence_GetSlice(args,1,sz);  // new ref
+#else
+        if(sz == 2) {
+            val = PyTuple_GET_ITEM(args,1); // borrow reference
+            Py_INCREF(val);
+        }
+        else
+            val = PySequence_GetSlice(args,1,sz);  // new ref
+#endif
 
         AtomListStatic<16> lst;
         const t_symbol *sym = GetPyArgs(lst,val);
+		Py_DECREF(val);
+
 		if(sym) {
     		bool ok = Forward(recv,sym,lst.Count(),lst.Atoms());
 #ifdef FLEXT_DEBUG
             if(!ok)
 				post("py/pyext - Receiver doesn't exist");
 #endif
+            Py_INCREF(Py_None);
+            return Py_None;
 		}
-		else if(PyErr_Occurred())
+/*
+        else if(PyErr_Occurred())
             PyErr_Print();
         else
 			post("py/pyext - No data to send");
-
-		if(!tp) Py_DECREF(val);
+*/
+        else {
+            FLEXT_ASSERT(PyErr_Occurred());
+            return NULL;
+        }
 	}
+/*
 	else
 		post("py/pyext - Send name is invalid");
-
-    Py_INCREF(Py_None);
-    return Py_None;
+*/
+    else {
+        PyErr_SetString(PyExc_ValueError,"py/pyext - Send name is invalid");
+        return NULL;
+    }
 }
 
 #ifdef FLEXT_THREADS

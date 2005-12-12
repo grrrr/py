@@ -114,6 +114,7 @@ Version history:
 - ADD: __str__ method for pyext, to enable print self calls
 - ADD: enable symbol binding for all callables (not only functions and methods)
 - ADD: Buffer.resize(frames,keep=1,zero=1) method
+- ADD: py.Bundle class to support flext message bundles
 
 0.2.0:
 - ADD: handling of Python threads

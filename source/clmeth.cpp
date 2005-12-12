@@ -210,10 +210,10 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
             Py_INCREF(val);
         }
         else
-            val = PySequence_GetSlice(args,2,sz);  // new ref
+            val = PyTuple_GetSlice(args,2,sz);  // new ref
 #endif
 
-		int o = PyInt_AsLong(outl);
+		int o = PyInt_AS_LONG(outl);
 		if(o >= 1 && o <= ext->Outlets()) {
             // offset outlet by signal outlets
             o += ext->sigoutlets;

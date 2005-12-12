@@ -44,6 +44,8 @@ public:
 	int Inlets() const { return inlets; }
 	int Outlets() const { return outlets; }
 
+	static pyext *GetThis(PyObject *self);
+
 protected:
 
     virtual bool Init();
@@ -86,8 +88,6 @@ protected:
 	virtual void DoExit();
 
     virtual PyObject *GetSig(int ix,bool in);
-
-	static pyext *GetThis(PyObject *self);
 
 private:
 	static void Setup(t_classid);
