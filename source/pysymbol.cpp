@@ -61,15 +61,15 @@ static PyObject *symbol_richcompare(PyObject *a,PyObject *b,int cmp)
 {
     if(pySymbol_Check(a) && pySymbol_Check(b)) {
         const t_symbol *asym = pySymbol_AS_SYMBOL(a);
-        const t_symbol *bsym = pySymbol_AS_SYMBOL(a);
+        const t_symbol *bsym = pySymbol_AS_SYMBOL(b);
         bool ret;
         switch(cmp) {
-            case Py_LT: ret = asym < bsym;
-            case Py_LE: ret = asym <= bsym;
-            case Py_EQ: ret = asym == bsym;
-            case Py_NE: ret = asym != bsym;
-            case Py_GT: ret = asym > bsym;
-            case Py_GE: ret = asym >= bsym;
+            case Py_LT: ret = asym < bsym; break;
+            case Py_LE: ret = asym <= bsym; break;
+            case Py_EQ: ret = asym == bsym; break;
+            case Py_NE: ret = asym != bsym; break;
+            case Py_GT: ret = asym > bsym; break;
+            case Py_GE: ret = asym >= bsym; break;
         }
         return PyBool_FromLong(ret);
     }
