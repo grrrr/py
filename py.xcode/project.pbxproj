@@ -35,12 +35,12 @@
 		};
 		089C1671FE841209C02AAC07 = {
 			children = (
-				E97CEC9508E803C600535D83,
-				E97CEBE008E8039F00535D83,
+				E9D6762D08FC61860039A6F6,
+				E9D6762E08FC61860039A6F6,
+				E9D6762F08FC61860039A6F6,
+				E9D6763008FC61860039A6F6,
 				E926B819089F78400034D534,
 				E926B817089F782F0034D534,
-				E926B815089F77F10034D534,
-				E926B813089F77DE0034D534,
 				E90E52D208091F79001341AC,
 				E90E521108091CA5001341AC,
 				E90E51FB080919EC001341AC,
@@ -117,7 +117,7 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = "$(GCC_PREPROCESSOR_DEFINITIONS) FLEXT_DEBUG";
+				GCC_PREPROCESSOR_DEFINITIONS = "$(GCC_PREPROCESSOR_DEFINITIONS) FLEXT_DEBUG FLEXT_THREADS";
 				LIBRARY_STYLE = STATIC;
 				OPTIMIZATION_CFLAGS = "-O0";
 				ZERO_LINK = YES;
@@ -129,6 +129,7 @@
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = "$(GCC_PREPROCESSOR_DEFINITIONS) FLEXT_SHARED";
 				ZERO_LINK = NO;
 			};
 			isa = PBXBuildStyle;
@@ -425,10 +426,11 @@
 		E90E52E408092505001341AC = {
 			buildActionMask = 2147483647;
 			files = (
+				E9D6763108FC619F0039A6F6,
+				E9D6763208FC619F0039A6F6,
 				E90E535B08092593001341AC,
 				E90E535D08092593001341AC,
 				E90E535E08092593001341AC,
-				E97CEC9608E803C600535D83,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -449,10 +451,11 @@
 				GCC_MODEL_CPU = G4;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = source/pyprefix.h;
-				GCC_PREPROCESSOR_DEFINITIONS = "FLEXT_SYS=2 FLEXT_THREADS";
-				HEADER_SEARCH_PATHS = "/usr/local/include/flext $(PDApp)/src";
+				GCC_PREPROCESSOR_DEFINITIONS = "FLEXT_SYS=2";
+				HEADER_SEARCH_PATHS = "$(flext)/source $(PDApp)/src";
 				INSTALL_PATH = "$(PDApp)/extra";
-				LIBRARY_STYLE = BUNDLE;
+				LIBRARY_SEARCH_PATHS = "$(flext)/build";
+				LIBRARY_STYLE = DYNAMIC;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-bundle_loader $(PDApp)/bin/pd";
 				OTHER_REZFLAGS = "";
@@ -628,12 +631,13 @@
 		E926B6D1089F75950034D534 = {
 			buildActionMask = 2147483647;
 			files = (
+				E9D6763308FC61A40039A6F6,
+				E9D6763408FC61A40039A6F6,
 				E926B833089F7CB50034D534,
 				E926B7B6089F77B90034D534,
 				E926B6F4089F77B20034D534,
 				E926B818089F782F0034D534,
 				E926B81A089F78400034D534,
-				E97CEBE108E803A000535D83,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -650,11 +654,11 @@
 				GCC_ALTIVEC_EXTENSIONS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = source/pyprefix.h;
-				GCC_PREPROCESSOR_DEFINITIONS = "FLEXT_SYS=1 FLEXT_THREADS";
+				GCC_PREPROCESSOR_DEFINITIONS = "FLEXT_SYS=1";
 				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = "/usr/local/include/flext \"/Users/thomas/Develop/MaxMSP-SDK/4.5 Headers/c74support/max-includes\" \"/Users/thomas/Develop/MaxMSP-SDK/4.5 Headers/c74support/msp-includes\"";
+				HEADER_SEARCH_PATHS = "$(flext)/source $(MaxSDK)/max-includes $(MaxSDK)/msp-includes";
 				INFOPLIST_FILE = "py-Info.plist";
-				LIBRARY_SEARCH_PATHS = "\"/Users/thomas/Develop/MaxMSP-SDK/4.5 headers/c74support/max-includes\" \"/Users/thomas/Develop/MaxMSP-SDK/4.5 headers/c74support/msp-includes\"";
+				LIBRARY_SEARCH_PATHS = "$(MaxSDK)/max-includes $(MaxSDK)/msp-includes";
 				OTHER_CFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = py;
@@ -848,22 +852,6 @@
 			settings = {
 			};
 		};
-		E926B813089F77DE0034D534 = {
-			isa = PBXFileReference;
-			lastKnownFileType = archive.ar;
-			name = MaxAPI.lib;
-			path = "/Users/thomas/Develop/MaxMSP-SDK/4.5 headers/c74support/max-includes/MaxAPI.lib";
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
-		E926B815089F77F10034D534 = {
-			isa = PBXFileReference;
-			lastKnownFileType = archive.ar;
-			name = MaxAudio.lib;
-			path = "/Users/thomas/Develop/MaxMSP-SDK/4.5 headers/c74support/msp-includes/MaxAudio.lib";
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
 		E926B817089F782F0034D534 = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -898,30 +886,58 @@
 			settings = {
 			};
 		};
-		E97CEBE008E8039F00535D83 = {
+		E9D6762D08FC61860039A6F6 = {
 			isa = PBXFileReference;
-			lastKnownFileType = archive.ar;
-			name = "libflext-max_td.a";
-			path = "/usr/local/lib/libflext-max_td.0.5.1.a";
+			lastKnownFileType = "compiled.mach-o.dylib";
+			name = "libflext-max_d.dylib";
+			path = "/usr/local/lib/libflext-max_d.dylib";
 			refType = 0;
 			sourceTree = "<absolute>";
 		};
-		E97CEBE108E803A000535D83 = {
-			fileRef = E97CEBE008E8039F00535D83;
+		E9D6762E08FC61860039A6F6 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "compiled.mach-o.dylib";
+			name = "libflext-max.dylib";
+			path = "/usr/local/lib/libflext-max.dylib";
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E9D6762F08FC61860039A6F6 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "compiled.mach-o.dylib";
+			name = "libflext-pd_d.dylib";
+			path = "/usr/local/lib/libflext-pd_d.dylib";
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E9D6763008FC61860039A6F6 = {
+			isa = PBXFileReference;
+			lastKnownFileType = "compiled.mach-o.dylib";
+			name = "libflext-pd.dylib";
+			path = "/usr/local/lib/libflext-pd.dylib";
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		E9D6763108FC619F0039A6F6 = {
+			fileRef = E9D6762F08FC61860039A6F6;
 			isa = PBXBuildFile;
 			settings = {
 			};
 		};
-		E97CEC9508E803C600535D83 = {
-			isa = PBXFileReference;
-			lastKnownFileType = archive.ar;
-			name = "libflext-pd_td.a";
-			path = "/usr/local/lib/libflext-pd_td.0.5.1.a";
-			refType = 0;
-			sourceTree = "<absolute>";
+		E9D6763208FC619F0039A6F6 = {
+			fileRef = E9D6763008FC61860039A6F6;
+			isa = PBXBuildFile;
+			settings = {
+			};
 		};
-		E97CEC9608E803C600535D83 = {
-			fileRef = E97CEC9508E803C600535D83;
+		E9D6763308FC61A40039A6F6 = {
+			fileRef = E9D6762D08FC61860039A6F6;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E9D6763408FC61A40039A6F6 = {
+			fileRef = E9D6762E08FC61860039A6F6;
 			isa = PBXBuildFile;
 			settings = {
 			};

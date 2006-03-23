@@ -25,7 +25,7 @@ Check out the sample patches and scripts
 
 Installation:
 
-PD version >= 0.38 - Add "py" to the Startup items ("binaries to load")
+PD version >= 0.38 - Add "py" to the Startup items ("binaries to load") and add the folder "scripts" to the pd search path.
 PD version < 0.38 - Load it as i library with e.g. "pd -lib py -path scripts"
 
 Max/MSP - Copy py-objectmappings.txt into the init folder and py.mxe (Windows) or py.mxo (OSX) into the externals folder.
