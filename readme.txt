@@ -1,6 +1,6 @@
 py/pyext - python script objects for PD and Max/MSP
 
-Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2006 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -18,19 +18,19 @@ For OS X keep things as the are - it has Python installed by default.
 The py/pyext package should run with Python version >= 2.1.
 It has been thoroughly tested with versions 2.2 to 2.4
 
-----------------------------------------------------------------------------
-
-Goals/features of the package:
-
-Access the flexibility of the python language in PD and MaxMSP
-
-
-PD - Load it as i library with e.g. "pd -lib py -path scripts"
-
-
 
 Check out the sample patches and scripts
 
+----------------------------------------------------------------------------
+
+Installation:
+
+PD version >= 0.38 - Add "py" to the Startup items ("binaries to load")
+PD version < 0.38 - Load it as i library with e.g. "pd -lib py -path scripts"
+
+Max/MSP - Copy py-objectmappings.txt into the init folder and py.mxe (Windows) or py.mxo (OSX) into the externals folder.
+
+----------------------------------------------------------------------------
 
 Description:
 
@@ -97,7 +97,7 @@ Version history:
 - ADD: Python objects can be sent/received through outlets/inlets
 - ADD: py can have multiple inlets for multiple function arguments (right inlets are non-triggering)
 - ADD: allow module.function syntax for py and pyext
-- FIX: pyext: cleanup up float vs. int ... first decision is made by tag, afterwards a conversion is tried
+- FIX: pyext: cleanup float vs. int ... first decision is made by tag, afterwards a conversion is tried
 - ADD: pym: object-oriented object... Python methods for any object type
 - ADD: py: allow all callables (also object constructors and builtins)
 - ADD: py: enable Python built-in functions (like range, str etc.)
@@ -115,6 +115,8 @@ Version history:
 - ADD: enable symbol binding for all callables (not only functions and methods)
 - ADD: Buffer.resize(frames,keep=1,zero=1) method
 - ADD: py.Bundle class to support flext message bundles
+- ADD: enable usage of compiled-only modules (.py[co])
+- ADD: enable usage of module packages (with module/__init__.py[co])
 
 0.2.0:
 - ADD: handling of Python threads
@@ -196,10 +198,12 @@ TODO list:
 
 bugs:
 - crashes with long Python printouts
+- pybase::GetModulePath should also look for .pyc and .pyo
 
 general:
 - Documentation and better example patches
 - better error reporting for runtime errors
+- we should pre-scan and cache class methods
 
 features:
 - enable multiple interpreters? ( -> not possible within one thread)

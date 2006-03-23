@@ -162,10 +162,6 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
                 }
             }
 
-    		char dir[1024];
-		    GetModulePath(modnm,dir,sizeof(dir));
-		    AddToPath(dir);
-
 			ImportModule(modnm);
 		}
         else

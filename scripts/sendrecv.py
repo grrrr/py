@@ -135,7 +135,7 @@ class ex3(pyext._class):
 		"""Class constructor"""
 
 		# called scripting method should run on its own thread
-		if self._isthreaded():
+		if self._isthreaded:
 		    print "Threading is on"
 		    self._detach(1)  
 
@@ -143,7 +143,7 @@ class ex3(pyext._class):
 		"""Do some scripting - PD only!"""
 
 		num = 12				# number of objects
-		ori = complex(150,150)  # origin
+		ori = complex(150,180)  # origin
 		rad = 100				# radius
 		l = range(num)			# initialize list
 
@@ -152,7 +152,7 @@ class ex3(pyext._class):
 		for i in xrange(num):
 			l[i] = ori+rad*exp(complex(0,i*2*pi/num))
 			self._tocanvas("obj",l[i].real,l[i].imag,"bng",15,250,50,0,"empty","yeah"+str(i),"empty",0,-6,64,8,0,-1,-1)
-			self._tocanvas("connect",2,0,3+i,0)
+			self._tocanvas("connect",6,0,7+i,0)
 
 		# blink
 		for i in range(10):

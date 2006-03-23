@@ -86,7 +86,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="C:\data\prog\packs\pthreads\include;&quot;c:\data\pd\pd-cvs\src&quot;;..\flext\source;c:\programme\prog\Python24\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS;PY_NUMARRAY"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS;PY_NUMARRAY;xFLEXT_USECMEM"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				RuntimeTypeInfo="TRUE"
@@ -488,7 +488,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="maxapi.lib maxaudio.lib pthreadVC.lib"
+				AdditionalDependencies="maxapi.lib maxaudio.lib"
 				OutputFile="&quot;C:\Programme\Gemeinsame Dateien\Cycling &apos;74\externals\flext\py.mxe&quot;"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -556,7 +556,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="maxapi.lib maxaudio.lib pthreadVC.lib"
+				AdditionalDependencies="maxapi.lib maxaudio.lib"
 				OutputFile="./max-msvc/py.mxe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"

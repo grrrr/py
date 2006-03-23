@@ -53,7 +53,6 @@ protected:
 	AtomList args;
 
     void AddCurrentPath(flext_base *o);
-	void GetModulePath(const char *mod,char *dir,int len);
 	void SetArgs();
 
     bool OutObject(flext_base *ext,int o,PyObject *obj);

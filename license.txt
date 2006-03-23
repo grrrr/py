@@ -1,5 +1,5 @@
 py/pyext - python script objects for PD and MaxMSP
-Copyright (C) 2002-2005 Thomas Grill
+Copyright (C) 2002-2006 Thomas Grill
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@ This package uses the flext C++ layer - See its license text below:
 
 --- flext ----------------------------------------------
 flext - C++ layer for Max/MSP and pd (pure data) externals
-Copyright (C) 2001-2005 Thomas Grill
+Copyright (C) 2001-2006 Thomas Grill
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

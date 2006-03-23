@@ -101,7 +101,7 @@ void pybase::lib_setup()
     post("");
 	post("------------------------------------------------");
 	post("py/pyext %s - python script objects",PY__VERSION);
-	post("(C)2002-2005 Thomas Grill - http://grrrr.org/ext");
+	post("(C)2002-2006 Thomas Grill - http://grrrr.org/ext");
     post("");
     post("using Python %s",Py_GetVersion());
 
@@ -220,6 +220,7 @@ FLEXT_LIB_SETUP(py,pybase::lib_setup)
 
 pybase::pybase()
     : module(NULL)
+    , dict(NULL)
 #ifdef FLEXT_THREADS
     , thrcount(0)
     , shouldexit(false),stoptick(0)
@@ -387,7 +388,7 @@ void pybase::OpenEditor()
 
     char *editor = getenv("EDITOR");
 
-    if(!editor || !strcmp(editor, "/usr/bin/nano") || !strcmp(editor, "/usr/bin/pico") || !strcmp(editor, "/usr/bin/vi")) {
+    if(!editor) { // || !strcmp(editor, "/usr/bin/nano") || !strcmp(editor, "/usr/bin/pico") || !strcmp(editor, "/usr/bin/vi")) {
         // no environment variable or console text editor found ... use idle instead (should have come with Python)
         editor = "idle";
     }
@@ -424,88 +425,81 @@ void pybase::SetArgs()
 	delete[] sargv;
 }
 
-bool pybase::ImportModule(const char *name)
-{
-    if(name) {
-        if(modname == name) return true;
-        modname = name;
-    }
-    else
-        modname.clear();
-    return ReloadModule();
-}
-
-void pybase::UnimportModule()
-{
-	if(!module) return;
-
-	FLEXT_ASSERT(dict && module_obj && module_dict);
-
-	Py_DECREF(module);
-
-	// reference count to module is not 0 here, altough probably the last instance was unloaded
-	// Python retains one reference to the module all the time 
-	// we don't care
-
-	module = NULL;
-	dict = NULL;
-}
-
-bool pybase::ReloadModule()
-{
-    bool ok = false;
-
-    SetArgs();
-    PyObject *newmod;
-    
-    if(modname.length())
-        newmod = module
-            ?PyImport_ReloadModule(module)
-            :PyImport_ImportModule((char *)modname.c_str());
-    else {
-        // if no module name given, take py module
-        newmod = module_obj; 
-        Py_INCREF(newmod);
-    }
-
-	if(!newmod) {
-		// unload faulty module
-        if(module) UnimportModule();
-	}
-	else {
-		Py_XDECREF(module);
-		module = newmod;
-		dict = PyModule_GetDict(module); // borrowed
-        ok = true;
-	}
-    return ok;
-}
-
-void pybase::GetModulePath(const char *mod,char *dir,int len)
+static bool getmodulesub(const char *mod,char *dir,int len,char *ext)
 {
 #if FLEXT_SYS == FLEXT_SYS_PD
-	// uarghh... pd doesn't show its path for extra modules
-
 	char *name;
-	int fd = open_via_path("",mod,".py",dir,&name,len,0);
-	if(fd > 0) close(fd);
-	else name = NULL;
+	int fd = open_via_path("",mod,ext,dir,&name,len,0);
+    if(fd > 0) {
+        FLEXT_ASSERT(name && *name);
+        close(fd);
+    }
+    else {
+        // look for mod/__init__.py
+        std::string tmp(mod); 
+        int l = tmp.size();
+        tmp += "/__init__";
+        fd = open_via_path("",tmp.c_str(),ext,dir,&name,len,0);
+        if(fd > 0) {
+            FLEXT_ASSERT(name && *name);
+            close(fd);
+            // we must remove the module name from dir
+            char *t = dir+strlen(dir)-l;
+            FLEXT_ASSERT(!strcmp(mod,t) && t[-1] == '/');
+            t[-1] = 0;
+        }
+        else
+            name = NULL;
+    }
 
 	// if dir is current working directory... name points to dir
 	if(dir == name) strcpy(dir,".");
 #elif FLEXT_SYS == FLEXT_SYS_MAX
-	// how do i get the path in Max/MSP?
     short path;
     long type;
     char smod[1024];
-    strcat(strcpy(smod,mod),".py");
-    if(!locatefile_extended(smod,&path,&type,&type,-1)) {
-#if FLEXT_OS == FLEXT_OS_WIN
-        path_topathname(path,NULL,dir);
-#else
+    strcpy(smod,mod);
+    strcat(smod,ext);
+    bool ok = !locatefile_extended(smod,&path,&type,&type,0);
+    if(ok)
         // convert pathname to unix style
         path_topathname(path,NULL,smod);
+    else {
+        // do path/file.ext combinations work at all under Max?
+        strcpy(smod,mod);
+
+        short path;
+        type = 'fold';
+        ok = !locatefile_extended(smod,&path,&type,&type,1);
+        if(ok) {
+            // convert pathname to unix style (including trailing slash)
+            path_topathname(path,NULL,smod);
+            char *end = smod+strlen(smod);
+            strcpy(end,mod);
+            strcat(end,"/__init__");
+            strcat(end,ext);
+
+            // check if file is really existing: try to open it
+            FILE *f = fopen(smod,"r");
+            if(f) {
+                *end = 0;  // clear module part ... we only need base path
+                fclose(f);
+            }
+            else
+                ok = false;
+        }
+    }
+    
+    if(ok) {
+        // convert path into slash style needed for Python
+#if 1
+        path_nameconform(smod,dir,PATH_STYLE_SLASH,PATH_TYPE_ABSOLUTE);
+#else
+#if FLEXT_OS == FLEXT_OS_WIN
+        char *colon = NULL;
+#else
         char *colon = strchr(smod,':');
+#endif
         if(colon) {
             *colon = 0;
             strcpy(dir,"/Volumes/");
@@ -515,13 +509,96 @@ void pybase::GetModulePath(const char *mod,char *dir,int len)
         else
             strcpy(dir,smod);
 #endif
+        return true;
     }
-    else 
+    else
         // not found
-        *dir = 0;
+        return false;
 #else
-	*dir = 0;
+#pragma message("Not implemented");
+    return false;
 #endif
+}
+
+static bool getmodulepath(const char *mod,char *dir,int len)
+{
+    return 
+        getmodulesub(mod,dir,len,".py") ||
+        getmodulesub(mod,dir,len,".pyc") ||
+        getmodulesub(mod,dir,len,".pyo");
+}
+
+bool pybase::ImportModule(const char *name)
+{
+    if(name) {
+        if(modname == name) {
+            // module with the same name is already loaded
+            if(module) return true;
+        }
+        else
+            modname = name;
+    }
+    else
+        modname.clear();
+
+    UnimportModule();
+    return ReloadModule();
+}
+
+void pybase::UnimportModule()
+{
+    if(module) {
+        FLEXT_ASSERT(dict && module_obj && module_dict);
+
+	    Py_DECREF(module);
+
+	    // reference count to module is not 0 here, altough probably the last instance was unloaded
+	    // Python retains one reference to the module all the time 
+	    // we don't care
+
+	    module = NULL;
+	    dict = NULL;
+    }
+}
+
+bool pybase::ReloadModule()
+{
+    SetArgs();
+    PyObject *newmod;
+    
+    if(modname.length()) {
+        if(module)
+            newmod = PyImport_ReloadModule(module);
+        else {
+            // search in module path
+            char dir[1024];
+	        if(getmodulepath(modname.c_str(),dir,sizeof(dir))) {
+    	        AddToPath(dir);
+                newmod = PyImport_ImportModule((char *)modname.c_str());
+            }
+            else {
+                PyErr_SetString(PyExc_ImportError,"Module not found in path");
+                newmod = NULL;
+            }
+        }
+    }
+    else {
+        // if no module name given, take py module
+        newmod = module_obj; 
+        Py_INCREF(newmod);
+    }
+
+	if(!newmod) {
+		// unload faulty module
+        UnimportModule();
+        return false;
+	}
+	else {
+		Py_XDECREF(module);
+		module = newmod;
+		dict = PyModule_GetDict(module); // borrowed
+        return true;
+	}
 }
 
 void pybase::AddToPath(const char *dir)

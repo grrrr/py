@@ -156,12 +156,8 @@ pyobj::pyobj(int argc,const t_atom *argv)
                 *pt = 0;
             }
 
-            if(*modnm) {
-    		    char dir[1024];
-		        GetModulePath(modnm,dir,sizeof(dir));
-		        AddToPath(dir);
+            if(*modnm)
                 ImportModule(modnm);
-            }
             else
                 ImportModule(NULL);          
         }
@@ -219,7 +215,8 @@ void pyobj::m_set(int argc,const t_atom *argv)
 	    ++argv,--argc;
 
         if(sn) {
-		    if(!module || !strcmp(sn,PyModule_GetName(module))) {
+//		    if(!module || !strcmp(sn,PyModule_GetName(module))) 
+            {
 			    ImportModule(sn);
 			    Register(GetRegistry(REGNAME));
 		    }
@@ -244,7 +241,7 @@ void pyobj::m_set(int argc,const t_atom *argv)
 void pyobj::m_help()
 {
 	post("");
-	post("%s %s - python script object, (C)2002-2005 Thomas Grill",thisName(),PY__VERSION);
+	post("%s %s - python script object, (C)2002-2006 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
 	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
