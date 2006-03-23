@@ -1,10 +1,9 @@
-#N canvas 602 394 710 425 12;
+#N canvas 602 394 714 429 12;
 #X obj 36 241 py .range @py 1;
 #X floatatom 35 356 5 0 0 0 - - -;
 #X obj 35 323 py .sum;
 #X obj 16 13 cnv 15 650 40 empty empty py/pyext 10 22 0 24 -260818
 -1 0;
-#X text 235 16 Python script objects \, (C)2003-2005 Thomas Grill;
 #X text 235 32 http://grrrr.org/ext;
 #X obj 36 159 nbx 5 14 -1e+037 1e+037 0 1 empty empty min 0 -6 0 10
 -262131 -1 -1 51 256;
@@ -39,15 +38,16 @@
 #X connect 10 0 6 0;
 #X connect 11 0 5 0;
 #X restore 36 190 pd pak3;
-#X text 115 240 construct a Python list;
+#X text 169 239 construct a Python list;
 #X text 78 282 Python object pointer is propagated to next object;
 #X text 106 320 calculate sum over list elements;
 #X text 21 73 Py can use built-in Python functions;
 #X text 21 97 A . preceding the function name searches for the function
 in either the pyext module or in __builtins__;
+#X text 235 16 Python script objects \, (C)2003-2006 Thomas Grill;
 #X connect 0 0 2 1;
 #X connect 2 0 1 0;
-#X connect 6 0 9 0;
-#X connect 7 0 9 1;
-#X connect 8 0 9 2;
-#X connect 9 0 0 1;
+#X connect 5 0 8 0;
+#X connect 6 0 8 1;
+#X connect 7 0 8 2;
+#X connect 8 0 0 1;

@@ -454,6 +454,7 @@ static bool getmodulesub(const char *mod,char *dir,int len,char *ext)
 
 	// if dir is current working directory... name points to dir
 	if(dir == name) strcpy(dir,".");
+    return name != NULL;
 #elif FLEXT_SYS == FLEXT_SYS_MAX
     short path;
     long type;
@@ -570,16 +571,15 @@ bool pybase::ReloadModule()
         if(module)
             newmod = PyImport_ReloadModule(module);
         else {
-            // search in module path
+            // search in module path (TODO: check before if module is already present to avoid costly searching)
             char dir[1024];
-	        if(getmodulepath(modname.c_str(),dir,sizeof(dir))) {
-    	        AddToPath(dir);
-                newmod = PyImport_ImportModule((char *)modname.c_str());
-            }
-            else {
+	        if(!getmodulepath(modname.c_str(),dir,sizeof(dir)))
                 PyErr_SetString(PyExc_ImportError,"Module not found in path");
-                newmod = NULL;
-            }
+            else
+    	        AddToPath(dir);
+
+            // module could also be loaded ok, even if it's not in the path (e.g. for internal stuff)
+            newmod = PyImport_ImportModule((char *)modname.c_str());
         }
     }
     else {
