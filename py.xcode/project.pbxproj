@@ -52,6 +52,8 @@
 		};
 		08FB77ADFE841716C02AAC07 = {
 			children = (
+				E903AC8C09D32D03004755CA,
+				E903AC8D09D32D03004755CA,
 				E90043820887A302008AEAFC,
 				E90043830887A302008AEAFC,
 				E90043840887A302008AEAFC,
@@ -216,6 +218,48 @@
 		};
 		E900438B0887A302008AEAFC = {
 			fileRef = E90043860887A302008AEAFC;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E903AC8C09D32D03004755CA = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = pybundle.cpp;
+			path = source/pybundle.cpp;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E903AC8D09D32D03004755CA = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = pybundle.h;
+			path = source/pybundle.h;
+			refType = 4;
+			sourceTree = "<group>";
+		};
+		E903AC8E09D32D03004755CA = {
+			fileRef = E903AC8C09D32D03004755CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E903AC8F09D32D03004755CA = {
+			fileRef = E903AC8D09D32D03004755CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E903AC9009D32D03004755CA = {
+			fileRef = E903AC8C09D32D03004755CA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		E903AC9109D32D03004755CA = {
+			fileRef = E903AC8D09D32D03004755CA;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -398,6 +442,7 @@
 				E90E52ED08092581001341AC,
 				E90043880887A302008AEAFC,
 				E900438A0887A302008AEAFC,
+				E903AC9109D32D03004755CA,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -419,6 +464,7 @@
 				E90043870887A302008AEAFC,
 				E90043890887A302008AEAFC,
 				E900438B0887A302008AEAFC,
+				E903AC9009D32D03004755CA,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -596,6 +642,7 @@
 		E926B6CF089F75950034D534 = {
 			buildActionMask = 2147483647;
 			files = (
+				E903AC8F09D32D03004755CA,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -624,6 +671,7 @@
 				E926B6EA089F76D90034D534,
 				E926B6EB089F76D90034D534,
 				E926B6EC089F76D90034D534,
+				E903AC8E09D32D03004755CA,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;

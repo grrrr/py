@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2006 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -493,7 +493,8 @@ static bool getmodulesub(const char *mod,char *dir,int len,char *ext)
     
     if(ok) {
         // convert path into slash style needed for Python
-#if 1
+#if 0
+		// Max API function uses Volume:/Path notation
         path_nameconform(smod,dir,PATH_STYLE_SLASH,PATH_TYPE_ABSOLUTE);
 #else
 #if FLEXT_OS == FLEXT_OS_WIN
