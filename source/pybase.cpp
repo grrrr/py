@@ -357,7 +357,7 @@ void pybase::OpenEditor()
        
 #elif FLEXT_OS == FLEXT_OS_MAC
 	FSRef ref;
-    OSStatus err = FSPathMakeRef(fname,&ref,NULL);
+    OSStatus err = FSPathMakeRef((unsigned char *)fname,&ref,NULL);
     if(err)
         post("py/pyext - Error interpreting path %s",fname);
     else {
@@ -365,7 +365,7 @@ void pybase::OpenEditor()
 		err = LSGetApplicationForItem(&ref,kLSRolesEditor,&editor,NULL);
         if(err) {
 			// Can't find associated application... try Textedit
-			err = FSPathMakeRef("/Applications/TextEdit.app",&editor,NULL);
+			err = FSPathMakeRef((unsigned char *)"/Applications/TextEdit.app",&editor,NULL);
 			if(err)
 				post("py/pyext - Can't find Textedit application");
 		}
