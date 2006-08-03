@@ -4,6 +4,8 @@ PYTHONVER=24
 # where is the Python installation?
 PYTHONPATH=%programfiles%/python$(PYTHONVER)
 
-# uncomment if numarray support should be compiled in
-# for info about numarray see http://numeric.scipy.org
+# uncomment if numpy/numarray/numeric support should be compiled in
+# for info see http://numeric.scipy.org
+PY_NUMPY=1
 # PY_NUMARRAY=1
+# PY_NUMERIC=1

@@ -13,7 +13,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #undef PY_ARRAYS
 
 
-#if defined(PY_NUMERIC)
+#if defined(PY_NUMERIC) || defined(PY_NUMPY)
     #define PY_ARRAYS 1
 #elif defined(PY_NUMARRAY)
     #define PY_ARRAYS 1

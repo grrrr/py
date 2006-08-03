@@ -23,16 +23,18 @@ Check out the sample patches and scripts
 
 ----------------------------------------------------------------------------
 
-Installation:
+INSTALLATION
+============
 
 PD version >= 0.38 - Add "py" to the Startup items ("binaries to load") and add the folder "scripts" to the pd search path.
-PD version < 0.38 - Load it as i library with e.g. "pd -lib py -path scripts"
+PD version < 0.38 - Load it as a library with e.g. "pd -lib py -path scripts"
 
 Max/MSP - Copy py-objectmappings.txt into the init folder and py.mxe (Windows) or py.mxo (OSX) into the externals folder.
 
 ----------------------------------------------------------------------------
 
-Description:
+DESCRIPTION
+===========
 
 With the py object you can load python modules and execute the functions therein.
 With the pyext you can use python classes to represent full-featured pd/Max message objects.
@@ -45,11 +47,12 @@ Known bugs:
 - With standard PD 0.37, threaded py scripts will cause "Stack overflows" under some circumstances
   -> use PD 0.38 or the devel_0_37 cvs branch instead
 - It has been reported that pyext crashes on AMD64 with SSE enabled (for these CPUs, disable the respective compiler flags)
+- Threading in pyext obviously crashes under linux with Python version 2.4.2 (only)
 
 ----------------------------------------------------------------------------
 
 BUILDING from source
---------------------
+====================
 
 You will need the flext C++ layer for PD and Max/MSP externals to compile this.
 See http://grrrr.org/ext/flext
@@ -198,7 +201,6 @@ TODO list:
 
 bugs:
 - crashes with long Python printouts
-- pybase::GetModulePath should also look for .pyc and .pyo
 
 general:
 - Documentation and better example patches
