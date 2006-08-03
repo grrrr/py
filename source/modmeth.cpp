@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and Max/MSP
 
-Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2006 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -27,11 +27,15 @@ PyMethodDef pybase::func_tbl[] =
 	{ "_getvalue", pybase::py_getvalue, METH_VARARGS,"Get value of a 'value' object" },
 	{ "_setvalue", pybase::py_setvalue, METH_VARARGS,"Set value of a 'value' object" },
 #endif
-	{NULL, NULL, 0, NULL} // sentinel
+
+	{ "_list", pybase::py_list, METH_VARARGS,"Make a list from arguments" },
+	{ "_tuple", pybase::py_tuple, METH_VARARGS,"Make a tuple from arguments" },
+
+    {NULL, NULL, 0, NULL} // sentinel
 };
 
 const char *pybase::py_doc =
-	"py/pyext - python external object for PD and Max/MSP, (C)2002-2005 Thomas Grill\n"
+	"py/pyext - python external object for PD and Max/MSP, (C)2002-2006 Thomas Grill\n"
 	"\n"
 	"This is the pyext module. Available function:\n"
 	"_send(args...): Send a message to a send symbol\n"
@@ -42,6 +46,9 @@ const char *pybase::py_doc =
 	"_blocksize(): Get current blocksize\n"
     "_getvalue(name): Get value of a 'value' object\n"
     "_setvalue(name,float): Set value of a 'value' object\n"
+
+   	"_list(args...): Make a list from args\n"
+   	"_tuple(args...): Make a tuple from args\n"
 ;
 
 
@@ -240,3 +247,26 @@ PyObject *pybase::py_setvalue(PyObject *self,PyObject *args)
     return Py_None;
 }
 #endif
+
+PyObject *pybase::py_list(PyObject *,PyObject *args)
+{
+    // should always be a tuple
+    FLEXT_ASSERT(PyTuple_Check(args));
+
+	const int sz = PyTuple_GET_SIZE(args);
+	PyObject *ret = PyList_New(sz);
+    for(int i = 0; i < sz; ++i) {
+        PyObject *el = PyTuple_GET_ITEM(args,i);
+        Py_INCREF(el);
+        PyList_SET_ITEM(ret,i,el);
+    }
+    return ret;
+}
+
+PyObject *pybase::py_tuple(PyObject *,PyObject *args)
+{
+    // should always be a tuple
+    FLEXT_ASSERT(PyTuple_Check(args));
+    Py_INCREF(args);
+    return args;
+}

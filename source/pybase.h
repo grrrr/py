@@ -119,11 +119,8 @@ protected:
 	static PyObject *py_setvalue(PyObject *,PyObject *args);
 #endif
 
-#ifdef PY_NUMARRAY
-    static void setupNumarray();
-	static PyObject *py_import(PyObject *,PyObject *args);
-	static PyObject *py_export(PyObject *,PyObject *args);
-#endif
+    static PyObject *py_list(PyObject *,PyObject *args);
+    static PyObject *py_tuple(PyObject *,PyObject *args);
 
 	// ----thread stuff ------------
 
