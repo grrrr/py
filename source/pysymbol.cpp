@@ -219,9 +219,9 @@ pySymbol *pySymbol_int;
 void initsymbol()
 {
     if(PyType_Ready(&pySymbol_Type) < 0)
-        FLEXT_ASSERT(false);
-    else
-        Py_INCREF(&pySymbol_Type);
+        return;
+
+	Py_INCREF(&pySymbol_Type);
 
     // initialize predefined objects
     pySymbol__ = symbol_newsym(flext::sym__);
