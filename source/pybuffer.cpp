@@ -30,11 +30,19 @@ static NumarrayType numtype = tAny;
 inline bool arrsupport() { return numtype != tAny; }
 
 #else
+#if defined(PY_NUMPY)
     #if FLEXT_OS == FLEXT_OS_MAC
     #include <Python/numpy/arrayobject.h>
     #else
     #include <numpy/arrayobject.h>
     #endif
+#else
+    #if FLEXT_OS == FLEXT_OS_MAC
+    #include <Python/numarray/arrayobject.h>
+    #else
+    #include <numarray/arrayobject.h>
+    #endif
+#endif
 
 static PyArray_TYPES numtype = PyArray_NOTYPE;
 inline bool arrsupport() { return numtype != PyArray_NOTYPE; }
