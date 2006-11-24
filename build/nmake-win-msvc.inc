@@ -6,3 +6,10 @@ LIBS=$(LIBS) shell32.lib
 !ifdef PY_NUMARRAY
 DEFS = $(DEFS) /DPY_NUMARRAY
 !endif
+!ifdef PY_NUMPY
+DEFS = $(DEFS) /DPY_NUMPY
+!endif
+!ifdef PY_NUMERIC
+DEFS = $(DEFS) /DPY_NUMERIC
+!endif
+
