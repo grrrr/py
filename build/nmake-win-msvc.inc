@@ -7,6 +7,7 @@ LIBS=$(LIBS) shell32.lib
 DEFS = $(DEFS) /DPY_NUMARRAY
 !endif
 !ifdef PY_NUMPY
+INCPATH=$(INCPATH) /I$(PYTHONPATH)\Lib\site-packages\numpy\core\include
 DEFS = $(DEFS) /DPY_NUMPY
 !endif
 !ifdef PY_NUMERIC

@@ -85,8 +85,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\data\prog\packs\pthreads\include;&quot;c:\data\pd\pd-cvs\src&quot;;..\flext\source;c:\programme\prog\Python24\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS;PY_NUMPY;xFLEXT_USECMEM"
+				AdditionalIncludeDirectories="C:\data\prog\packs\pthreads\include;&quot;c:\data\pd\pd-cvs\src&quot;;..\flext\source;C:\Programme\prog\Python24\include;&quot;C:\Programme\prog\Python24\Lib\site-packages\numpy\core\include&quot;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS;xPY_NUMPY;xFLEXT_USECMEM"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				RuntimeTypeInfo="TRUE"
