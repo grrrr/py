@@ -347,29 +347,31 @@
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_EXTENSION = pd_darwin;
 				GCC_ALTIVEC_EXTENSIONS = YES;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_CPU = G4;
-				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = source/pyprefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FLEXT_SYS=2",
 					FLEXT_DEBUG,
-					FLEXT_THREADS,
+					FLEXT_SHARED,
 				);
 				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
 					"$(flext)/source",
 					"$(PD-devel)/src",
 				);
 				INSTALL_PATH = "$(PDApp)/extra";
 				LIBRARY_SEARCH_PATHS = "$(flext)/build";
 				LIBRARY_STYLE = STATIC;
-				MACH_O_TYPE = staticlib;
+				MACH_O_TYPE = mh_dylib;
 				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-undefined",
+					dynamic_lookup,
+					"-lflext-pd_d",
+				);
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = py;
 				SECTORDER_FLAGS = "";
@@ -400,6 +402,7 @@
 					FLEXT_SHARED,
 				);
 				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
 					"$(flext)/source",
 					"$(PD-devel)/src",
 				);
@@ -408,6 +411,11 @@
 				LIBRARY_STYLE = DYNAMIC;
 				MACH_O_TYPE = mh_dylib;
 				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-undefined",
+					dynamic_lookup,
+					"-lflext-pd",
+				);
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = py;
 				SECTORDER_FLAGS = "";
@@ -569,14 +577,22 @@
 		E93C2D8E0A5DB6E70023B566 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS = PY_NUMERIC;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = PY_NUMPY;
+				HEADER_SEARCH_PATHS = "/Library/Python/2.3/site-packages/numpy/core/include/";
 			};
 			name = Development;
 		};
 		E93C2D8F0A5DB6E70023B566 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS = PY_NUMERIC;
+				ARCHS = (
+					i386,
+					ppc,
+				);
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = PY_NUMPY;
+				HEADER_SEARCH_PATHS = "/Library/Python/2.3/site-packages/numpy/core/include/";
 			};
 			name = Deployment;
 		};

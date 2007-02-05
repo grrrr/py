@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2006 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2007 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -761,16 +761,21 @@ PyTypeObject pySamplebuffer_Type = {
     buffer_new,                 /* tp_new */
 };
 
-void initsamplebuffer()
+// Must have this as a function because the import_array macro in numpy version 1.01 strangely has a return statement included.
+// Furthermore the import error printout from this macro is ugly, but we accept that for more, waiting for later numpy updates to fix all of this.
+static void __import_array__()
 {
-    PyErr_Clear();
-
-#ifdef PY_ARRAYS
 #ifdef PY_NUMARRAY
     import_libnumarray();
 #else
-    import_array();
+	import_array();
 #endif
+}
+
+void initsamplebuffer()
+{
+#ifdef PY_ARRAYS
+	__import_array__();
     if(PyErr_Occurred())
         // catch import error
         PyErr_Clear();
