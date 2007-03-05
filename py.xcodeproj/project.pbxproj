@@ -578,7 +578,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = PY_NUMPY;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					_DEBUG,
+					PY_NUMPY,
+					PY_USE_GIL,
+				);
 				HEADER_SEARCH_PATHS = "/Library/Python/2.3/site-packages/numpy/core/include/";
 			};
 			name = Development;
@@ -591,7 +596,12 @@
 					ppc,
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = PY_NUMPY;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					NDEBUG,
+					PY_NUMPY,
+					PY_USE_GIL,
+				);
 				HEADER_SEARCH_PATHS = "/Library/Python/2.3/site-packages/numpy/core/include/";
 			};
 			name = Deployment;

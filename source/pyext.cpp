@@ -117,8 +117,10 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
 	methname(NULL),
 	pyobj(NULL),
 	inlets(-1),outlets(-1),
-    siginlets(0),sigoutlets(0),
-	pythr(NULL)
+    siginlets(0),sigoutlets(0)
+#ifndef PY_USE_GIL
+	,pythr(NULL)
+#endif
 { 
 #ifdef FLEXT_THREADS
     FLEXT_ADDTIMER(stoptmr,tick);
@@ -141,7 +143,7 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
     // check if the object name is pyext. , pyx. or similar
     bool dotted = strrchr(thisName(),'.') != NULL;
 
-    PyThreadState *state = PyLockSys();
+    ThrState state = PyLockSys();
 
 	// init script module
 	if(argc) {
@@ -194,7 +196,7 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
 
 bool pyext::Init()
 {
-	PyThreadState *state = PyLockSys();
+	ThrState state = PyLockSys();
 
 	if(methname) {
 		MakeInstance();
@@ -221,7 +223,7 @@ void pyext::Exit()
 { 
     pybase::Exit(); // exit threads
 
-	PyThreadState *state = PyLockSys();
+	ThrState state = PyLockSys();
     DoExit();
 
     Unregister(GetRegistry(REGNAME));
@@ -414,7 +416,7 @@ void pyext::Unload()
 
 void pyext::m_get(const t_symbol *s)
 {
-    PyThreadState *state = PyLockSys();
+    ThrState state = PyLockSys();
 
 	PyObject *pvar  = PyObject_GetAttrString(pyobj,const_cast<char *>(GetString(s))); /* fetch bound method */
 	if(pvar) {
@@ -437,7 +439,7 @@ void pyext::m_get(const t_symbol *s)
 
 void pyext::m_set(int argc,const t_atom *argv)
 {
-    PyThreadState *state = PyLockSys();
+    ThrState state = PyLockSys();
 
     if(argc < 2 || !IsString(argv[0]))
         post("%s - Syntax: set varname arguments...",thisName());
@@ -542,7 +544,7 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
 	bool ret = false;
 
-    PyThreadState *state = PyLock();
+    ThrState state = PyLock();
 
     // should be enough...
 	char str[256];

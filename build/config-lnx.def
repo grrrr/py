@@ -9,3 +9,6 @@ PYTHONVERSION=2.4
 PY_NUMPY=1
 # PY_NUMARRAY=1
 # PY_NUMERIC=1
+
+# use thread-safe GIL functionality (do this for python version >= 2.3!)
+PY_USE_GIL=1

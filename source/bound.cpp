@@ -64,7 +64,7 @@ bool pyext::boundmeth(flext_base *th,t_symbol *sym,int argc,t_atom *argv,void *d
     bounddata *obj = (bounddata *)data;
     pyext *pyth = static_cast<pyext *>(th);
 
-	PyThreadState *state = pyth->PyLock();
+	ThrState state = pyth->PyLock();
 
 	PyObject *args = MakePyArgs(sym,argc,argv);
 

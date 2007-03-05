@@ -1,6 +1,6 @@
 # py/pyext - python script objects for PD and MaxMSP
 #
-# Copyright (c) 2002-2005 Thomas Grill (gr@grrrr.org)
+# Copyright (c) 2002-2007 Thomas Grill (gr@grrrr.org)
 # For information on usage and redistribution, and for a DISCLAIMER OF ALL
 # WARRANTIES, see the file, "license.txt," in this distribution.  
 #
@@ -57,6 +57,8 @@ pyext Usage:
 		self._outlet(outlet,arg1,arg2,arg3,arg4) ... where all args are atoms (no sequence types!)
 	or
 		self._outlet(outlet,arg) ... where arg is a sequence containing only atoms
+		
+    Do not use _outlet inside __init__, since the outlets have not been created at that time.
 
 - Use pyext functions and methods: 
 	See the __doc__ strings of the pyext module and the pyext._class base class.

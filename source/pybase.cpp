@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2006 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2007 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -39,21 +39,24 @@ public:
     }
 };
 
-typedef std::map<flext::thrid_t,PyThreadState *,ThrCmp> PyThrMap;
-
-static PyInterpreterState *pymain = NULL;
-static PyThrMap pythrmap;
-PyThreadState *pybase::pythrsys = NULL;
 
 int pybase::lockcount = 0;
 
-PyThreadState *pybase::FindThreadState()
+#ifndef PY_USE_GIL
+static PyInterpreterState *pymain = NULL;
+
+typedef std::map<flext::thrid_t,ThrState,ThrCmp> PyThrMap;
+
+static PyThrMap pythrmap;
+ThrState pybase::pythrsys = NULL;
+
+ThrState pybase::FindThreadState()
 {
     flext::thrid_t id = flext::GetThreadId();
 	PyThrMap::iterator it = pythrmap.find(id);
     if(it == pythrmap.end()) {
         // Make new thread state
-        PyThreadState *st = PyThreadState_New(pymain);
+        ThrState st = PyThreadState_New(pymain);
         pythrmap[id] = st;
         return st;
     }
@@ -74,6 +77,7 @@ void pybase::FreeThreadState()
         pythrmap.erase(it);
     }
 }
+#endif // PY_USE_GIL
 
 PyFifo pybase::qufifo;
 flext::ThrCond pybase::qucond;
@@ -101,7 +105,7 @@ void pybase::lib_setup()
     post("");
 	post("------------------------------------------------");
 	post("py/pyext %s - python script objects",PY__VERSION);
-	post("(C)2002-2006 Thomas Grill - http://grrrr.org/ext");
+	post("(C)2002-2007 Thomas Grill - http://grrrr.org/ext");
     post("");
     post("using Python %s",Py_GetVersion());
 
@@ -135,6 +139,7 @@ void pybase::lib_setup()
     // enable thread support and acquire the global thread lock
 	PyEval_InitThreads();
 
+#ifndef PY_USE_GIL
     // get thread state
     pythrsys = PyThreadState_Get();
     // get main interpreter state
@@ -142,6 +147,8 @@ void pybase::lib_setup()
 
     // add thread state of main thread to map
     pythrmap[GetThreadId()] = pythrsys;
+#endif // PY_USE_GIL
+
 #endif
 
     // sys.argv must be set to empty tuple
@@ -228,14 +235,14 @@ pybase::pybase()
 	, detach(0)
     , pymsg(false)
 {
-    PyThreadState *state = PyLock();
+    ThrState state = PyLock();
 	Py_INCREF(module_obj);
     PyUnlock(state);
 }
 
 pybase::~pybase()
 {
-    PyThreadState *state = PyLock();
+    ThrState state = PyLock();
    	Py_XDECREF(module_obj);
     PyUnlock(state);
 }
@@ -265,7 +272,7 @@ void pybase::Exit()
 void pybase::GetDir(PyObject *obj,AtomList &lst)
 {
     if(obj) {
-        PyThreadState *state = PyLock();
+        ThrState state = PyLock();
     
         PyObject *pvar  = PyObject_Dir(obj);
 	    if(!pvar)
@@ -294,7 +301,7 @@ void pybase::m__dir(PyObject *obj)
 void pybase::m__doc(PyObject *obj)
 {
     if(obj) {
-        PyThreadState *state = PyLock();
+        ThrState state = PyLock();
 
 		PyObject *docf = PyDict_GetItemString(obj,"__doc__"); // borrowed!!!
 		if(docf && PyString_Check(docf)) {
@@ -650,7 +657,7 @@ bool pybase::OutObject(flext_base *ext,int o,PyObject *obj)
 
 void pybase::Reload()
 {
-	PyThreadState *state = PyLock();
+	ThrState state = PyLock();
 
 	PyObject *reg = GetRegistry(REGNAME);
 
@@ -804,7 +811,7 @@ void pybase::thrworker(thr_params *p)
 	work_data *w = (work_data *)p->var->_ext;
 
 	++th->thrcount; // \todo this should be atomic
-    PyThreadState *state = PyLock();
+    ThrState state = PyLock();
 
     // call worker
 	th->docall(w->fun,w->args);
@@ -817,7 +824,7 @@ void pybase::thrworker(thr_params *p)
 void pybase::quworker(thr_params *)
 {
     FifoEl *el;
-    PyThreadState *my = FindThreadState(),*state;
+    ThrState my = FindThreadState(),state;
 
     for(;;) {
         while(el = qufifo.Get()) {

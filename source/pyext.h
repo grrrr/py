@@ -114,7 +114,9 @@ private:
     virtual void callpy(PyObject *fun,PyObject *args);
     static bool stcallpy(PyObject *fun,PyObject *args);
 
-	PyThreadState *pythr;
+#ifndef PY_USE_GIL
+	ThrState pythr;
+#endif
 
 private:
     static bool boundmeth(flext_base *,t_symbol *sym,int argc,t_atom *argv,void *data);

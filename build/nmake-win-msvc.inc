@@ -14,3 +14,6 @@ DEFS = $(DEFS) /DPY_NUMPY
 DEFS = $(DEFS) /DPY_NUMERIC
 !endif
 
+!ifdef PY_USE_GIL
+DEFS = $(DEFS) /DPY_USE_GIL
+!endif

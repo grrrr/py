@@ -1,6 +1,6 @@
 py/pyext - python script objects for PD and Max/MSP
 
-Copyright (c)2002-2006 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2007 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -16,8 +16,9 @@ For OS X keep things as the are - it has Python installed by default.
 
 
 The py/pyext package should run with Python version >= 2.1.
-It has been thoroughly tested with versions 2.2 to 2.4
+It has been thoroughly tested with versions 2.2 to 2.5
 
+The default build setting using PY_USE_GIL requires Python version >= 2.3.
 
 Check out the sample patches and scripts
 
@@ -47,7 +48,6 @@ Known bugs:
 - With standard PD 0.37, threaded py scripts will cause "Stack overflows" under some circumstances
   -> use PD 0.38 or the devel_0_37 cvs branch instead
 - It has been reported that pyext crashes on AMD64 with SSE enabled (for these CPUs, disable the respective compiler flags)
-- Threading in pyext obviously crashes under linux with Python version 2.4.2 (only)
 
 ----------------------------------------------------------------------------
 
@@ -120,6 +120,7 @@ Version history:
 - ADD: py.Bundle class to support flext message bundles
 - ADD: enable usage of compiled-only modules (.py[co])
 - ADD: enable usage of module packages (with module/__init__.py[co])
+- ADD: make use of the PyGILState_*() functions
 
 0.2.0:
 - ADD: handling of Python threads

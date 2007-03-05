@@ -12,3 +12,6 @@ ifdef PY_NUMERIC
 DEFS += -DPY_NUMERIC
 endif
 
+ifdef PY_USE_GIL
+DEFS += -DPY_USE_GIL
+endif

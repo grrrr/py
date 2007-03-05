@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2007 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -117,7 +117,7 @@ pyobj::pyobj(int argc,const t_atom *argv)
     FLEXT_ADDTIMER(stoptmr,tick);
 #endif
 
-	PyThreadState *state = PyLockSys();
+	ThrState state = PyLockSys();
 
     int inlets;
     if(argc && CanbeInt(*argv)) {
@@ -193,7 +193,7 @@ pyobj::~pyobj()
         delete[] objects;
     }
     
-    PyThreadState *state = PyLockSys();
+    ThrState state = PyLockSys();
 	Unregister(GetRegistry(REGNAME));
     Report();
 	PyUnlock(state);
@@ -207,7 +207,7 @@ void pyobj::Exit()
 
 void pyobj::m_set(int argc,const t_atom *argv)
 {
-	PyThreadState *state = PyLockSys();
+	ThrState state = PyLockSys();
 
     // function name has precedence
 	if(argc >= 2) {
@@ -241,7 +241,7 @@ void pyobj::m_set(int argc,const t_atom *argv)
 void pyobj::m_help()
 {
 	post("");
-	post("%s %s - python script object, (C)2002-2006 Thomas Grill",thisName(),PY__VERSION);
+	post("%s %s - python script object, (C)2002-2007 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
 	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
@@ -346,7 +346,7 @@ bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
     if(n == 0 && s != sym_bang) 
         return flext_base::CbMethodResort(n,s,argc,argv);
 
-    PyThreadState *state = PyLockSys();
+    ThrState state = PyLockSys();
 
     bool ret = false;
  
