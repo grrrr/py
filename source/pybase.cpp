@@ -213,6 +213,9 @@ void pybase::lib_setup()
 
     // launch thread worker
     LaunchThread(quworker,NULL);
+
+    // launch python worker
+    LaunchThread(pyworker,NULL);
 #endif
 
 	post("------------------------------------------------");
@@ -576,6 +579,7 @@ bool pybase::ReloadModule()
     PyObject *newmod;
     
     if(modname.length()) {
+
         if(module)
             newmod = PyImport_ReloadModule(module);
         else {
@@ -819,6 +823,26 @@ void pybase::thrworker(thr_params *p)
 
     PyUnlock(state);
     --th->thrcount; // \todo this should be atomic
+}
+
+/*! This thread function basically keeps alive the Python interpreter in the background
+	It's good for threads that have been started from scripted functions
+*/
+void pybase::pyworker(thr_params *)
+{
+	ThrState state = PyLock();
+
+	PyObject *timemod = PyImport_ImportModule("time");
+	PyObject *sleep = PyObject_GetAttrString(timemod,"sleep");
+	PyObject *args = PyTuple_New(1);
+	PyTuple_SET_ITEM(args,0,PyFloat_FromDouble(1000000));
+
+    for(;;) {
+		PyObject *res = PyObject_CallObject(sleep,args);
+		Py_DECREF(res);
+	}
+
+	PyUnlock(state);
 }
 
 void pybase::quworker(thr_params *)

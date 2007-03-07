@@ -179,6 +179,7 @@ protected:
     }
 
     static void quworker(thr_params *);
+    static void pyworker(thr_params *);
     void erasethreads();
 
     static PyFifo qufifo;
@@ -206,11 +207,11 @@ public:
     static int lockcount;
 
 #ifdef PY_USE_GIL
-    static ThrState FindThreadState() { return ThrState(); }
+    static inline ThrState FindThreadState() { return ThrState(); }
 
-	static ThrState PyLock(ThrState = ThrState()) { return PyGILState_Ensure(); }
-	static ThrState PyLockSys() { return PyLock(); }
-	static void PyUnlock(ThrState st) { PyGILState_Release(st); }
+	static inline ThrState PyLock(ThrState = ThrState()) { return PyGILState_Ensure(); }
+	static inline ThrState PyLockSys() { return PyLock(); }
+	static inline void PyUnlock(ThrState st) { PyGILState_Release(st); }
 #else // PY_USE_GIL
     static ThrState FindThreadState();
     static void FreeThreadState();
@@ -222,7 +223,7 @@ public:
     }
 
 #if 1
-	static ThrState PyLockSys() { return PyLock(); }
+	static inline ThrState PyLockSys() { return PyLock(); }
 #else
 	static ThrState PyLockSys() 
     { 
@@ -239,9 +240,9 @@ public:
 #endif // PY_USE_GIL
 	
 #else // FLEXT_THREADS
-	static ThrState PyLock(ThrState = NULL) { return NULL; }
-	static ThrState PyLockSys() { return NULL; }
-	static void PyUnlock(ThrState st) {}
+	static inline ThrState PyLock(ThrState = NULL) { return NULL; }
+	static inline ThrState PyLockSys() { return NULL; }
+	static inline void PyUnlock(ThrState st) {}
 #endif
 
 	static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);

@@ -121,6 +121,7 @@ Version history:
 - ADD: enable usage of compiled-only modules (.py[co])
 - ADD: enable usage of module packages (with module/__init__.py[co])
 - ADD: make use of the PyGILState_*() functions
+- ADD: always run the Python interpreter in the background (to keep alive Python threads)
 
 0.2.0:
 - ADD: handling of Python threads
