@@ -2,7 +2,7 @@
 
 py/pyext - python external object for PD and Max/MSP
 
-Copyright (c)2002-2006 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2007 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -35,7 +35,7 @@ PyMethodDef pybase::func_tbl[] =
 };
 
 const char *pybase::py_doc =
-	"py/pyext - python external object for PD and Max/MSP, (C)2002-2006 Thomas Grill\n"
+	"py/pyext - python external object for PD and Max/MSP, (C)2002-2007 Thomas Grill\n"
 	"\n"
 	"This is the pyext module. Available function:\n"
 	"_send(args...): Send a message to a send symbol\n"
