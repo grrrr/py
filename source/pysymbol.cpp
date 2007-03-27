@@ -62,14 +62,19 @@ static PyObject *symbol_richcompare(PyObject *a,PyObject *b,int cmp)
     if(pySymbol_Check(a) && pySymbol_Check(b)) {
         const t_symbol *asym = pySymbol_AS_SYMBOL(a);
         const t_symbol *bsym = pySymbol_AS_SYMBOL(b);
+
+		int cmp = asym == bsym?0:strcmp(flext::GetString(asym),flext::GetString(bsym));
+		
         bool ret;
         switch(cmp) {
-            case Py_LT: ret = asym < bsym; break;
-            case Py_LE: ret = asym <= bsym; break;
-            case Py_EQ: ret = asym == bsym; break;
-            case Py_NE: ret = asym != bsym; break;
-            case Py_GT: ret = asym > bsym; break;
-            case Py_GE: ret = asym >= bsym; break;
+            case Py_LT: ret = cmp < 0; break;
+            case Py_LE: ret = cmp <= 0; break;
+            case Py_EQ: ret = cmp == 0; break;
+            case Py_NE: ret = cmp != 0; break;
+            case Py_GE: ret = cmp >= 0; break;
+            case Py_GT: ret = cmp > 0; break;
+			default:
+				FLEXT_ASSERT(false);
         }
         return PyBool_FromLong(ret);
     }
