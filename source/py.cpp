@@ -188,12 +188,12 @@ pyobj::pyobj(int argc,const t_atom *argv)
 
 pyobj::~pyobj() 
 {
+    ThrState state = PyLockSys();
     if(objects) {
         for(int i = 0; i < CntIn()-1; ++i) Py_DECREF(objects[i]);
         delete[] objects;
     }
     
-    ThrState state = PyLockSys();
 	Unregister(GetRegistry(REGNAME));
     Report();
 	PyUnlock(state);

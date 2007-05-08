@@ -23,6 +23,9 @@ PyMethodDef pybase::func_tbl[] =
 	{ "_samplerate", pybase::py_samplerate, METH_NOARGS,"Get system sample rate" },
 	{ "_blocksize", pybase::py_blocksize, METH_NOARGS,"Get system block size" },
 
+	{ "_searchpaths", pybase::py_searchpaths, METH_NOARGS,"Get system search paths" },
+	{ "_helppaths", pybase::py_helppaths, METH_NOARGS,"Get system help paths" },
+
 #if FLEXT_SYS == FLEXT_SYS_PD
 	{ "_getvalue", pybase::py_getvalue, METH_VARARGS,"Get value of a 'value' object" },
 	{ "_setvalue", pybase::py_setvalue, METH_VARARGS,"Set value of a 'value' object" },
@@ -50,7 +53,6 @@ const char *pybase::py_doc =
    	"_list(args...): Make a list from args\n"
    	"_tuple(args...): Make a tuple from args\n"
 ;
-
 
 #ifdef FLEXT_THREADS
 void pybase::tick(void *)
@@ -109,6 +111,34 @@ PyObject *pybase::py_samplerate(PyObject *self,PyObject *args)
 PyObject *pybase::py_blocksize(PyObject *self,PyObject *args)
 {
 	return PyLong_FromLong(sys_getblksize());
+}
+
+PyObject *pybase::py_searchpaths(PyObject *self,PyObject *args)
+{
+#if FLEXT_SYS == FLEXT_SYS_PD && defined(PY_USE_INOFFICIAL)
+    PyObject *ret = PyList_New(0);
+    char *dir;
+    for(int i = 0; (dir = namelist_get(sys_searchpath,i)) != NULL; ++i)
+        PyList_Append(ret,PyString_FromString(dir));
+    return ret;
+#else
+    Py_INCREF(PyNone);
+    return PyNone;
+#endif
+}
+
+PyObject *pybase::py_helppaths(PyObject *self,PyObject *args)
+{
+#if FLEXT_SYS == FLEXT_SYS_PD && defined(PY_USE_INOFFICIAL)
+    PyObject *ret = PyList_New(0);
+    char *dir;
+    for(int i = 0; (dir = namelist_get(sys_helppath,i)) != NULL; ++i)
+        PyList_Append(ret,PyString_FromString(dir));
+    return ret;
+#else
+    Py_INCREF(PyNone);
+    return PyNone;
+#endif
 }
 
 PyObject *pybase::py_send(PyObject *,PyObject *args)

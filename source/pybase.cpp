@@ -199,6 +199,15 @@ void pybase::lib_setup()
     PyModule_AddObject(module_obj,"Bundle",(PyObject *)&pyBundle_Type);
 
 	// -------------------------------------------------------------
+#ifdef PY_USE_INOFFICIAL
+    // add PD paths
+
+    char *dir;
+    for(int i = 0; (dir = namelist_get(sys_searchpath,i)) != NULL; ++i) {
+        AddToPath(dir);
+    }
+#endif
+	// -------------------------------------------------------------
 
 	FLEXT_SETUP(pyobj);
 	FLEXT_SETUP(pymeth);

@@ -22,7 +22,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="c:\programme\audio\pd\src;..\flext\source;C:\Programme\prog\Python24\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;PY_USE_GIL;PY_USE_INOFFICIAL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="5"
 				RuntimeTypeInfo="TRUE"
@@ -86,7 +86,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="C:\data\prog\packs\pthreads\include;&quot;c:\data\pd\pd-cvs\src&quot;;..\flext\source;C:\Programme\prog\Python24\include;&quot;C:\Programme\prog\Python24\Lib\site-packages\numpy\core\include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS;PY_NUMPY;FLEXT_USECMEM;PY_USE_GIL"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PY_EXPORTS;FLEXT_SYS=2;FLEXT_THREADS;PY_NUMPY;FLEXT_USECMEM;xPY_USE_GIL;PY_USE_INOFFICIAL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				RuntimeTypeInfo="TRUE"
@@ -1249,10 +1249,9 @@
 						BrowseInformation="1"/>
 				</FileConfiguration>
 			</File>
-		</Filter>
-		<Filter
-			Name="meth"
-			Filter="">
+			<File
+				RelativePath=".\source\pyexp.cpp">
+			</File>
 			<File
 				RelativePath=".\source\pymeth.cpp">
 			</File>

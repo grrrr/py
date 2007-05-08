@@ -108,7 +108,7 @@ protected:
 
 	static PyObject *module_obj,*module_dict;
 	static PyObject *builtins_obj,*builtins_dict;
-	static PyMethodDef func_tbl[];
+	static PyMethodDef func_tbl[],attr_tbl[];
 
 	static PyObject *py__doc__(PyObject *,PyObject *args);
 	static PyObject *py_send(PyObject *,PyObject *args);
@@ -119,6 +119,9 @@ protected:
 	static PyObject *py_arraysupport(PyObject *,PyObject *args);
 	static PyObject *py_samplerate(PyObject *,PyObject *args);
 	static PyObject *py_blocksize(PyObject *,PyObject *args);
+
+	static PyObject *py_searchpaths(PyObject *,PyObject *args);
+	static PyObject *py_helppaths(PyObject *,PyObject *args);
 
 #if FLEXT_SYS == FLEXT_SYS_PD
 	static PyObject *py_getvalue(PyObject *,PyObject *args);

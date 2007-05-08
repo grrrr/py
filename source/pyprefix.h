@@ -2,7 +2,7 @@
 
 py/pyext - python script object for PD and MaxMSP
 
-Copyright (c)2002-2005 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2007 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -39,5 +39,10 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <flcontainers.h>
 #include <string>
 
+#ifdef PY_USE_INOFFICIAL
+extern "C" {
+#include <s_stuff.h>
+}
+#endif
 
 #endif

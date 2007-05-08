@@ -15,3 +15,7 @@ endif
 ifdef PY_USE_GIL
 DEFS += -DPY_USE_GIL
 endif
+
+ifdef PY_USE_INOFFICIAL
+DEFS += -DPY_USE_INOFFICIAL
+endif
