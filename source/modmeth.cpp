@@ -122,8 +122,8 @@ PyObject *pybase::py_searchpaths(PyObject *self,PyObject *args)
         PyList_Append(ret,PyString_FromString(dir));
     return ret;
 #else
-    Py_INCREF(PyNone);
-    return PyNone;
+    Py_INCREF(Py_None);
+    return Py_None;
 #endif
 }
 
@@ -136,8 +136,8 @@ PyObject *pybase::py_helppaths(PyObject *self,PyObject *args)
         PyList_Append(ret,PyString_FromString(dir));
     return ret;
 #else
-    Py_INCREF(PyNone);
-    return PyNone;
+    Py_INCREF(Py_None);
+    return Py_None;
 #endif
 }
 

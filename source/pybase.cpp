@@ -129,7 +129,7 @@ void pybase::lib_setup()
 	Py_Initialize();
 
 #ifdef FLEXT_DEBUG
-	Py_DebugFlag = 1;
+//	Py_DebugFlag = 1;
 //	Py_VerboseFlag = 1;
 #else
     Py_OptimizeFlag = 1;
