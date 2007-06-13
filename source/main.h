@@ -28,7 +28,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 class pybase;
 
 class FifoEl
-    : public Fifo::Cell
+    : public FifoCell
 {
 public:
     void Set(pybase *t,PyObject *f,PyObject *a) { th = t,fun = f,args = a; }
