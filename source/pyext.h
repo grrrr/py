@@ -49,6 +49,7 @@ public:
 protected:
 
     virtual bool Init();
+    virtual bool Finalize();
     virtual void Exit();
 
     virtual bool CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv);

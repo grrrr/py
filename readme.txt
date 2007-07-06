@@ -123,6 +123,7 @@ Version history:
 - ADD: make use of the PyGILState_*() functions
 - ADD: always run the Python interpreter in the background (to keep alive Python threads)
 - ADD: added PY_USE_INOFFICIAL to enable usage of s_stuff.h PD header, to have access to search and help paths
+- ADD: pyext: _init method is now called after __init__ (after inlets/outlets have been created)
 
 0.2.0:
 - ADD: handling of Python threads

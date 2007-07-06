@@ -219,6 +219,34 @@ bool pyext::Init()
     return pyobj && flext_dsp::Init();
 }
 
+bool pyext::Finalize()
+{
+	bool ok = true;
+	ThrState state = PyLockSys();
+
+	PyObject *init = PyObject_GetAttrString(pyobj,"_init"); // get ref
+	if(init) {
+		if(PyMethod_Check(init)) {
+			PyObject *res = PyObject_CallObject(init,NULL);
+			if(!res) {
+				// exception is set
+				ok = false;
+				// we want to know why __init__ failed...
+				PyErr_Print();
+			}
+			else
+				Py_DECREF(res);
+		}
+		Py_DECREF(init);
+	}
+	else
+		// __init__ has not been found - don't care
+		PyErr_Clear();
+
+	PyUnlock(state);
+    return ok && flext_dsp::Finalize(); 
+}
+
 void pyext::Exit() 
 { 
     pybase::Exit(); // exit threads
