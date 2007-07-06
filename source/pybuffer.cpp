@@ -186,28 +186,45 @@ static PyMethodDef buffer_methods[] = {
 
 
 // support the buffer protocol
+
+#if PY_VERSION_HEX >= 0x02050000
+static Py_ssize_t buffer_readbuffer(PyObject *obj, Py_ssize_t segment, void **ptrptr)
+#else
 static int buffer_readbuffer(PyObject *obj, int segment, void **ptrptr)
+#endif
 {
     flext::buffer *b = ((pySamplebuffer *)obj)->buf;
     ptrptr[0] = b->Data();
     return b->Channels()*b->Frames()*sizeof(t_sample);
 }
 
+#if PY_VERSION_HEX >= 0x02050000
+static Py_ssize_t buffer_writebuffer(PyObject *obj, Py_ssize_t segment, void **ptrptr)
+#else
 static int buffer_writebuffer(PyObject *obj, int segment, void **ptrptr)
+#endif
 {
     flext::buffer *b = ((pySamplebuffer *)obj)->buf;
     ptrptr[0] = b->Data();
     return b->Channels()*b->Frames()*sizeof(t_sample);
 }
 
+#if PY_VERSION_HEX >= 0x02050000
+static Py_ssize_t buffer_segcount(PyObject *obj, Py_ssize_t *lenp)
+#else
 static int buffer_segcount(PyObject *obj, int *lenp)
+#endif
 {
     flext::buffer *b = ((pySamplebuffer *)obj)->buf;
     if(lenp) lenp[0] = b->Channels()*b->Frames()*sizeof(t_sample);
     return 1;
 }
 
+#if PY_VERSION_HEX >= 0x02050000
+static Py_ssize_t buffer_charbuffer(PyObject *obj, Py_ssize_t segment, char **ptrptr)
+#else
 static int buffer_charbuffer(PyObject *obj, int segment, const char **ptrptr)
+#endif
 {
     flext::buffer *b = ((pySamplebuffer *)obj)->buf;
     ptrptr[0] = (char *)b->Data();
