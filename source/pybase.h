@@ -17,24 +17,24 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pybundle.h"
 
 #ifdef PY_USE_GIL
-	typedef PyGILState_STATE ThrState;
+    typedef PyGILState_STATE ThrState;
 #else
-	typedef PyThreadState *ThrState;
+    typedef PyThreadState *ThrState;
 #endif
 
 class pybase
     : public flext
 {
 public:
-	pybase();
-	virtual ~pybase();
+    pybase();
+    virtual ~pybase();
 
     void Exit();
 
-	static PyObject *MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet = -1);
-	static PyObject *MakePyArg(const t_symbol *s,int argc,const t_atom *argv);
-	static const t_symbol *GetPyArgs(AtomList &lst,PyObject *pValue,int offs = 0);
-	static const t_symbol *GetPyAtom(AtomList &lst,PyObject *pValue);
+    static PyObject *MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet = -1);
+    static PyObject *MakePyArg(const t_symbol *s,int argc,const t_atom *argv);
+    static const t_symbol *GetPyArgs(AtomList &lst,PyObject *pValue,int offs = 0);
+    static const t_symbol *GetPyAtom(AtomList &lst,PyObject *pValue);
 
     static void lib_setup();
 
@@ -43,48 +43,48 @@ protected:
     virtual void DumpOut(const t_symbol *sym,int argc,const t_atom *argv) = 0;
 
     void m__dir(PyObject *obj);
-	void m__doc(PyObject *obj);
+    void m__doc(PyObject *obj);
 
     void m_dir() { m__dir(module); }
     void mg_dir(AtomList &lst) { m__dir(module); }
     void m_doc() { m__doc(dict); }
 
     std::string modname; // module name
-	PyObject *module,*dict; // object module and associated dictionary
+    PyObject *module,*dict; // object module and associated dictionary
 
-	static const char *py_doc;
+    static const char *py_doc;
 
     void GetDir(PyObject *obj,AtomList &lst);
 
-	AtomList args;
+    AtomList args;
 
     void AddCurrentPath(flext_base *o);
-	void SetArgs();
+    void SetArgs();
 
     bool OutObject(flext_base *ext,int o,PyObject *obj);
 
     // reload module and all connected objects
     void Reload();
 
-	bool ImportModule(const char *name);
-	void UnimportModule();
-	bool ReloadModule();
+    bool ImportModule(const char *name);
+    void UnimportModule();
+    bool ReloadModule();
 
     // Get module registry
-	PyObject *GetRegistry(const char *regname);
+    PyObject *GetRegistry(const char *regname);
     // Set module registry
-	void SetRegistry(const char *regname,PyObject *reg);
+    void SetRegistry(const char *regname,PyObject *reg);
 
     // Register object
-	void Register(PyObject *reg);
+    void Register(PyObject *reg);
     // Unregister object
-	void Unregister(PyObject *reg);
+    void Unregister(PyObject *reg);
 
-	virtual void LoadModule() = 0;
-	virtual void UnloadModule() = 0;
+    virtual void LoadModule() = 0;
+    virtual void UnloadModule() = 0;
 
-	virtual void Load() = 0;
-	virtual void Unload() = 0;
+    virtual void Load() = 0;
+    virtual void Unload() = 0;
 
     void OpenEditor();
 
@@ -99,50 +99,50 @@ protected:
 
     void Report() { while(PyErr_Occurred()) PyErr_Print(); }
 
-	static bool IsAnything(const t_symbol *s) { return s && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
-	static bool IsAtom(const t_symbol *s) { return s == sym_float || s == sym_int || s == sym_symbol || s == sym_pointer; }
+    static bool IsAnything(const t_symbol *s) { return s && s != sym_float && s != sym_int && s != sym_symbol && s != sym_list && s != sym_pointer; }
+    static bool IsAtom(const t_symbol *s) { return s == sym_float || s == sym_int || s == sym_symbol || s == sym_pointer; }
 
-//	enum retval { nothing,atom,sequ };
+//  enum retval { nothing,atom,sequ };
 
-	// --- module stuff -----
+    // --- module stuff -----
 
-	static PyObject *module_obj,*module_dict;
-	static PyObject *builtins_obj,*builtins_dict;
-	static PyMethodDef func_tbl[],attr_tbl[];
+    static PyObject *module_obj,*module_dict;
+    static PyObject *builtins_obj,*builtins_dict;
+    static PyMethodDef func_tbl[],attr_tbl[];
 
-	static PyObject *py__doc__(PyObject *,PyObject *args);
-	static PyObject *py_send(PyObject *,PyObject *args);
+    static PyObject *py__doc__(PyObject *,PyObject *args);
+    static PyObject *py_send(PyObject *,PyObject *args);
 #ifdef FLEXT_THREADS
-	static PyObject *py_priority(PyObject *,PyObject *args);
+    static PyObject *py_priority(PyObject *,PyObject *args);
 #endif
 
-	static PyObject *py_arraysupport(PyObject *,PyObject *args);
-	static PyObject *py_samplerate(PyObject *,PyObject *args);
-	static PyObject *py_blocksize(PyObject *,PyObject *args);
+    static PyObject *py_arraysupport(PyObject *,PyObject *args);
+    static PyObject *py_samplerate(PyObject *,PyObject *args);
+    static PyObject *py_blocksize(PyObject *,PyObject *args);
 
-	static PyObject *py_searchpaths(PyObject *,PyObject *args);
-	static PyObject *py_helppaths(PyObject *,PyObject *args);
+    static PyObject *py_searchpaths(PyObject *,PyObject *args);
+    static PyObject *py_helppaths(PyObject *,PyObject *args);
 
 #if FLEXT_SYS == FLEXT_SYS_PD
-	static PyObject *py_getvalue(PyObject *,PyObject *args);
-	static PyObject *py_setvalue(PyObject *,PyObject *args);
+    static PyObject *py_getvalue(PyObject *,PyObject *args);
+    static PyObject *py_setvalue(PyObject *,PyObject *args);
 #endif
 
     static PyObject *py_list(PyObject *,PyObject *args);
     static PyObject *py_tuple(PyObject *,PyObject *args);
 
-	// ----thread stuff ------------
+    // ----thread stuff ------------
 
-	virtual void m_stop(int argc,const t_atom *argv);
+    virtual void m_stop(int argc,const t_atom *argv);
 
-	bool respond;
+    bool respond;
 #ifdef FLEXT_THREADS
-	int thrcount;
+    int thrcount;
     bool shouldexit;
-	int stoptick;
+    int stoptick;
     Timer stoptmr;
 
-	void tick(void *);
+    void tick(void *);
 #endif
 
     int detach;
@@ -187,7 +187,7 @@ protected:
 
     static PyFifo qufifo;
     static ThrCond qucond;
-	
+    
 #ifndef PY_USE_GIL
     static ThrState pythrsys;
 #endif
@@ -201,7 +201,7 @@ protected:
 
 public:
 
-	static void AddToPath(const char *dir);
+    static void AddToPath(const char *dir);
 
 #ifdef FLEXT_THREADS
     // this is especially needed when one py/pyext object calls another one
@@ -212,43 +212,43 @@ public:
 #ifdef PY_USE_GIL
     static inline ThrState FindThreadState() { return ThrState(); }
 
-	static inline ThrState PyLock(ThrState = ThrState()) { return PyGILState_Ensure(); }
-	static inline ThrState PyLockSys() { return PyLock(); }
-	static inline void PyUnlock(ThrState st) { PyGILState_Release(st); }
+    static inline ThrState PyLock(ThrState = ThrState()) { return PyGILState_Ensure(); }
+    static inline ThrState PyLockSys() { return PyLock(); }
+    static inline void PyUnlock(ThrState st) { PyGILState_Release(st); }
 #else // PY_USE_GIL
     static ThrState FindThreadState();
     static void FreeThreadState();
 
-	static ThrState PyLock(ThrState st = FindThreadState()) 
+    static ThrState PyLock(ThrState st = FindThreadState()) 
     { 
-        if(!IsSystemThread() || !lockcount++) PyEval_AcquireLock();
-	    return PyThreadState_Swap(st);
+        if(st != pythrsys || !lockcount++) PyEval_AcquireLock();
+        return PyThreadState_Swap(st);
     }
 
 #if 1
-	static inline ThrState PyLockSys() { return PyLock(); }
+    static inline ThrState PyLockSys() { return PyLock(); }
 #else
-	static ThrState PyLockSys() 
+    static ThrState PyLockSys() 
     { 
         if(!lockcount++) PyEval_AcquireLock();
-	    return PyThreadState_Swap(pythrsys);
+        return PyThreadState_Swap(pythrsys);
     }
 #endif
 
-	static void PyUnlock(ThrState st) 
+    static void PyUnlock(ThrState st) 
     {
         ThrState old = PyThreadState_Swap(st);
         if(old != pythrsys || !--lockcount) PyEval_ReleaseLock();
     }
 #endif // PY_USE_GIL
-	
+    
 #else // FLEXT_THREADS
-	static inline ThrState PyLock(ThrState = NULL) { return NULL; }
-	static inline ThrState PyLockSys() { return NULL; }
-	static inline void PyUnlock(ThrState st) {}
+    static inline ThrState PyLock(ThrState = NULL) { return NULL; }
+    static inline ThrState PyLockSys() { return NULL; }
+    static inline void PyUnlock(ThrState st) {}
 #endif
 
-	static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);
+    static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);
 };
 
 #endif
