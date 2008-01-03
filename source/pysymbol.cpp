@@ -91,12 +91,12 @@ static long symbol_hash(PyObject *self)
 }
 
 
-static int symbol_length(pySymbol *self)
+static Py_ssize_t symbol_length(pySymbol *self)
 {
     return strlen(flext::GetString(self->sym));
 }
 
-static PyObject *symbol_item(pySymbol *self, int i)
+static PyObject *symbol_item(pySymbol *self,Py_ssize_t i)
 {
     const char *str = flext::GetString(self->sym);
     int len = strlen(str);
@@ -110,7 +110,7 @@ static PyObject *symbol_item(pySymbol *self, int i)
     }
 }
 
-static PyObject *symbol_slice(pySymbol *self,int ilow = 0,int ihigh = 1<<(sizeof(int)*8-2))
+static PyObject *symbol_slice(pySymbol *self,Py_ssize_t ilow = 0,Py_ssize_t ihigh = 1<<(sizeof(int)*8-2))
 {
     const char *str = flext::GetString(self->sym);
     int len = strlen(str);
@@ -136,7 +136,7 @@ static PyObject *symbol_concat(pySymbol *self,PyObject *op)
         return NULL;
 }
 
-static PyObject *symbol_repeat(pySymbol *self,int rep)
+static PyObject *symbol_repeat(pySymbol *self,Py_ssize_t rep)
 {
     PyObject *nobj = symbol_slice(self); // take all
     if(nobj) {
@@ -149,11 +149,11 @@ static PyObject *symbol_repeat(pySymbol *self,int rep)
 }
 
 static PySequenceMethods symbol_as_seq = {
-	(inquiry)symbol_length,			/* inquiry sq_length;             __len__ */
+	(lenfunc)symbol_length,			/* inquiry sq_length;             __len__ */
 	(binaryfunc)symbol_concat,          /* __add__ */
-	(intargfunc)symbol_repeat,          /* __mul__ */
-	(intargfunc)symbol_item,			/* intargfunc sq_item;            __getitem__ */
-	(intintargfunc)symbol_slice,		 /* intintargfunc sq_slice;        __getslice__ */
+	(ssizeargfunc)symbol_repeat,          /* __mul__ */
+	(ssizeargfunc)symbol_item,			/* intargfunc sq_item;            __getitem__ */
+	(ssizessizeargfunc)symbol_slice,		 /* intintargfunc sq_slice;        __getslice__ */
 	NULL,		/* intobjargproc sq_ass_item;     __setitem__ */
 	NULL,	/* intintobjargproc sq_ass_slice; __setslice__ */
 };

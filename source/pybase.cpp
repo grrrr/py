@@ -678,7 +678,7 @@ void pybase::Reload()
 
     if(reg) {
         PyObject *key;
-        int pos = 0;
+        Py_ssize_t pos = 0;
         while(PyDict_Next(reg,&pos,&key,NULL)) {
             pybase *th = (pybase *)PyLong_AsLong(key);
             FLEXT_ASSERT(th);
@@ -697,7 +697,7 @@ void pybase::Reload()
             SetRegistry(REGNAME,reg);
 
             PyObject *key;
-            int pos = 0;
+            Py_ssize_t pos = 0;
             while(PyDict_Next(reg,&pos,&key,NULL)) {
                 pybase *th = (pybase *)PyLong_AsLong(key);
                 FLEXT_ASSERT(th);

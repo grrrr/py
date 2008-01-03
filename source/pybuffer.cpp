@@ -189,44 +189,28 @@ static PyMethodDef buffer_methods[] = {
 
 // support the buffer protocol
 
-#if PY_VERSION_HEX >= 0x02050000
 static Py_ssize_t buffer_readbuffer(PyObject *obj, Py_ssize_t segment, void **ptrptr)
-#else
-static int buffer_readbuffer(PyObject *obj, int segment, void **ptrptr)
-#endif
 {
     flext::buffer *b = ((pySamplebuffer *)obj)->buf;
     ptrptr[0] = b->Data();
     return b->Channels()*b->Frames()*sizeof(t_sample);
 }
 
-#if PY_VERSION_HEX >= 0x02050000
 static Py_ssize_t buffer_writebuffer(PyObject *obj, Py_ssize_t segment, void **ptrptr)
-#else
-static int buffer_writebuffer(PyObject *obj, int segment, void **ptrptr)
-#endif
 {
     flext::buffer *b = ((pySamplebuffer *)obj)->buf;
     ptrptr[0] = b->Data();
     return b->Channels()*b->Frames()*sizeof(t_sample);
 }
 
-#if PY_VERSION_HEX >= 0x02050000
 static Py_ssize_t buffer_segcount(PyObject *obj, Py_ssize_t *lenp)
-#else
-static int buffer_segcount(PyObject *obj, int *lenp)
-#endif
 {
     flext::buffer *b = ((pySamplebuffer *)obj)->buf;
     if(lenp) lenp[0] = b->Channels()*b->Frames()*sizeof(t_sample);
     return 1;
 }
 
-#if PY_VERSION_HEX >= 0x02050000
 static Py_ssize_t buffer_charbuffer(PyObject *obj, Py_ssize_t segment, char **ptrptr)
-#else
-static int buffer_charbuffer(PyObject *obj, int segment, const char **ptrptr)
-#endif
 {
     flext::buffer *b = ((pySamplebuffer *)obj)->buf;
     ptrptr[0] = (char *)b->Data();
@@ -281,7 +265,7 @@ PyObject *arrayfrombuffer(PyObject *buf,int c,int n)
         arr = (PyObject *)NA_NewAllFromBuffer(c == 1?1:2,shape,numtype,buf,0,0,NA_ByteOrder(),1,1);
 #else
         void *data;
-        int len;
+        Py_ssize_t len;
         int err = PyObject_AsWriteBuffer(buf,&data,&len);
         if(!err) {
             FLEXT_ASSERT(len <= n*c*sizeof(t_sample));
@@ -454,13 +438,13 @@ static PyObject *buffer_repeat(pySamplebuffer *self,int rep)
 
 
 static PySequenceMethods buffer_as_seq = {
-	(inquiry)buffer_length,			/* inquiry sq_length;             __len__ */
+	(lenfunc)buffer_length,			/* inquiry sq_length;             __len__ */
 	(binaryfunc)buffer_concat,          /* __add__ */
-	(intargfunc)buffer_repeat,          /* __mul__ */
-	(intargfunc)buffer_item,			/* intargfunc sq_item;            __getitem__ */
-	(intintargfunc)buffer_slice,		 /* intintargfunc sq_slice;        __getslice__ */
-	(intobjargproc)buffer_ass_item,		/* intobjargproc sq_ass_item;     __setitem__ */
-	(intintobjargproc)buffer_ass_slice,	/* intintobjargproc sq_ass_slice; __setslice__ */
+	(ssizeargfunc)buffer_repeat,          /* __mul__ */
+	(ssizeargfunc)buffer_item,			/* intargfunc sq_item;            __getitem__ */
+	(ssizessizeargfunc)buffer_slice,		 /* intintargfunc sq_slice;        __getslice__ */
+	(ssizeobjargproc)buffer_ass_item,		/* intobjargproc sq_ass_item;     __setitem__ */
+	(ssizessizeobjargproc)buffer_ass_slice,	/* intintobjargproc sq_ass_slice; __setslice__ */
 };
 
 static PyObject *buffer_iter(PyObject *obj)

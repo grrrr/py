@@ -1,3 +1,6 @@
+# which major python version?
+PYTHONVER=23
+
 # uncomment if numpy/numarray/numeric support should be compiled in
 # for info see http://numeric.scipy.org
 PY_NUMPY=1

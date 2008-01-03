@@ -32,7 +32,6 @@
 		E90E52F60809258A001341AC /* pyext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E90E51E508091989001341AC /* pyext.cpp */; };
 		E90E52F70809258A001341AC /* pysymbol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E90E51E808091989001341AC /* pysymbol.cpp */; };
 		E90E52F80809258A001341AC /* register.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E90E51EA08091989001341AC /* register.cpp */; };
-		E90E535B08092593001341AC /* Python.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E90E51FB080919EC001341AC /* Python.framework */; };
 		E90E535D08092593001341AC /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E90E521108091CA5001341AC /* ApplicationServices.framework */; };
 		E90E535E08092593001341AC /* vecLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E90E52D208091F79001341AC /* vecLib.framework */; };
 		E926B6D8089F76D90034D534 /* pyatom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E90043820887A302008AEAFC /* pyatom.cpp */; };
@@ -61,8 +60,6 @@
 		E926B818089F782F0034D534 /* MaxAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E926B817089F782F0034D534 /* MaxAPI.framework */; };
 		E926B81A089F78400034D534 /* MaxAudioAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E926B819089F78400034D534 /* MaxAudioAPI.framework */; };
 		E926B833089F7CB50034D534 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E90E521108091CA5001341AC /* ApplicationServices.framework */; };
-		E9D6763108FC619F0039A6F6 /* libflext-pd_d.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9D6762F08FC61860039A6F6 /* libflext-pd_d.dylib */; };
-		E9D6763208FC619F0039A6F6 /* libflext-pd.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9D6763008FC61860039A6F6 /* libflext-pd.dylib */; };
 		E9D6763308FC61A40039A6F6 /* libflext-max_d.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9D6762D08FC61860039A6F6 /* libflext-max_d.dylib */; };
 		E9D6763408FC61A40039A6F6 /* libflext-max.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9D6762E08FC61860039A6F6 /* libflext-max.dylib */; };
 /* End PBXBuildFile section */
@@ -96,7 +93,6 @@
 		E90E52D208091F79001341AC /* vecLib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = vecLib.framework; path = /System/Library/Frameworks/vecLib.framework; sourceTree = "<absolute>"; };
 		E90E52E608092505001341AC /* py.pd_darwin */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = py.pd_darwin; sourceTree = BUILT_PRODUCTS_DIR; };
 		E926B6D3089F75950034D534 /* py.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = py.mxo; sourceTree = BUILT_PRODUCTS_DIR; };
-		E926B6D4089F75950034D534 /* py-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "py-Info.plist"; path = "/Users/thomas/Develop/pdmax/py/py-Info.plist"; sourceTree = "<absolute>"; };
 		E926B817089F782F0034D534 /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = /Library/Frameworks/MaxAPI.framework; sourceTree = "<absolute>"; };
 		E926B819089F78400034D534 /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = /Library/Frameworks/MaxAudioAPI.framework; sourceTree = "<absolute>"; };
 		E9D6762D08FC61860039A6F6 /* libflext-max_d.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libflext-max_d.dylib"; path = "/usr/local/lib/libflext-max_d.dylib"; sourceTree = "<absolute>"; };
@@ -110,9 +106,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E9D6763108FC619F0039A6F6 /* libflext-pd_d.dylib in Frameworks */,
-				E9D6763208FC619F0039A6F6 /* libflext-pd.dylib in Frameworks */,
-				E90E535B08092593001341AC /* Python.framework in Frameworks */,
 				E90E535D08092593001341AC /* ApplicationServices.framework in Frameworks */,
 				E90E535E08092593001341AC /* vecLib.framework in Frameworks */,
 			);
@@ -141,7 +134,6 @@
 				08FB77ADFE841716C02AAC07 /* Source */,
 				089C1671FE841209C02AAC07 /* External Frameworks and Libraries */,
 				19C28FB4FE9D528D11CA2CBB /* Products */,
-				E926B6D4089F75950034D534 /* py-Info.plist */,
 			);
 			name = py;
 			sourceTree = "<group>";
@@ -346,6 +338,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_EXTENSION = pd_darwin;
+				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
 				GCC_ALTIVEC_EXTENSIONS = YES;
 				GCC_MODEL_CPU = G4;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -371,6 +364,8 @@
 					"-undefined",
 					dynamic_lookup,
 					"-lflext-pd_d",
+					"-framework",
+					Python,
 				);
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = py;
@@ -472,20 +467,21 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = source/pyprefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
 					"FLEXT_SYS=1",
-					FLEXT_DEBUG,
-					FLEXT_THREADS,
+					FLEXT_SHARED,
 				);
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(flext)/source",
-					"$(MaxSDK)/max-includes",
-					"$(MaxSDK)/msp-includes",
+					"$(inherited)",
+					"$(maxsdk)/max-includes",
+					"$(maxsdk)/msp-includes",
 				);
-				INFOPLIST_FILE = "py-Info.plist";
+				INFOPLIST_FILE = "source/py-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
-					"$(MaxSDK)/max-includes",
-					"$(MaxSDK)/msp-includes",
+					"$(inherited)",
+					"$(maxsdk)/max-includes",
+					"$(maxsdk)/msp-includes",
 				);
 				LIBRARY_STYLE = STATIC;
 				OPTIMIZATION_CFLAGS = "-O0";
@@ -513,19 +509,21 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = source/pyprefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
 					"FLEXT_SYS=1",
 					FLEXT_SHARED,
 				);
 				GENERATE_PKGINFO_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(flext)/source",
-					"$(MaxSDK)/max-includes",
-					"$(MaxSDK)/msp-includes",
+					"$(inherited)",
+					"$(maxsdk)/max-includes",
+					"$(maxsdk)/msp-includes",
 				);
-				INFOPLIST_FILE = "py-Info.plist";
+				INFOPLIST_FILE = "source/py-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
-					"$(MaxSDK)/max-includes",
-					"$(MaxSDK)/msp-includes",
+					"$(inherited)",
+					"$(maxsdk)/max-includes",
+					"$(maxsdk)/msp-includes",
 				);
 				OTHER_CFLAGS = "";
 				OTHER_REZFLAGS = "";
@@ -584,7 +582,12 @@
 					PY_NUMPY,
 					PY_USE_GIL,
 				);
-				HEADER_SEARCH_PATHS = "/Library/Python/2.3/site-packages/numpy/core/include/";
+				HEADER_SEARCH_PATHS = (
+					"/Library/Python/2.3/site-packages/numpy/core/include/",
+					"$(lockfree)",
+					"$(flext)/source",
+				);
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
 			name = Development;
 		};
@@ -602,7 +605,12 @@
 					PY_NUMPY,
 					PY_USE_GIL,
 				);
-				HEADER_SEARCH_PATHS = "/Library/Python/2.3/site-packages/numpy/core/include/";
+				HEADER_SEARCH_PATHS = (
+					"/Library/Python/2.3/site-packages/numpy/core/include/",
+					"$(lockfree)",
+					"$(flext)/source",
+				);
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
 			name = Deployment;
 		};
@@ -610,6 +618,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = PY_NUMPY;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 			};
 			name = Default;
 		};
