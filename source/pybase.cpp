@@ -1,11 +1,13 @@
 /* 
-
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2007 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
+$LastChangedRevision: 26 $
+$LastChangedDate$
+$LastChangedBy$
 */
 
 #include "pybase.h"
@@ -105,7 +107,7 @@ void pybase::lib_setup()
     post("");
 	post("------------------------------------------------");
 	post("py/pyext %s - python script objects",PY__VERSION);
-	post("(C)2002-2007 Thomas Grill - http://grrrr.org/ext");
+	post("(C)2002-2008 Thomas Grill - http://grrrr.org/ext");
     post("");
     post("using Python %s",Py_GetVersion());
 
@@ -199,7 +201,7 @@ void pybase::lib_setup()
     PyModule_AddObject(module_obj,"Bundle",(PyObject *)&pyBundle_Type);
 
 	// -------------------------------------------------------------
-#ifdef PY_USE_INOFFICIAL
+#if FLEXT_SYS == FLEXT_SYS_PD && defined(PD_DEVEL_VERSION) && defined(PY_USE_INOFFICIAL)
     // add PD paths
 
     char *dir;

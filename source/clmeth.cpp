@@ -1,11 +1,13 @@
 /* 
-
 py/pyext - python external object for PD and Max/MSP
 
-Copyright (c)2002-2007 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
+$LastChangedRevision: 26 $
+$LastChangedDate$
+$LastChangedBy$
 */
 
 #include "pyext.h"
@@ -43,7 +45,7 @@ PyMethodDef pyext::attr_tbl[] =
 
 
 const char *pyext::pyext_doc =
-	"py/pyext - python external object for PD and Max/MSP, (C)2002-2007 Thomas Grill\n"
+	"py/pyext - python external object for PD and Max/MSP, (C)2002-2008 Thomas Grill\n"
 	"\n"
 	"This is the pyext base class. Available methods:\n"
 	"_outlet(self,ix,args...): Send a message to an indexed outlet\n"

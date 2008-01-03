@@ -1,11 +1,13 @@
 /* 
-
 py/pyext - python external object for PD and Max/MSP
 
-Copyright (c)2002-2007 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
+$LastChangedRevision: 26 $
+$LastChangedDate$
+$LastChangedBy$
 */
 
 #include "pybase.h"
@@ -38,7 +40,7 @@ PyMethodDef pybase::func_tbl[] =
 };
 
 const char *pybase::py_doc =
-	"py/pyext - python external object for PD and Max/MSP, (C)2002-2007 Thomas Grill\n"
+	"py/pyext - python external object for PD and Max/MSP, (C)2002-2008 Thomas Grill\n"
 	"\n"
 	"This is the pyext module. Available function:\n"
 	"_send(args...): Send a message to a send symbol\n"
@@ -115,7 +117,7 @@ PyObject *pybase::py_blocksize(PyObject *self,PyObject *args)
 
 PyObject *pybase::py_searchpaths(PyObject *self,PyObject *args)
 {
-#if FLEXT_SYS == FLEXT_SYS_PD && defined(PY_USE_INOFFICIAL)
+#if FLEXT_SYS == FLEXT_SYS_PD && defined(PD_DEVEL_VERSION) && defined(PY_USE_INOFFICIAL)
     PyObject *ret = PyList_New(0);
     char *dir;
     for(int i = 0; (dir = namelist_get(sys_searchpath,i)) != NULL; ++i)
@@ -129,7 +131,7 @@ PyObject *pybase::py_searchpaths(PyObject *self,PyObject *args)
 
 PyObject *pybase::py_helppaths(PyObject *self,PyObject *args)
 {
-#if FLEXT_SYS == FLEXT_SYS_PD && defined(PY_USE_INOFFICIAL)
+#if FLEXT_SYS == FLEXT_SYS_PD && defined(PD_DEVEL_VERSION) && defined(PY_USE_INOFFICIAL)
     PyObject *ret = PyList_New(0);
     char *dir;
     for(int i = 0; (dir = namelist_get(sys_helppath,i)) != NULL; ++i)
