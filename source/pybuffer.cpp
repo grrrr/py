@@ -210,7 +210,11 @@ static Py_ssize_t buffer_segcount(PyObject *obj, Py_ssize_t *lenp)
     return 1;
 }
 
-static Py_ssize_t buffer_charbuffer(PyObject *obj, Py_ssize_t segment,const char **ptrptr)
+static Py_ssize_t buffer_charbuffer(PyObject *obj, Py_ssize_t segment,
+#if PY_VERSION_HEX < 0x02050000
+    const
+#endif
+    char **ptrptr)
 {
     flext::buffer *b = ((pySamplebuffer *)obj)->buf;
     ptrptr[0] = (char *)b->Data();
