@@ -41,7 +41,7 @@ $LastChangedBy$
 #include <flcontainers.h>
 #include <string>
 
-#ifdef PY_USE_INOFFICIAL
+#if FLEXT_SYS == FLEXT_SYS_PD && defined(PY_USE_INOFFICIAL)
 extern "C" {
 #include <s_stuff.h>
 }
