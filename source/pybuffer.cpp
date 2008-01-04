@@ -224,13 +224,13 @@ static PyBufferProcs buffer_as_buffer = {
     buffer_charbuffer
 };
 
-static int buffer_length(PyObject *s)
+static Py_ssize_t buffer_length(PyObject *s)
 {
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     return self->buf?self->buf->Frames():0;
 }
 
-static PyObject *buffer_item(PyObject *s, int i)
+static PyObject *buffer_item(PyObject *s,Py_ssize_t i)
 {
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     PyObject *ret;
@@ -287,7 +287,7 @@ PyObject *arrayfrombuffer(PyObject *buf,int c,int n)
     return NULL;
 }
 
-static PyObject *buffer_slice(PyObject *s,int ilow = 0,int ihigh = 1<<(sizeof(int)*8-2))
+static PyObject *buffer_slice(PyObject *s,Py_ssize_t ilow = 0,Py_ssize_t ihigh = 1<<(sizeof(int)*8-2))
 {
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     PyObject *ret;
@@ -323,7 +323,7 @@ static PyObject *buffer_slice(PyObject *s,int ilow = 0,int ihigh = 1<<(sizeof(in
     return ret;
 }
 
-static int buffer_ass_item(PyObject *s,int i,PyObject *v)
+static int buffer_ass_item(PyObject *s,Py_ssize_t i,PyObject *v)
 {
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     int ret;
@@ -356,7 +356,7 @@ static int buffer_ass_item(PyObject *s,int i,PyObject *v)
 	return ret;
 }
 
-static int buffer_ass_slice(PyObject *s,int ilow,int ihigh,PyObject *value)
+static int buffer_ass_slice(PyObject *s,Py_ssize_t ilow,Py_ssize_t ihigh,PyObject *value)
 {
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     int ret;
@@ -429,7 +429,7 @@ static PyObject *buffer_concat(PyObject *s,PyObject *op)
         return NULL;
 }
 
-static PyObject *buffer_repeat(PyObject *s,int rep)
+static PyObject *buffer_repeat(PyObject *s,Py_ssize_t rep)
 {
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     PyObject *nobj = buffer_slice(s);
