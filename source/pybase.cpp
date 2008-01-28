@@ -596,10 +596,10 @@ bool pybase::ReloadModule()
         else {
             // search in module path (TODO: check before if module is already present to avoid costly searching)
             char dir[1024];
-	        if(!getmodulepath(modname.c_str(),dir,sizeof(dir)))
-                PyErr_SetString(PyExc_ImportError,"Module not found in path");
-            else
+	        if(getmodulepath(modname.c_str(),dir,sizeof(dir)))
     	        AddToPath(dir);
+//            else
+//                PyErr_SetString(PyExc_ImportError,"Module not found in path");
 
             // module could also be loaded ok, even if it's not in the path (e.g. for internal stuff)
             newmod = PyImport_ImportModule((char *)modname.c_str());
