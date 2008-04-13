@@ -254,9 +254,11 @@
 		089C1669FE841209C02AAC07 /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = E93C2D8D0A5DB6E70023B566 /* Build configuration list for PBXProject "py" */;
+			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 1;
 			mainGroup = 089C166AFE841209C02AAC07 /* py */;
 			projectDirPath = "";
+			projectRoot = "";
 			targets = (
 				E90E52E508092505001341AC /* py.pd_darwin */,
 				E926B6D2089F75950034D534 /* py */,

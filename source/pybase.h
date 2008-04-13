@@ -250,6 +250,24 @@ public:
     static inline void PyUnlock(ThrState st) {}
 #endif
 
+    class ThrLock
+    {
+    public:
+        ThrLock(): state(PyLock()) {}
+        ThrLock(const ThrState &st): state(PyLock(st)) {}
+        ThrLock(const ThrLock &t): state(PyLock(t.state)) {}
+        ~ThrLock() { PyUnlock(state); }
+        ThrState state;
+    };
+
+    class ThrLockSys
+    {
+    public:
+        ThrLockSys(): state(PyLockSys()) {}
+        ~ThrLockSys() { PyUnlock(state); }
+        ThrState state;
+    };
+
     static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);
 };
 

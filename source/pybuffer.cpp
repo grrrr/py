@@ -792,7 +792,7 @@ PyTypeObject pySamplebuffer_Type = {
 };
 
 // Must have this as a function because the import_array macro in numpy version 1.01 strangely has a return statement included.
-// Furthermore the import error printout from this macro is ugly, but we accept that for more, waiting for later numpy updates to fix all of this.
+// Furthermore the import error printout from this macro is ugly, but we accept that for now, waiting for later numpy updates to fix all of this.
 static void __import_array__()
 {
 #ifdef PY_NUMARRAY

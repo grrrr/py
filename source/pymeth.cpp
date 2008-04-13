@@ -193,7 +193,7 @@ pymeth::pymeth(int argc,const t_atom *argv)
     FLEXT_ADDTIMER(stoptmr,tick);
 #endif
 
-	ThrState state = PyLockSys();
+	ThrLockSys lock;
 
     int inlets;
     if(argc && CanbeInt(*argv)) {
@@ -226,8 +226,6 @@ pymeth::pymeth(int argc,const t_atom *argv)
 	if(argc) args(argc,argv);
 
     Report();
-
-	PyUnlock(state);
 }
 
 pymeth::~pymeth() 
@@ -237,10 +235,9 @@ pymeth::~pymeth()
         delete[] objects;
     }
 
-    ThrState state = PyLockSys();
+    ThrLockSys lock;
 	Unregister(GetRegistry(REGNAME));
     Report();
-	PyUnlock(state);
 }
 
 void pymeth::Exit() 
@@ -251,7 +248,7 @@ void pymeth::Exit()
 
 void pymeth::m_set(int argc,const t_atom *argv)
 {
-	ThrState state = PyLockSys();
+	ThrLockSys lock;
 
     // function name has precedence
 	if(argc >= 2) {
@@ -277,8 +274,6 @@ void pymeth::m_set(int argc,const t_atom *argv)
     }
 
     Report();
-
-	PyUnlock(state);
 }
 
 void pymeth::m_help()

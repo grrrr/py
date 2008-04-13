@@ -249,16 +249,14 @@ pybase::pybase()
 	, detach(0)
     , pymsg(false)
 {
-    ThrState state = PyLock();
+    ThrLock lock;
 	Py_INCREF(module_obj);
-    PyUnlock(state);
 }
 
 pybase::~pybase()
 {
-    ThrState state = PyLock();
+    ThrLock lock;
    	Py_XDECREF(module_obj);
-    PyUnlock(state);
 }
 
 void pybase::Exit()
@@ -286,7 +284,7 @@ void pybase::Exit()
 void pybase::GetDir(PyObject *obj,AtomList &lst)
 {
     if(obj) {
-        ThrState state = PyLock();
+        ThrLock lock;
     
         PyObject *pvar  = PyObject_Dir(obj);
 	    if(!pvar)
@@ -299,8 +297,6 @@ void pybase::GetDir(PyObject *obj,AtomList &lst)
                 FLEXT_ASSERT(sym == sym_list);
             Py_DECREF(pvar);
         }
-
-        PyUnlock(state);
     }
 }
 
@@ -315,17 +311,17 @@ void pybase::m__dir(PyObject *obj)
 void pybase::m__doc(PyObject *obj)
 {
     if(obj) {
-        ThrState state = PyLock();
+        ThrLock lock;
 
 		PyObject *docf = PyDict_GetItemString(obj,"__doc__"); // borrowed!!!
 		if(docf && PyString_Check(docf)) {
+
 			post("");
 			const char *s = PyString_AS_STRING(docf);
 
 			// FIX: Python doc strings can easily be larger than 1k characters
 			// -> split into separate lines
 			for(;;) {
-				char buf[1024];
 				char *nl = strchr((char *)s,'\n'); // the cast is for Borland C++
 				if(!nl) {
 					// no more newline found
@@ -333,6 +329,7 @@ void pybase::m__doc(PyObject *obj)
 					break;
 				}
 				else {
+                    char buf[1024];
 					// copy string before newline to temp buffer and post
 					unsigned int l = nl-s;
 					if(l >= sizeof(buf)) l = sizeof buf-1;
@@ -343,8 +340,6 @@ void pybase::m__doc(PyObject *obj)
 				}
 			}
 		}
-
-        PyUnlock(state);
 	}
 }
 
@@ -672,7 +667,7 @@ bool pybase::OutObject(flext_base *ext,int o,PyObject *obj)
 
 void pybase::Reload()
 {
-	ThrState state = PyLock();
+	ThrLock lock;
 
 	PyObject *reg = GetRegistry(REGNAME);
 
@@ -709,7 +704,6 @@ void pybase::Reload()
     }
 
     Report();
-	PyUnlock(state);
 }
 
 static PyObject *output = NULL;
@@ -826,13 +820,12 @@ void pybase::thrworker(thr_params *p)
 	work_data *w = (work_data *)p->var->_ext;
 
 	++th->thrcount; // \todo this should be atomic
-    ThrState state = PyLock();
-
+    {
+        ThrLock lock;
     // call worker
 	th->docall(w->fun,w->args);
 	delete w;
-
-    PyUnlock(state);
+    }
     --th->thrcount; // \todo this should be atomic
 }
 
@@ -841,8 +834,7 @@ void pybase::thrworker(thr_params *p)
 */
 void pybase::pyworker(thr_params *)
 {
-	ThrState state = PyLock();
-
+	ThrLock lock;
 	PyObject *timemod = PyImport_ImportModule("time");
 	PyObject *sleep = PyObject_GetAttrString(timemod,"sleep");
 	PyObject *args = PyTuple_New(1);
@@ -852,8 +844,6 @@ void pybase::pyworker(thr_params *)
 		PyObject *res = PyObject_CallObject(sleep,args);
 		Py_DECREF(res);
 	}
-
-	PyUnlock(state);
 }
 
 void pybase::quworker(thr_params *)
@@ -864,11 +854,12 @@ void pybase::quworker(thr_params *)
     for(;;) {
         while(el = qufifo.Get()) {
         	++el->th->thrcount; // \todo this should be atomic
-            state = PyLock(my);
+            {
+                ThrLock lock(my);
             el->th->docall(el->fun,el->args);
             Py_XDECREF(el->fun);
             Py_XDECREF(el->args);
-            PyUnlock(state);
+            }
             --el->th->thrcount; // \todo this should be atomic
             qufifo.Free(el);
         }
@@ -876,16 +867,15 @@ void pybase::quworker(thr_params *)
     }
 
     // we never end
-#if 0
-    state = PyLock(my);
+    if(false) {
+        ThrLock lock(my);
     // unref remaining Python objects
     while(el = qufifo.Get()) {
         Py_XDECREF(el->fun);
         Py_XDECREF(el->args);
         qufifo.Free(el);
     }
-    PyUnlock(state);
-#endif
+}
 }
 
 void pybase::erasethreads()

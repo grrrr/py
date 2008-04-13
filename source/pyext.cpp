@@ -145,7 +145,7 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
     // check if the object name is pyext. , pyx. or similar
     bool dotted = strrchr(thisName(),'.') != NULL;
 
-    ThrState state = PyLockSys();
+    ThrLockSys lock;
 
 	// init script module
 	if(argc) {
@@ -192,13 +192,11 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
 	if(argc) initargs(argc,argv);
 
     Report();
-
-	PyUnlock(state);
 }
 
 bool pyext::Init()
 {
-	ThrState state = PyLockSys();
+	ThrLockSys lock;
 
 	if(methname) {
 		MakeInstance();
@@ -216,7 +214,6 @@ bool pyext::Init()
 	AddOutAnything(outlets);  
 
     Report();
-	PyUnlock(state);
 
     return pyobj && flext_dsp::Init();
 }
@@ -224,7 +221,7 @@ bool pyext::Init()
 bool pyext::Finalize()
 {
 	bool ok = true;
-	ThrState state = PyLockSys();
+	ThrLockSys lock;
 
 	PyObject *init = PyObject_GetAttrString(pyobj,"_init"); // get ref
 	if(init) {
@@ -245,7 +242,6 @@ bool pyext::Finalize()
 		// __init__ has not been found - don't care
 		PyErr_Clear();
 
-	PyUnlock(state);
     return ok && flext_dsp::Finalize(); 
 }
 
@@ -253,14 +249,13 @@ void pyext::Exit()
 { 
     pybase::Exit(); // exit threads
 
-	ThrState state = PyLockSys();
+	ThrLockSys lock;
     DoExit();
 
     Unregister(GetRegistry(REGNAME));
 	UnimportModule();
 
     Report();
-	PyUnlock(state);
 
     flext_dsp::Exit(); 
 }
@@ -446,7 +441,7 @@ void pyext::Unload()
 
 void pyext::m_get(const t_symbol *s)
 {
-    ThrState state = PyLockSys();
+    ThrLockSys lock;
 
 	PyObject *pvar  = PyObject_GetAttrString(pyobj,const_cast<char *>(GetString(s))); /* fetch bound method */
 	if(pvar) {
@@ -463,13 +458,11 @@ void pyext::m_get(const t_symbol *s)
     }
 
     Report();
-
-    PyUnlock(state);
 }
 
 void pyext::m_set(int argc,const t_atom *argv)
 {
-    ThrState state = PyLockSys();
+    ThrLockSys lock;
 
     if(argc < 2 || !IsString(argv[0]))
         post("%s - Syntax: set varname arguments...",thisName());
@@ -495,8 +488,6 @@ void pyext::m_set(int argc,const t_atom *argv)
     }
 
     Report();
-
-    PyUnlock(state);
 }
 
 
@@ -551,6 +542,7 @@ void pyext::callpy(PyObject *fun,PyObject *args)
 bool pyext::call(const char *meth,int inlet,const t_symbol *s,int argc,const t_atom *argv) 
 {
 	bool ret = false;
+    ThrLock lock;
 
 	PyObject *pmeth = PyObject_GetAttrString(pyobj,const_cast<char *>(meth)); /* fetch bound method */
 	if(pmeth == NULL) {
@@ -573,8 +565,6 @@ bool pyext::call(const char *meth,int inlet,const t_symbol *s,int argc,const t_a
 bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 {
 	bool ret = false;
-
-    ThrState state = PyLock();
 
     // should be enough...
 	char str[256];
@@ -644,8 +634,6 @@ bool pyext::work(int n,const t_symbol *s,int argc,const t_atom *argv)
 	if(!ret) 
 		// no matching python method found
 		post("%s - no matching method found for '%s' into inlet %i",thisName(),GetString(s),n);
-
-	PyUnlock(state);
 
     Respond(ret);
 	return ret;

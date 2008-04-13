@@ -120,7 +120,7 @@ bool pydsp::CbDsp()
 {
     if(pyobj && (CntInSig() || CntOutSig()))
     {
-       	ThrState state = PyLockSys();
+       	ThrLockSys lock;
 
         NewBuffers();
 
@@ -157,7 +157,6 @@ bool pydsp::CbDsp()
 		else
 			sigfun = NULL;
 
-        PyUnlock(state);
         return sigfun != NULL;
     }
     else
@@ -167,7 +166,7 @@ bool pydsp::CbDsp()
 
 void pydsp::CbSignal()
 {
-    ThrState state = PyLockSys();
+    ThrLockSys lock;
     PyObject *ret = PyObject_CallObject(sigfun,NULL);
 
     if(ret) 
@@ -179,7 +178,6 @@ void pydsp::CbSignal()
         PyErr_Clear();
 #endif   
     }
-    PyUnlock(state);
 }
 
 PyObject *pydsp::GetSig(int ix,bool in) 
