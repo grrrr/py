@@ -596,8 +596,24 @@ bool pybase::ReloadModule()
 //            else
 //                PyErr_SetString(PyExc_ImportError,"Module not found in path");
 
+#if 1
+            // strip off eventual subpath from module name
+            // it should already have been considered in the above AddToPath call
+            size_t p = modname.rfind('/');
+            const char *m;
+            if(p == std::string::npos)
+                m = modname.c_str();
+            else {
+                // reuse dir buffer...
+                strcpy(dir,modname.c_str()+p+1);
+                m = dir;
+            }
+
             // module could also be loaded ok, even if it's not in the path (e.g. for internal stuff)
+            newmod = PyImport_ImportModule((char *)m);
+#else
             newmod = PyImport_ImportModule((char *)modname.c_str());
+#endif
         }
     }
     else {

@@ -125,6 +125,7 @@ Version history:
 - ADD: added PY_USE_INOFFICIAL to enable usage of s_stuff.h PD header, to have access to search and help paths
 - ADD: pyext: _init method is now called after __init__ (after inlets/outlets have been created)
 - FIX: buffer protocol adapted to Python 2.5
+- FIX: subpath support for modules (tested for Pd)
 
 0.2.0:
 - ADD: handling of Python threads

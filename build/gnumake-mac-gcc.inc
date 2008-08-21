@@ -7,7 +7,7 @@ endif
 ifdef PY_NUMPY
 DEFS += -DPY_NUMPY
 INCPATH += -I/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/site-packages/numpy/core/include
-#INCPATH +=  -F/System/Library/Frameworks -I/Library/Python/2.3/site-packages/numpy/core/include
+#INCPATH +=  -F/System/Library/Frameworks -I/Library/Python/2.5/site-packages/numpy/core/include
 endif
 ifdef PY_NUMERIC
 DEFS += -DPY_NUMERIC

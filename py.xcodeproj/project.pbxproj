@@ -343,6 +343,7 @@
 				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
 				GCC_ALTIVEC_EXTENSIONS = YES;
 				GCC_MODEL_CPU = G4;
+				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = source/pyprefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -360,7 +361,6 @@
 				LIBRARY_SEARCH_PATHS = "$(flext)/build";
 				LIBRARY_STYLE = STATIC;
 				MACH_O_TYPE = mh_dylib;
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-undefined",
@@ -486,7 +486,6 @@
 					"$(maxsdk)/msp-includes",
 				);
 				LIBRARY_STYLE = STATIC;
-				OPTIMIZATION_CFLAGS = "-O0";
 				OTHER_CFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = py;
