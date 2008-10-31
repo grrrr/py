@@ -18,10 +18,14 @@ $LastChangedBy$
 #include "pybuffer.h"
 #include "pybundle.h"
 
-#ifdef PY_USE_GIL
-    typedef PyGILState_STATE ThrState;
+#ifdef FLEXT_THREADS
+#   ifdef PY_USE_GIL
+        typedef PyGILState_STATE ThrState;
+#   else
+        typedef PyThreadState *ThrState;
+#   endif
 #else
-    typedef PyThreadState *ThrState;
+    typedef int ThrState; // dummy
 #endif
 
 class pybase
