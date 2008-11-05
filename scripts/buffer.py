@@ -41,11 +41,8 @@ def add(*args):
     a = pyext.Buffer(args[1])
     b = pyext.Buffer(args[2])
 
-    # this is also possible, but is probably slower
-    # the + converts a into a Python array, the argument b is taken as a sequence
-    # depending on the implementation this may be as fast
-    # as above or not
-    c[:] = a+b  
+    # explicit casting to arrays is also possible
+    c[:] = N.array(a,dtype=N.float32) + N.array(b,dtype=N.float32)
 
 def fadein(target):
     a = pyext.Buffer(target)
@@ -58,4 +55,4 @@ def neg(target):
     N.negative(a[:],a[:])
     # must mark buffer content as dirty to update graph
     # (no explicit assignment occurred)
-    a.dirty() 
+    a.dirty()

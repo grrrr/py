@@ -87,7 +87,8 @@ static void buffer_dealloc(PyObject *obj)
 
     if(self->buf) {
         self->buf->Unlock(self->lock);
-        if(self->dirty) self->buf->Dirty(true);
+        if(self->dirty) 
+            self->buf->Dirty(true);
         delete self->buf;
     }
 
@@ -277,7 +278,12 @@ PyObject *arrayfrombuffer(PyObject *buf,int c,int n)
             FLEXT_ASSERT(len <= n*c*sizeof(t_sample));
             Py_INCREF(buf);
 			// \todo change to new API!
+#   ifdef PY_NUMPY
+            // PyArray_NewFromDescr(&PyArray_Type, type_descr, 1, shape, strides, 0, 0, 0);
+            arr = PyArray_NewFromDescr(&PyArray_Type,PyArray_DescrNewFromType(numtype),c == 1?1:2,shape,0,(char *)data,NPY_WRITEABLE|NPY_C_CONTIGUOUS,NULL);
+#   else
             arr = PyArray_FromDimsAndData(c == 1?1:2,shape,numtype,(char *)data);
+#   endif
         }
         else {
             // exception string is already set
@@ -321,7 +327,7 @@ static PyObject *buffer_slice(PyObject *s,Py_ssize_t ilow = 0,Py_ssize_t ihigh =
     else 
 #endif
     {
-        PyErr_SetString(PyExc_RuntimeError,"No numarray support");
+        PyErr_SetString(PyExc_RuntimeError,"No array support");
         ret = NULL;
     }
     return ret;
@@ -341,7 +347,7 @@ static int buffer_ass_item(PyObject *s,Py_ssize_t i,PyObject *v)
                 self->buf->Data()[i] = (t_sample)PyFloat_AsDouble(v);
                 if(PyErr_Occurred()) {
                     // cast to double failed
-    		        PyErr_SetString(PyExc_TypeError,"Value must be a numarray");
+    		        PyErr_SetString(PyExc_TypeError,"Value must be a array");
                     ret = -1;
                 }
                 else {
@@ -381,10 +387,10 @@ static int buffer_ass_slice(PyObject *s,Py_ssize_t ilow,Py_ssize_t ihigh,PyObjec
 #ifdef PY_NUMARRAY
             PyArrayObject *out = NA_InputArray(value,numtype,NUM_C_ARRAY);
 #else
-            PyArrayObject *out = (PyArrayObject *)PyArray_ContiguousFromObject(value,numtype,0,0);
+            PyArrayObject *out = (PyArrayObject *)PyArray_ContiguousFromObject(value,numtype,1,2);
 #endif
             if(!out) {
-                PyErr_SetString(PyExc_TypeError,"Assigned object must be a numarray");
+                // exception already set
                 ret = -1;
             }
             else if(out->nd != 1) {
@@ -413,7 +419,7 @@ static int buffer_ass_slice(PyObject *s,Py_ssize_t ilow,Py_ssize_t ihigh,PyObjec
     else 
 #endif
     {
-        PyErr_SetString(PyExc_RuntimeError,"No numarray support");
+        PyErr_SetString(PyExc_RuntimeError,"No array support");
         ret = -1;
     }
     return ret;
