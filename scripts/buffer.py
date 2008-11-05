@@ -21,7 +21,7 @@ except:
 
 try:
     # numpy is assumed here... numeric and numarray are considered deprecated
-    from numpy import *
+    import numpy as N
 except:
     print "Failed importing numpy module:",sys.exc_value
 
@@ -50,12 +50,12 @@ def add(*args):
 def fadein(target):
     a = pyext.Buffer(target)
     # in place operations are ok
-    a *= arange(len(a),type=Float32)/len(a)
+    a *= N.arange(len(a),dtype=N.float32)/len(a)
 
 def neg(target):
     a = pyext.Buffer(target)
     # in place transformation (see Python array ufuncs)
-    negative(a[:],a[:])
+    N.negative(a[:],a[:])
     # must mark buffer content as dirty to update graph
     # (no explicit assignment occurred)
     a.dirty() 
