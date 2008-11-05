@@ -276,10 +276,8 @@ PyObject *arrayfrombuffer(PyObject *buf,int c,int n)
         int err = PyObject_AsWriteBuffer(buf,&data,&len);
         if(!err) {
             FLEXT_ASSERT(len <= n*c*sizeof(t_sample));
-            Py_INCREF(buf);
-			// \todo change to new API!
+//            Py_INCREF(buf); // ATTENTION... this won't be released any more!!
 #   ifdef PY_NUMPY
-            // PyArray_NewFromDescr(&PyArray_Type, type_descr, 1, shape, strides, 0, 0, 0);
             arr = PyArray_NewFromDescr(&PyArray_Type,PyArray_DescrNewFromType(numtype),c == 1?1:2,shape,0,(char *)data,NPY_WRITEABLE|NPY_C_CONTIGUOUS,NULL);
 #   else
             arr = PyArray_FromDimsAndData(c == 1?1:2,shape,numtype,(char *)data);
