@@ -165,8 +165,8 @@ static PyObject *buffer_resize(PyObject *obj,PyObject *args,PyObject *kwds)
     flext::buffer *b = ((pySamplebuffer *)obj)->buf;
     if(b) {
         int frames,keep = 1,zero = 1;
-        static char *kwlist[] = {"frames", "keep", "zero", NULL};
-        if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|ii", kwlist, &frames, &keep, &zero)) 
+        static char const *kwlist[] = {"frames", "keep", "zero", NULL};
+        if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|ii", (char **)kwlist, &frames, &keep, &zero)) 
             return NULL; 
 
         b->Frames(frames,keep != 0,zero != 0);
