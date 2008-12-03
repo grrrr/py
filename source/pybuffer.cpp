@@ -260,14 +260,16 @@ static PyObject *buffer_item(PyObject *s,Py_ssize_t i)
 	return ret;
 }
 
+#ifndef PY_NUMPY
+typedef int npy_intp;
+#endif
+
 PyObject *arrayfrombuffer(PyObject *buf,int c,int n)
 {
 #ifdef PY_ARRAYS
     if(arrsupport()) {
         PyObject *arr;
-        int shape[2];
-        shape[0] = n;
-        shape[1] = c;
+        npy_intp shape[2] = {n,c};
 #ifdef PY_NUMARRAY
         arr = (PyObject *)NA_NewAllFromBuffer(c == 1?1:2,shape,numtype,buf,0,0,NA_ByteOrder(),1,1);
 #else
