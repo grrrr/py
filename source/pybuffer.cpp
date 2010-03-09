@@ -22,42 +22,42 @@ $LastChangedBy$
 #ifdef PY_ARRAYS
 
 #ifdef PY_NUMARRAY
-#	if FLEXT_OS == FLEXT_OS_MAC
-#		include <Python/numarray/libnumarray.h>
-#	else
-#		include <numarray/libnumarray.h>
-#	endif
+#   if FLEXT_OS == FLEXT_OS_MAC
+#       include <Python/numarray/libnumarray.h>
+#   else
+#       include <numarray/libnumarray.h>
+#   endif
 
 static NumarrayType numtype = tAny;
 inline bool arrsupport() { return numtype != tAny; }
 
 #else
-#	if defined(PY_NUMPY)
-#		include <numpy/arrayobject.h>
-#	else
-#		if FLEXT_OS == FLEXT_OS_MAC
-#			include <Python/numarray/arrayobject.h>
-#		else
-#			include <numarray/arrayobject.h>
-#		endif
-#	endif
+#   if defined(PY_NUMPY)
+#       include <numpy/arrayobject.h>
+#   else
+#       if FLEXT_OS == FLEXT_OS_MAC
+#           include <Python/numarray/arrayobject.h>
+#       else
+#           include <numarray/arrayobject.h>
+#       endif
+#   endif
 
-	static PyArray_TYPES numtype = PyArray_NOTYPE;
-	inline bool arrsupport() { return numtype != PyArray_NOTYPE; }
+    static PyArray_TYPES numtype = PyArray_NOTYPE;
+    inline bool arrsupport() { return numtype != PyArray_NOTYPE; }
 #endif
 #endif
 
 
 PyObject *pybase::py_arraysupport(PyObject *self,PyObject *args)
 {
-	PyObject *ret;
+    PyObject *ret;
 #ifdef PY_ARRAYS
-	ret = Py_True;
+    ret = Py_True;
 #else
-	ret = Py_False;
+    ret = Py_False;
 #endif
-	Py_INCREF(ret);
-	return ret;
+    Py_INCREF(ret);
+    return ret;
 }
 
 
@@ -175,7 +175,7 @@ static PyObject *buffer_resize(PyObject *obj,PyObject *args,PyObject *kwds)
         return obj;
     }
     else {
-		PyErr_SetString(PyExc_RuntimeError,"Invalid buffer");
+        PyErr_SetString(PyExc_RuntimeError,"Invalid buffer");
         return NULL;
     }
 }
@@ -240,16 +240,16 @@ static PyObject *buffer_item(PyObject *s,Py_ssize_t i)
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     PyObject *ret;
     if(self->buf) {
-	    if (i < 0 || i >= self->buf->Frames()) {
-		    PyErr_SetString(PyExc_IndexError,"Index out of range");
-		    ret = NULL;
-	    }
+        if (i < 0 || i >= self->buf->Frames()) {
+            PyErr_SetString(PyExc_IndexError,"Index out of range");
+            ret = NULL;
+        }
         else {
             if(self->buf->Channels() == 1)
                 ret = PyFloat_FromDouble(self->buf->Data()[i]);
             else {
-		        PyErr_SetString(PyExc_NotImplementedError,"Multiple channels not implemented yet");
-		        ret = NULL;
+                PyErr_SetString(PyExc_NotImplementedError,"Multiple channels not implemented yet");
+                ret = NULL;
             }
         }
     }
@@ -257,7 +257,7 @@ static PyObject *buffer_item(PyObject *s,Py_ssize_t i)
         Py_INCREF(Py_None);
         ret = Py_None;
     }
-	return ret;
+    return ret;
 }
 
 #ifndef PY_NUMPY
@@ -338,16 +338,16 @@ static int buffer_ass_item(PyObject *s,Py_ssize_t i,PyObject *v)
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     int ret;
     if(self->buf) {
-	    if (i < 0 || i >= self->buf->Frames()) {
-		    PyErr_Format(PyExc_IndexError,"Index out of range");
-		    ret = -1;
-	    }
+        if (i < 0 || i >= self->buf->Frames()) {
+            PyErr_Format(PyExc_IndexError,"Index out of range");
+            ret = -1;
+        }
         else {
             if(self->buf->Channels() == 1) {
                 self->buf->Data()[i] = (t_sample)PyFloat_AsDouble(v);
                 if(PyErr_Occurred()) {
                     // cast to double failed
-    		        PyErr_SetString(PyExc_TypeError,"Value must be a array");
+                    PyErr_SetString(PyExc_TypeError,"Value must be a array");
                     ret = -1;
                 }
                 else {
@@ -356,14 +356,14 @@ static int buffer_ass_item(PyObject *s,Py_ssize_t i,PyObject *v)
                 }
             }
             else {
-		        PyErr_SetString(PyExc_NotImplementedError,"Multiple channels not implemented yet");
-		        ret = -1;
+                PyErr_SetString(PyExc_NotImplementedError,"Multiple channels not implemented yet");
+                ret = -1;
             }
         }
     }
     else
         ret = -1;
-	return ret;
+    return ret;
 }
 
 static int buffer_ass_slice(PyObject *s,Py_ssize_t ilow,Py_ssize_t ihigh,PyObject *value)
@@ -386,8 +386,10 @@ static int buffer_ass_slice(PyObject *s,Py_ssize_t ilow,Py_ssize_t ihigh,PyObjec
 
 #ifdef PY_NUMARRAY
             PyArrayObject *out = NA_InputArray(value,numtype,NUM_C_ARRAY);
+            const t_sample *src = (t_sample *)NA_OFFSETDATA(out);
 #else
             PyArrayObject *out = (PyArrayObject *)PyArray_ContiguousFromObject(value,numtype,1,2);
+            const t_sample *src = (t_sample *)out->data;
 #endif
             if(!out) {
                 // exception already set
@@ -400,11 +402,10 @@ static int buffer_ass_slice(PyObject *s,Py_ssize_t ilow,Py_ssize_t ihigh,PyObjec
             else {
                 int dlen = ihigh-ilow;
                 int slen = out->dimensions[0];
-#ifdef PY_NUMARRAY
-                flext::CopySamples(self->buf->Data()+ilow,(t_sample *)NA_OFFSETDATA(out),slen < dlen?slen:dlen);
-#else
-                flext::CopySamples(self->buf->Data()+ilow,(t_sample *)out->data,slen < dlen?slen:dlen);
-#endif
+                int cnt = slen < dlen?slen:dlen;
+                flext::buffer::Element *dst = self->buf->Data()+ilow;
+                for(int i = 0; i < cnt; ++i) dst[i] = src[i];
+                
                 self->dirty = true;
                 ret = 0;
             }
@@ -455,13 +456,13 @@ static PyObject *buffer_repeat(PyObject *s,Py_ssize_t rep)
 
 
 static PySequenceMethods buffer_as_seq = {
-	buffer_length,			/* inquiry sq_length;             __len__ */
-	buffer_concat,          /* __add__ */
-	buffer_repeat,          /* __mul__ */
-	buffer_item,			/* intargfunc sq_item;            __getitem__ */
-	buffer_slice,		 /* intintargfunc sq_slice;        __getslice__ */
-	buffer_ass_item,		/* intobjargproc sq_ass_item;     __setitem__ */
-	buffer_ass_slice,	/* intintobjargproc sq_ass_slice; __setslice__ */
+    buffer_length,          /* inquiry sq_length;             __len__ */
+    buffer_concat,          /* __add__ */
+    buffer_repeat,          /* __mul__ */
+    buffer_item,            /* intargfunc sq_item;            __getitem__ */
+    buffer_slice,        /* intintargfunc sq_slice;        __getslice__ */
+    buffer_ass_item,        /* intobjargproc sq_ass_item;     __setitem__ */
+    buffer_ass_slice,   /* intintobjargproc sq_ass_slice; __setslice__ */
 };
 
 static PyObject *buffer_iter(PyObject *s)
@@ -622,12 +623,12 @@ static int buffer_coerce(PyObject **pm, PyObject **pw)
     if(pySamplebuffer_Check(*pw)) {
         Py_INCREF(*pm);
         Py_INCREF(*pw);
-    	return 0;
+        return 0;
     }
     else
         return 1;
 }
-	
+    
 static PyObject *buffer_inplace_add(PyObject *s,PyObject *op)
 {
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
@@ -715,44 +716,44 @@ static PyObject *buffer_inplace_power(PyObject *s,PyObject *op1,PyObject *op2)
 
 
 static PyNumberMethods buffer_as_number = {
-	(binaryfunc)buffer_add, /*nb_add*/
-	(binaryfunc)buffer_subtract, /*nb_subtract*/
-	(binaryfunc)buffer_multiply, /*nb_multiply*/
-	(binaryfunc)buffer_divide, /*nb_divide*/
-	(binaryfunc)buffer_remainder, /*nb_remainder*/
-	(binaryfunc)buffer_divmod, /*nb_divmod*/
-	(ternaryfunc)buffer_power, /*nb_power*/
-	(unaryfunc)buffer_negative, 
-	(unaryfunc)buffer_pos, /*nb_pos*/ 
-	(unaryfunc)buffer_absolute, /* (unaryfunc)buffer_abs,  */
-	0, //(inquiry)buffer_nonzero, /*nb_nonzero*/
-	0,		/*nb_invert*/
-	0,		/*nb_lshift*/
-	0,		/*nb_rshift*/
-	0,		/*nb_and*/
-	0,		/*nb_xor*/
-	0,		/*nb_or*/
-	(coercion)buffer_coerce, /*nb_coerce*/
-	0, /*nb_int*/
-	0, /*nb_long*/
-	0, /*nb_float*/
-	0,		/*nb_oct*/
-	0,		/*nb_hex*/
-	(binaryfunc)buffer_inplace_add,		/* nb_inplace_add */
-	(binaryfunc)buffer_inplace_subtract,		/* nb_inplace_subtract */
-	(binaryfunc)buffer_inplace_multiply,		/* nb_inplace_multiply */
-	(binaryfunc)buffer_inplace_divide,		/* nb_inplace_divide */
-	(binaryfunc)buffer_inplace_remainder,		/* nb_inplace_remainder */
-	(ternaryfunc)buffer_inplace_power, 		/* nb_inplace_power */
-	0,		/* nb_inplace_lshift */
-	0,		/* nb_inplace_rshift */
-	0,		/* nb_inplace_and */
-	0,		/* nb_inplace_xor */
-	0,		/* nb_inplace_or */
-//	buffer_floor_div, /* nb_floor_divide */
-//	buffer_div,	/* nb_true_divide */
-//	buffer_inplace_floor_div,		/* nb_inplace_floor_divide */
-//	buffer_inplace_div,		/* nb_inplace_true_divide */
+    (binaryfunc)buffer_add, /*nb_add*/
+    (binaryfunc)buffer_subtract, /*nb_subtract*/
+    (binaryfunc)buffer_multiply, /*nb_multiply*/
+    (binaryfunc)buffer_divide, /*nb_divide*/
+    (binaryfunc)buffer_remainder, /*nb_remainder*/
+    (binaryfunc)buffer_divmod, /*nb_divmod*/
+    (ternaryfunc)buffer_power, /*nb_power*/
+    (unaryfunc)buffer_negative, 
+    (unaryfunc)buffer_pos, /*nb_pos*/ 
+    (unaryfunc)buffer_absolute, /* (unaryfunc)buffer_abs,  */
+    0, //(inquiry)buffer_nonzero, /*nb_nonzero*/
+    0,      /*nb_invert*/
+    0,      /*nb_lshift*/
+    0,      /*nb_rshift*/
+    0,      /*nb_and*/
+    0,      /*nb_xor*/
+    0,      /*nb_or*/
+    (coercion)buffer_coerce, /*nb_coerce*/
+    0, /*nb_int*/
+    0, /*nb_long*/
+    0, /*nb_float*/
+    0,      /*nb_oct*/
+    0,      /*nb_hex*/
+    (binaryfunc)buffer_inplace_add,     /* nb_inplace_add */
+    (binaryfunc)buffer_inplace_subtract,        /* nb_inplace_subtract */
+    (binaryfunc)buffer_inplace_multiply,        /* nb_inplace_multiply */
+    (binaryfunc)buffer_inplace_divide,      /* nb_inplace_divide */
+    (binaryfunc)buffer_inplace_remainder,       /* nb_inplace_remainder */
+    (ternaryfunc)buffer_inplace_power,      /* nb_inplace_power */
+    0,      /* nb_inplace_lshift */
+    0,      /* nb_inplace_rshift */
+    0,      /* nb_inplace_and */
+    0,      /* nb_inplace_xor */
+    0,      /* nb_inplace_or */
+//  buffer_floor_div, /* nb_floor_divide */
+//  buffer_div, /* nb_true_divide */
+//  buffer_inplace_floor_div,       /* nb_inplace_floor_divide */
+//  buffer_inplace_div,     /* nb_inplace_true_divide */
 };
 
 PyTypeObject pySamplebuffer_Type = {
@@ -778,12 +779,12 @@ PyTypeObject pySamplebuffer_Type = {
     &buffer_as_buffer,             /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT /*| Py_TPFLAGS_BASETYPE*/,   /*tp_flags*/
     "Samplebuffer objects",           /* tp_doc */
-    0,		               /* tp_traverse */
-    0,		               /* tp_clear */
-    0 /*buffer_richcompare*/,	       /* tp_richcompare */
-    0,		               /* tp_weaklistoffset */
-    buffer_iter,		               /* tp_iter */
-    0,		               /* tp_iternext */
+    0,                     /* tp_traverse */
+    0,                     /* tp_clear */
+    0 /*buffer_richcompare*/,          /* tp_richcompare */
+    0,                     /* tp_weaklistoffset */
+    buffer_iter,                       /* tp_iter */
+    0,                     /* tp_iternext */
     buffer_methods,                          /* tp_methods */
     0,            /* tp_members */
     buffer_getseters,          /* tp_getset */
@@ -805,7 +806,7 @@ static void __import_array__()
 #ifdef PY_NUMARRAY
     import_libnumarray();
 #else
-	import_array();
+    import_array();
 #endif
 }
 #endif
@@ -813,7 +814,7 @@ static void __import_array__()
 void initsamplebuffer()
 {
 #ifdef PY_ARRAYS
-	__import_array__();
+    __import_array__();
     if(PyErr_Occurred())
         // catch import error
         PyErr_Clear();
@@ -825,7 +826,7 @@ void initsamplebuffer()
         numtype = sizeof(t_sample) == 4?PyArray_FLOAT:PyArray_DOUBLE;
 #endif
         post("");
-	    post("Python array support enabled");
+        post("Python array support enabled");
     }
 #endif
 
