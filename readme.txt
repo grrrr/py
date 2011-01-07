@@ -1,6 +1,6 @@
 py/pyext - python script objects for PD and Max/MSP
 
-Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
+Copyright ©2002-2011 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -16,7 +16,7 @@ For OS X keep things as the are - it has Python installed by default.
 
 
 The py/pyext package should run with Python version >= 2.1.
-It has been thoroughly tested with versions 2.2 to 2.5
+It has been tested with versions 2.2 to 2.7
 
 The default build setting using PY_USE_GIL requires Python version >= 2.3.
 
