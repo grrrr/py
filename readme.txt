@@ -95,6 +95,9 @@ to avoid a compile-time type definition clash.
 
 Version history:
 
+0.2.2:
+- FIX: pyext._send(receiversym) sent an empty list to receiversym, now it sends a bang message (equivalent to pyext._send(receiversym,"bang",()) ). Thanks to Yvan Volochine for spotting that.
+
 0.2.1:
 - FIX: some simplifications in py and pyext
 - ADD: Python objects can be sent/received through outlets/inlets

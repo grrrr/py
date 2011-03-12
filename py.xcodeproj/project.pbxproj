@@ -255,7 +255,14 @@
 			isa = PBXProject;
 			buildConfigurationList = E93C2D8D0A5DB6E70023B566 /* Build configuration list for PBXProject "py" */;
 			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 089C166AFE841209C02AAC07 /* py */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -583,12 +590,13 @@
 					PY_NUMPY,
 					PY_USE_GIL,
 				);
+				GCC_VERSION = 4.0;
 				HEADER_SEARCH_PATHS = (
 					"/Library/Python/2.3/site-packages/numpy/core/include/",
 					"$(lockfree)",
 					"$(flext)/source",
 				);
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
 			};
 			name = Development;
 		};

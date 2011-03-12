@@ -1,7 +1,7 @@
 /* 
 py/pyext - python script object for PD and MaxMSP
 
-Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2011 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -15,7 +15,7 @@ $LastChangedBy$
 
 #include "pyprefix.h"
 
-#define PY__VERSION "0.2.1pre"
+#define PY__VERSION "0.2.2"
 
 
 #define PYEXT_MODULE "pyext" // name for module

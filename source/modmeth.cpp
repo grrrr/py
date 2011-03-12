@@ -1,7 +1,7 @@
 /* 
 py/pyext - python external object for PD and Max/MSP
 
-Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2011 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -180,7 +180,12 @@ PyObject *pybase::py_send(PyObject *,PyObject *args)
 		Py_DECREF(val);
 
 		if(sym) {
-    		bool ok = Forward(recv,sym,lst.Count(),lst.Atoms());
+    		bool ok;
+			if(sym == sym_list && !lst.Count())
+				// empty list is translated to a bang message
+				ok = Forward(recv,sym_bang,0,NULL);
+			else
+				ok = Forward(recv,sym,lst.Count(),lst.Atoms());
 #ifdef FLEXT_DEBUG
             if(!ok)
 				post("py/pyext - Receiver doesn't exist");
