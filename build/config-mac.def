@@ -1,4 +1,4 @@
-# set PY_DEFAULT=0 if you have installed Python on your system 
+# set PY_DEFAULT=0 if you manually installed Python on your system 
 # (overriding the one that came with OS X by default)
 PY_DEFAULT=1
 
