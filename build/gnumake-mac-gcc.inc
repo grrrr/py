@@ -6,6 +6,7 @@ _LOCAL_LIBRARY := /Library/Python/$(PY_MAJOR_VERSION).$(PY_MINOR_VERSION)
 _SYSTEM_LIBRARY := /System/Library/Python/$(PY_MAJOR_VERSION).$(PY_MINOR_VERSION)
 
 DEFS += -DPY_EXPORTS
+INCPATH += -F/Library/Frameworks -framework Python
 
 ifeq ($(PY_DEFAULT),1)
 LIBS += $(_SYSTEM_FRAMEWORK)/Python
