@@ -34,7 +34,7 @@ $LastChangedBy$
 #include <unistd.h>
 #endif
 
-#if FLEXT_SYS == FLEXT_SYS_PD && (!defined (PD_MINOR_VERSION) || PD_MINOR_VERSION < 37)
+#if FLEXT_SYS == FLEXT_SYS_PD && (!defined (PD_MINOR_VERSION) || ( PD_MAJOR_VERSION == 0 && PD_MINOR_VERSION < 37))
 #error PD version >= 0.37 required, please upgrade! 
 #endif
 

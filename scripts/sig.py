@@ -1,6 +1,6 @@
 # py/pyext - python script objects for PD and MaxMSP
 #
-# Copyright (c) 2002-2005 Thomas Grill (gr@grrrr.org)
+# Copyright (c) 2002-2012 Thomas Grill (gr@grrrr.org)
 # For information on usage and redistribution, and for a DISCLAIMER OF ALL
 # WARRANTIES, see the file, "license.txt," in this distribution.  
 #
@@ -27,9 +27,9 @@ except:
 import sys,math
 
 try:    
-    import numarray
+    import numpy as N
 except:
-    print "Failed importing numarray module:",sys.exc_value
+    print "Failed importing numpy module:",sys.exc_value
 
 
 class gain(pyext._class):

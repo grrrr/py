@@ -1,7 +1,7 @@
 /* 
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2012 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -279,7 +279,7 @@ void pymeth::m_set(int argc,const t_atom *argv)
 void pymeth::m_help()
 {
 	post("");
-	post("%s %s - python method object, (C)2002-2008 Thomas Grill",thisName(),PY__VERSION);
+	post("%s %s - python method object, (C)2002-2012 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
 	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif

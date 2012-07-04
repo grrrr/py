@@ -1,7 +1,7 @@
 /* 
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2011 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2012 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -441,14 +441,27 @@ void pybase::SetArgs()
 	delete[] sargv;
 }
 
+#if FLEXT_SYS == FLEXT_SYS_PD
+static void fileclose(int fd)
+{
+#if PD_MAJOR_VERSION > 0 || PD_MINOR_VERSION >= 43
+	sys_close(fd);
+#elif FLEXT_OS == FLEXT_OS_WIN
+#error Pd version < 0.43 not supported for Windows
+#else
+	close(fd);
+#endif
+}
+#endif
+
 static bool getmodulesub(const char *mod,char *dir,int len,char *ext)
 {
 #if FLEXT_SYS == FLEXT_SYS_PD
 	char *name;
 	int fd = open_via_path("",mod,ext,dir,&name,len,0);
-    if(fd > 0) {
+    if(fd >= 0) {
+		fileclose(fd);
         FLEXT_ASSERT(name && *name);
-        close(fd);
     }
     else {
         // look for mod/__init__.py
@@ -456,10 +469,11 @@ static bool getmodulesub(const char *mod,char *dir,int len,char *ext)
         int l = tmp.size();
         tmp += "/__init__";
         fd = open_via_path("",tmp.c_str(),ext,dir,&name,len,0);
-        if(fd > 0) {
+        if(fd >= 0) {
+			fileclose(fd);
             FLEXT_ASSERT(name && *name);
-            close(fd);
-            // we must remove the module name from dir
+
+			// we must remove the module name from dir
             char *t = dir+strlen(dir)-l;
             FLEXT_ASSERT(!strcmp(mod,t) && t[-1] == '/');
             t[-1] = 0;

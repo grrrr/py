@@ -1,7 +1,7 @@
 /* 
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2011 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2012 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -503,7 +503,7 @@ bool pyext::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 void pyext::m_help()
 {
 	post("");
-	post("%s %s - python class object, (C)2002-2011 Thomas Grill",thisName(),PY__VERSION);
+	post("%s %s - python class object, (C)2002-2012 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
 	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
