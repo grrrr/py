@@ -1,6 +1,6 @@
 py/pyext - python script objects for PD and Max/MSP
 
-Copyright ©2002-2011 Thomas Grill (gr@grrrr.org)
+Copyright ©2002-2012 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -29,6 +29,7 @@ INSTALLATION
 
 PD version >= 0.38 - Add "py" to the Startup items ("binaries to load") and add the folder "scripts" to the pd search path.
 PD version < 0.38 - Load it as a library with e.g. "pd -lib py -path scripts"
+Under Windows, py/pyext needs at least PD 0.43
 
 Max/MSP - Copy py-objectmappings.txt into the init folder and py.mxe (Windows) or py.mxo (OSX) into the externals folder.
 
@@ -97,6 +98,7 @@ Version history:
 
 0.2.2:
 - FIX: pyext._send(receiversym) sent an empty list to receiversym, now it sends a bang message (equivalent to pyext._send(receiversym,"bang",()) ). Thanks to Yvan Volochine for spotting that.
+- FIX: A bug in Pd < 0.43 under Windows causes various errors on loading the modules. This is fixed, py/pyext for Windows now needs Pd 0.43
 
 0.2.1:
 - FIX: some simplifications in py and pyext
