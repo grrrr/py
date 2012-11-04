@@ -148,7 +148,7 @@ const t_symbol *pybase::getone(t_atom &at,PyObject *arg)
 	else {
 		PyObject *tp = PyObject_Type(arg);
 		PyObject *stp = tp?PyObject_Str(tp):NULL;
-		char *tmp = "";
+		const char *tmp = "";
 		if(stp) tmp = PyString_AS_STRING(stp);
 		flext::post("py/pyext: Could not convert argument %s",tmp);
 		Py_XDECREF(stp);
@@ -171,7 +171,7 @@ const t_symbol *pybase::getlist(t_atom *lst,PyObject *seq,int cnt,int offs)
 
 const t_symbol *pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs)
 {
-	if(pValue == NULL) return false; 
+	if(pValue == NULL) return NULL; 
 
     // output bang on None returned
     if(pValue == Py_None) return sym_bang;

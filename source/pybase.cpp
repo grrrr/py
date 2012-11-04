@@ -882,7 +882,7 @@ void pybase::quworker(thr_params *)
     ThrState my = FindThreadState(),state;
 
     for(;;) {
-        while(el = qufifo.Get()) {
+        while((el = qufifo.Get())) {
         	++el->th->thrcount; // \todo this should be atomic
             {
                 ThrLock lock(my);
@@ -900,7 +900,7 @@ void pybase::quworker(thr_params *)
     if(false) {
         ThrLock lock(my);
     // unref remaining Python objects
-    while(el = qufifo.Get()) {
+    while((el = qufifo.Get())) {
         Py_XDECREF(el->fun);
         Py_XDECREF(el->args);
         qufifo.Free(el);
@@ -912,7 +912,7 @@ void pybase::erasethreads()
 {
     PyFifo tmp;
     FifoEl *el;
-    while(el = qufifo.Get()) {
+    while((el = qufifo.Get())) {
         if(el->th == this) {
             Py_XDECREF(el->fun);
             Py_XDECREF(el->args);
@@ -922,7 +922,7 @@ void pybase::erasethreads()
             tmp.Put(el);
     }
     // Push back
-    while(el = tmp.Get()) qufifo.Put(el);
+    while((el = tmp.Get())) qufifo.Put(el);
 }
 #endif
 
