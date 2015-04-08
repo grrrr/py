@@ -1,13 +1,9 @@
-/* 
+/*
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
-
-$LastChangedRevision: 26 $
-$LastChangedDate$
-$LastChangedBy$
 */
 
 #ifndef PY_NODSP
@@ -17,7 +13,7 @@ $LastChangedBy$
 class pydsp
     : public pyext
 {
-	FLEXT_HEADER(pydsp,pyext)
+    FLEXT_HEADER(pydsp,pyext)
 public:
     pydsp(int argc,const t_atom *argv);
 
@@ -49,15 +45,15 @@ bool pydsp::DoInit()
     if(!pyext::DoInit()) return false;
     
     if(pyobj) 
-	{ 
+    { 
         dspfun = PyObject_GetAttrString(pyobj,"_dsp"); // get ref
-	    if(!dspfun)
-			PyErr_Clear();
-		else if(!PyMethod_Check(dspfun)) {
+        if(!dspfun)
+            PyErr_Clear();
+        else if(!PyMethod_Check(dspfun)) {
             Py_DECREF(dspfun);
-		    dspfun = NULL;
-		}
-	}
+            dspfun = NULL;
+        }
+    }
     return true;
 }
 
@@ -120,17 +116,17 @@ bool pydsp::CbDsp()
 {
     if(pyobj && (CntInSig() || CntOutSig()))
     {
-       	ThrLockSys lock;
+        ThrLockSys lock;
 
         NewBuffers();
 
-		bool dodsp = true;
+        bool dodsp = true;
         if(dspfun) {
             PyObject *ret = PyObject_CallObject(dspfun,NULL);
             if(ret) {
-				dodsp = PyObject_IsTrue(ret) != 0;
+                dodsp = PyObject_IsTrue(ret) != 0;
                 Py_DECREF(ret);
-			}
+            }
             else {
 #ifdef FLEXT_DEBUG
                 PyErr_Print();
@@ -144,18 +140,18 @@ bool pydsp::CbDsp()
         // _signal can be assigned in _dsp
         // optimizations may be done there to assign the right _signal version
         Py_XDECREF(sigfun);
-		
-		if(dodsp) {
-			sigfun = PyObject_GetAttrString(pyobj,"_signal"); // get ref
-			if(!sigfun)
-				PyErr_Clear();
-			else if(!PyMethod_Check(sigfun)) {
-				Py_DECREF(sigfun);
-				sigfun = NULL;
-			}
-		}
-		else
-			sigfun = NULL;
+        
+        if(dodsp) {
+            sigfun = PyObject_GetAttrString(pyobj,"_signal"); // get ref
+            if(!sigfun)
+                PyErr_Clear();
+            else if(!PyMethod_Check(sigfun)) {
+                Py_DECREF(sigfun);
+                sigfun = NULL;
+            }
+        }
+        else
+            sigfun = NULL;
 
         return sigfun != NULL;
     }

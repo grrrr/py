@@ -1,13 +1,9 @@
-/* 
+/*
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2012 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
-
-$LastChangedRevision: 26 $
-$LastChangedDate$
-$LastChangedBy$
 */
 
 #include "pybase.h"
@@ -94,36 +90,36 @@ class pymeth
     : public pybase
     , public flext_base
 {
-	FLEXT_HEADER_S(pymeth,flext_base,Setup)
+    FLEXT_HEADER_S(pymeth,flext_base,Setup)
 
 public:
-	pymeth(int argc,const t_atom *argv);
-	~pymeth();
+    pymeth(int argc,const t_atom *argv);
+    ~pymeth();
 
 protected:
     virtual void Exit();
 
-	virtual bool CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv);
+    virtual bool CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv);
 
     void m_help();    
 
     void m_reload() { Reload(); }
     void m_reload_(int argc,const t_atom *argv) { args(argc,argv); Reload(); }
-	void m_set(int argc,const t_atom *argv);
+    void m_set(int argc,const t_atom *argv);
     void m_dir_() { m__dir(function); }
     void m_doc_() { m__doc(function); }
 
-	const t_symbol *funname;
-	PyObject *function;
+    const t_symbol *funname;
+    PyObject *function;
 
-	virtual void LoadModule();
-	virtual void UnloadModule();
+    virtual void LoadModule();
+    virtual void UnloadModule();
 
-	virtual void Load();
-	virtual void Unload();
+    virtual void Load();
+    virtual void Unload();
 
-	void SetFunction(const t_symbol *func);
-	void ResetFunction();
+    void SetFunction(const t_symbol *func);
+    void ResetFunction();
 
     virtual void DumpOut(const t_symbol *sym,int argc,const t_atom *argv);
 
@@ -133,24 +129,24 @@ private:
 
     virtual void callpy(PyObject *fun,PyObject *args);
 
-	static void Setup(t_classid c);
+    static void Setup(t_classid c);
 
-	FLEXT_CALLBACK(m_help)
-	FLEXT_CALLBACK(m_reload)
-	FLEXT_CALLBACK_V(m_reload_)
-	FLEXT_CALLBACK_V(m_set)
-	FLEXT_CALLBACK(m_dir_)
-	FLEXT_CALLBACK(m_doc_)
+    FLEXT_CALLBACK(m_help)
+    FLEXT_CALLBACK(m_reload)
+    FLEXT_CALLBACK_V(m_reload_)
+    FLEXT_CALLBACK_V(m_set)
+    FLEXT_CALLBACK(m_dir_)
+    FLEXT_CALLBACK(m_doc_)
 
-	// callbacks
-	FLEXT_ATTRVAR_I(detach)
-	FLEXT_ATTRVAR_B(pymsg)
-	FLEXT_ATTRVAR_B(respond)
+    // callbacks
+    FLEXT_ATTRVAR_I(detach)
+    FLEXT_ATTRVAR_B(pymsg)
+    FLEXT_ATTRVAR_B(respond)
 
-	FLEXT_CALLBACK_V(m_stop)
-	FLEXT_CALLBACK(m_dir)
-	FLEXT_CALLGET_V(mg_dir)
-	FLEXT_CALLBACK(m_doc)
+    FLEXT_CALLBACK_V(m_stop)
+    FLEXT_CALLBACK(m_dir)
+    FLEXT_CALLGET_V(mg_dir)
+    FLEXT_CALLBACK(m_doc)
 
 #ifdef FLEXT_THREADS
     FLEXT_CALLBACK_T(tick)
@@ -162,23 +158,23 @@ FLEXT_LIB_V("pym",pymeth)
 
 void pymeth::Setup(t_classid c)
 {
-	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
-	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
+    FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
+    FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
 #ifdef FLEXT_THREADS
-	FLEXT_CADDATTR_VAR1(c,"detach",detach);
-	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
+    FLEXT_CADDATTR_VAR1(c,"detach",detach);
+    FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
 #endif
 
-	FLEXT_CADDMETHOD_(c,0,"help",m_help);
-	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
+    FLEXT_CADDMETHOD_(c,0,"help",m_help);
+    FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
     FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
-	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
-	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
+    FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
+    FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
 
-	FLEXT_CADDMETHOD_(c,0,"set",m_set);
+    FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
-  	FLEXT_CADDATTR_VAR1(c,"py",pymsg);
-  	FLEXT_CADDATTR_VAR1(c,"respond",respond);
+    FLEXT_CADDATTR_VAR1(c,"py",pymsg);
+    FLEXT_CADDATTR_VAR1(c,"respond",respond);
 
     // init translation map
     for(const xlt *xi = xtdefs; xi->from; ++xi) xtable[xi->from] = xi->to;
@@ -193,7 +189,7 @@ pymeth::pymeth(int argc,const t_atom *argv)
     FLEXT_ADDTIMER(stoptmr,tick);
 #endif
 
-	ThrLockSys lock;
+    ThrLockSys lock;
 
     int inlets;
     if(argc && CanbeInt(*argv)) {
@@ -209,21 +205,21 @@ pymeth::pymeth(int argc,const t_atom *argv)
     if(inlets <= 0) InitProblem();
 
     AddInAnything(1+(inlets < 0?1:inlets));
-	AddOutAnything();  
+    AddOutAnything();  
 
-	Register(GetRegistry(REGNAME));
+    Register(GetRegistry(REGNAME));
 
     if(argc) {
         const t_symbol *funnm = GetASymbol(*argv);
         argv++,argc--;
 
         if(funnm)
-	        SetFunction(funnm);
+            SetFunction(funnm);
         else
             PyErr_SetString(PyExc_ValueError,"Invalid function name");
     }
 
-	if(argc) args(argc,argv);
+    if(argc) args(argc,argv);
 
     Report();
 }
@@ -236,7 +232,7 @@ pymeth::~pymeth()
     }
 
     ThrLockSys lock;
-	Unregister(GetRegistry(REGNAME));
+    Unregister(GetRegistry(REGNAME));
     Report();
 }
 
@@ -248,27 +244,27 @@ void pymeth::Exit()
 
 void pymeth::m_set(int argc,const t_atom *argv)
 {
-	ThrLockSys lock;
+    ThrLockSys lock;
 
     // function name has precedence
-	if(argc >= 2) {
-	    const char *sn = GetAString(*argv);
-	    ++argv,--argc;
+    if(argc >= 2) {
+        const char *sn = GetAString(*argv);
+        ++argv,--argc;
 
         if(sn) {
-		    if(!module || !strcmp(sn,PyModule_GetName(module))) {
-			    ImportModule(sn);
-			    Register(GetRegistry(REGNAME));
-		    }
+            if(!module || !strcmp(sn,PyModule_GetName(module))) {
+                ImportModule(sn);
+                Register(GetRegistry(REGNAME));
+            }
         }
         else
             PyErr_SetString(PyExc_ValueError,"Invalid module name");
-	}
+    }
 
     if(argc) {
-	    const t_symbol *fn = GetASymbol(*argv);
+        const t_symbol *fn = GetASymbol(*argv);
         if(fn)
-	        SetFunction(fn);
+            SetFunction(fn);
         else
             PyErr_SetString(PyExc_ValueError,"Invalid function name");
     }
@@ -278,32 +274,32 @@ void pymeth::m_set(int argc,const t_atom *argv)
 
 void pymeth::m_help()
 {
-	post("");
-	post("%s %s - python method object, (C)2002-2012 Thomas Grill",thisName(),PY__VERSION);
+    post("");
+    post("%s %s - python method object, (C)2002-2012 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
-	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
+    post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
 
-	post("Arguments: %s [method name] {args...}",thisName());
+    post("Arguments: %s [method name] {args...}",thisName());
 
-	post("Inlet 1:messages to control the py object");
-	post("      2:call python function with message as argument(s)");
-	post("Outlet: 1:return values from python function");	
-	post("Methods:");
-	post("\thelp: shows this help");
-	post("\tbang: call script without arguments");
-	post("\tset [script name] [function name]: set (script and) function name");
-	post("\treload {args...}: reload python script");
-	post("\treload. : reload with former arguments");
-	post("\tdoc: display module doc string");
-	post("\tdoc+: display function doc string");
-	post("\tdir: dump module dictionary");
-	post("\tdir+: dump function dictionary");
+    post("Inlet 1:messages to control the py object");
+    post("      2:call python function with message as argument(s)");
+    post("Outlet: 1:return values from python function");   
+    post("Methods:");
+    post("\thelp: shows this help");
+    post("\tbang: call script without arguments");
+    post("\tset [script name] [function name]: set (script and) function name");
+    post("\treload {args...}: reload python script");
+    post("\treload. : reload with former arguments");
+    post("\tdoc: display module doc string");
+    post("\tdoc+: display function doc string");
+    post("\tdir: dump module dictionary");
+    post("\tdir+: dump function dictionary");
 #ifdef FLEXT_THREADS
-	post("\tdetach 0/1/2: detach threads");
-	post("\tstop {wait time (ms)}: stop threads");
+    post("\tdetach 0/1/2: detach threads");
+    post("\tstop {wait time (ms)}: stop threads");
 #endif
-	post("");
+    post("");
 }
 
 void pymeth::ResetFunction()
@@ -341,7 +337,7 @@ void pymeth::UnloadModule()
 
 void pymeth::Load()
 {
-	ResetFunction();
+    ResetFunction();
 }
 
 void pymeth::Unload()
@@ -400,14 +396,14 @@ bool pymeth::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
             PyObject *pargs = PyTuple_New(inlets-1);
             for(int i = 1; i < inlets; ++i) {
                 Py_INCREF(objects[i]);
-    		    PyTuple_SET_ITEM(pargs,i-1,objects[i]);
+                PyTuple_SET_ITEM(pargs,i-1,objects[i]);
             }
 
             gencall(function,pargs); // references are stolen
             ret = true;
         }
-	    else
-		    PyErr_SetString(PyExc_RuntimeError,"No function set");
+        else
+            PyErr_SetString(PyExc_RuntimeError,"No function set");
 
         Report();
     }

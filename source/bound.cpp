@@ -1,13 +1,9 @@
-/* 
+/*
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
-
-$LastChangedRevision: 26 $
-$LastChangedDate$
-$LastChangedBy$
 */
 
 #include "pyext.h"
@@ -66,22 +62,22 @@ bool pyext::boundmeth(flext_base *th,t_symbol *sym,int argc,t_atom *argv,void *d
     bounddata *obj = (bounddata *)data;
     pyext *pyth = static_cast<pyext *>(th);
 
-	ThrState state = pyth->PyLock();
+    ThrState state = pyth->PyLock();
 
-	PyObject *args = MakePyArgs(sym,argc,argv);
+    PyObject *args = MakePyArgs(sym,argc,argv);
 
     // call all functions bound by this symbol
     for(FuncSet::iterator it = obj->funcs.begin(); it != obj->funcs.end(); ++it) {
-	    PyObject *ret = PyObject_CallObject(*it,args);
-	    if(!ret)
-		    PyErr_Print();
+        PyObject *ret = PyObject_CallObject(*it,args);
+        if(!ret)
+            PyErr_Print();
         else
-    	    Py_DECREF(ret);
+            Py_DECREF(ret);
     }
 
     Py_XDECREF(args);
 
-	pyth->PyUnlock(state);
+    pyth->PyUnlock(state);
     return true;
 }
 
@@ -89,18 +85,18 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 {
     PyObject *self,*meth,*name;
     if(!PyArg_ParseTuple(args, "OOO:pyext_bind", &self,&name,&meth)) // borrowed references
-		post("py/pyext - Wrong arguments!");
-	else if(!PyInstance_Check(self) || !PyCallable_Check(meth)) {
-		post("py/pyext - Wrong argument types!");
+        post("py/pyext - Wrong arguments!");
+    else if(!PyInstance_Check(self) || !PyCallable_Check(meth)) {
+        post("py/pyext - Wrong argument types!");
     }
-	else {
+    else {
         pyext *th = GetThis(self);
         if(!th) {    
             PyErr_SetString(PyExc_RuntimeError,"pyext - _bind: instance not associated with pd object");
             return NULL;
         }
 
-		const t_symbol *recv = pyObject_AsSymbol(name);
+        const t_symbol *recv = pyObject_AsSymbol(name);
 
         void *data = NULL;
         if(recv && th->GetBoundMethod(recv,boundmeth,data)) {
@@ -115,7 +111,7 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
             }
         }
         else {
-    		Py_INCREF(self); // self is borrowed reference
+            Py_INCREF(self); // self is borrowed reference
             Py_INCREF(meth);
 
             bounddata *data = new bounddata;
@@ -124,7 +120,7 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
 
             th->BindMethod(recv,boundmeth,data);
         }
-	}
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -134,18 +130,18 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
 {
     PyObject *self,*meth,*name;
     if(!PyArg_ParseTuple(args, "OOO:pyext_bind", &self,&name,&meth))  // borrowed references
-		post("py/pyext - Wrong arguments!");
-	else if(!PyInstance_Check(self) || !PyCallable_Check(meth)) {
-		post("py/pyext - Wrong argument types!");
+        post("py/pyext - Wrong arguments!");
+    else if(!PyInstance_Check(self) || !PyCallable_Check(meth)) {
+        post("py/pyext - Wrong argument types!");
     }
-	else {
+    else {
         pyext *th = GetThis(self);
         if(!th) {    
             PyErr_SetString(PyExc_RuntimeError,"pyext - _unbind: instance not associated with pd object");
             return NULL;
         }
 
-		const t_symbol *recv = pyObject_AsSymbol(name);
+        const t_symbol *recv = pyObject_AsSymbol(name);
 
         void *data = NULL;
         if(recv && th->GetBoundMethod(recv,boundmeth,data)) {
@@ -157,20 +153,20 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
             // it just points to the same instance method
             FuncSet::iterator it = bdt->funcs.find(meth);
             if(it != bdt->funcs.end()) {
-    	        Py_DECREF(*it);
+                Py_DECREF(*it);
                 bdt->funcs.erase(it);               
             }
             else
                 post("py/pyext - Function to unbind couldn't be found");
 
             if(bdt->funcs.empty()) {
-    		    Py_DECREF(bdt->self);
+                Py_DECREF(bdt->self);
                 delete bdt; 
 
                 th->UnbindMethod(recv,boundmeth,NULL);
             }
         }
-	}
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -195,7 +191,7 @@ void pyext::ClearBinding()
             for(FuncSet::iterator it = bdt->funcs.begin(); it != bdt->funcs.end(); ++it) 
                 Py_DECREF(*it);
 
-		    Py_DECREF(bdt->self);
+            Py_DECREF(bdt->self);
             delete bdt; 
         }
     }

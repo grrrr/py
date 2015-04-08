@@ -1,13 +1,9 @@
-/* 
+/*
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
-
-$LastChangedRevision: 26 $
-$LastChangedDate$
-$LastChangedBy$
 */
 
 #include "pyprefix.h"
@@ -84,8 +80,8 @@ static PyObject *bundle_richcompare(PyObject *a,PyObject *b,int cmp)
         }
         return PyBool_FromLong(ret);
     }
-	Py_INCREF(Py_NotImplemented);
-	return Py_NotImplemented;
+    Py_INCREF(Py_NotImplemented);
+    return Py_NotImplemented;
 }
 
 static long bundle_hash(PyObject *self)
@@ -106,14 +102,14 @@ static PyObject *bundle_append(PyObject *self,PyObject *args)
         int o;
 
         if(sz > 2 &&
-		    (tg = PyTuple_GET_ITEM(args,0)) != NULL && PyInstance_Check(tg) && 
-		    (outl = PyTuple_GET_ITEM(args,1)) != NULL && PyInt_Check(outl)
+            (tg = PyTuple_GET_ITEM(args,0)) != NULL && PyInstance_Check(tg) && 
+            (outl = PyTuple_GET_ITEM(args,1)) != NULL && PyInt_Check(outl)
         ) {
             // Sending to outlet
             ext = pyext::GetThis(tg);
             o = PyInt_AS_LONG(outl);
 
-    		if(o < 1 || o > ext->Outlets()) {
+            if(o < 1 || o > ext->Outlets()) {
                 PyErr_SetString(PyExc_ValueError,"Outlet index out of range");
                 return NULL;
             }
@@ -121,14 +117,14 @@ static PyObject *bundle_append(PyObject *self,PyObject *args)
             offs += 2;
         }
         else if(sz > 1 &&
-		    (tg = PyTuple_GET_ITEM(args,0)) != NULL && (recv = pyObject_AsSymbol(tg)) != NULL
+            (tg = PyTuple_GET_ITEM(args,0)) != NULL && (recv = pyObject_AsSymbol(tg)) != NULL
         ) {
             // Sending to receiver
             offs++;
         }
         else {
             // not recognized
-    		PyErr_SetString(PyExc_SyntaxError,"Unrecognized arguments");
+            PyErr_SetString(PyExc_SyntaxError,"Unrecognized arguments");
             return NULL;
         }
 
@@ -142,9 +138,9 @@ static PyObject *bundle_append(PyObject *self,PyObject *args)
 
         flext::AtomListStatic<16> lst;
         const t_symbol *sym = pybase::GetPyArgs(lst,val);
-		Py_DECREF(val);
+        Py_DECREF(val);
         
-		if(sym) {
+        if(sym) {
             if(ext) {
                 FLEXT_ASSERT(outl);
                 ext->MsgAddAnything(b,o-1,sym,lst.Count(),lst.Atoms());
@@ -152,14 +148,14 @@ static PyObject *bundle_append(PyObject *self,PyObject *args)
             else {
                 FLEXT_ASSERT(sym);
                 if(!flext::MsgForward(b,recv,sym,lst.Count(),lst.Atoms())) {
-    		        PyErr_SetString(PyExc_ValueError,"Receiver not found");
+                    PyErr_SetString(PyExc_ValueError,"Receiver not found");
                     return NULL;
                 }
             }
 
             Py_INCREF(Py_None);
             return Py_None;
-		}
+        }
         else {
             FLEXT_ASSERT(PyErr_Occurred());
             return NULL;
@@ -169,7 +165,7 @@ static PyObject *bundle_append(PyObject *self,PyObject *args)
         return self;
     }
     else {
-		PyErr_SetString(PyExc_RuntimeError,"Invalid bundle");
+        PyErr_SetString(PyExc_RuntimeError,"Invalid bundle");
         return NULL;
     }
 }
@@ -205,12 +201,12 @@ PyTypeObject pyBundle_Type = {
     0,                         /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT /*| Py_TPFLAGS_BASETYPE*/,   /*tp_flags*/
     "Bundle objects",           /* tp_doc */
-    0,		               /* tp_traverse */
-    0,		               /* tp_clear */
-    bundle_richcompare,	       /* tp_richcompare */
-    0,		               /* tp_weaklistoffset */
-    0,		    /* tp_iter */
-    0,		               /* tp_iternext */
+    0,                     /* tp_traverse */
+    0,                     /* tp_clear */
+    bundle_richcompare,        /* tp_richcompare */
+    0,                     /* tp_weaklistoffset */
+    0,          /* tp_iter */
+    0,                     /* tp_iternext */
     bundle_methods,            /* tp_methods */
     0,                          /* tp_members */
     0,                         /* tp_getset */

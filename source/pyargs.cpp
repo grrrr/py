@@ -1,13 +1,9 @@
-/* 
+/*
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
-
-$LastChangedRevision: 26 $
-$LastChangedDate$
-$LastChangedBy$
 */
 
 #include "pybase.h"
@@ -17,7 +13,7 @@ static const t_symbol *symatom = flext::MakeSymbol(" py ");
 
 static PyObject *MakePyAtom(const t_atom &at)
 {
-	if(flext::IsSymbol(at)) 
+    if(flext::IsSymbol(at)) 
         return pySymbol_FromSymbol(flext::GetSymbol(at));
 #if 1
     else if(flext::CanbeFloat(at)) {
@@ -60,72 +56,72 @@ static PyObject *MakePyAtom(int argc,const t_atom *argv)
 
 PyObject *pybase::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int inlet)
 {
-	PyObject *ret,*el;
+    PyObject *ret,*el;
 
     if(s == symatom && (el = MakePyAtom(argc,argv)) != NULL) {
-    	ret = PyTuple_New(1);
-		PyTuple_SET_ITEM(ret,0,el);             
+        ret = PyTuple_New(1);
+        PyTuple_SET_ITEM(ret,0,el);             
     }
     else {
-	    bool any = IsAnything(s);
-	    ret = PyTuple_New(argc+(any?1:0)+(inlet >= 0?1:0));
+        bool any = IsAnything(s);
+        ret = PyTuple_New(argc+(any?1:0)+(inlet >= 0?1:0));
 
-	    int pix = 0;
+        int pix = 0;
 
-	    if(inlet >= 0)
-		    PyTuple_SET_ITEM(ret,pix++,PyInt_FromLong(inlet)); 
+        if(inlet >= 0)
+            PyTuple_SET_ITEM(ret,pix++,PyInt_FromLong(inlet)); 
 
-	    if(any)
-		    PyTuple_SET_ITEM(ret,pix++,pySymbol_FromSymbol(s)); 
+        if(any)
+            PyTuple_SET_ITEM(ret,pix++,pySymbol_FromSymbol(s)); 
 
-	    for(int i = 0; i < argc; ++i) {
-		    el = MakePyAtom(argv[i]);
-		    if(!el) {
-			    post("py/pyext: cannot convert argument %i",any?i+1:i);
+        for(int i = 0; i < argc; ++i) {
+            el = MakePyAtom(argv[i]);
+            if(!el) {
+                post("py/pyext: cannot convert argument %i",any?i+1:i);
                 
                 el = Py_None;
                 Py_INCREF(Py_None);
             }
-		    
-		    PyTuple_SET_ITEM(ret,pix++,el); // reference stolen
-	    }
+            
+            PyTuple_SET_ITEM(ret,pix++,el); // reference stolen
+        }
     }
 
-	return ret;
+    return ret;
 }
 
 PyObject *pybase::MakePyArg(const t_symbol *s,int argc,const t_atom *argv)
 {
-	PyObject *ret;
+    PyObject *ret;
 
     if(s == symatom && (ret = MakePyAtom(argc,argv)) != NULL) {
         // ok!
     }
     else if(argc == 1 && !IsAnything(s))
         // convert atoms and one-element lists
-		ret = MakePyAtom(*argv);       
+        ret = MakePyAtom(*argv);       
     else {
-	    bool any = s != sym_list;
-	    ret = PyTuple_New(argc+(any?1:0));
+        bool any = s != sym_list;
+        ret = PyTuple_New(argc+(any?1:0));
 
-	    int pix = 0;
-	    if(any)
-		    PyTuple_SET_ITEM(ret,pix++,pySymbol_FromSymbol(s)); 
+        int pix = 0;
+        if(any)
+            PyTuple_SET_ITEM(ret,pix++,pySymbol_FromSymbol(s)); 
 
-	    for(int i = 0; i < argc; ++i) {
-		    PyObject *el = MakePyAtom(argv[i]);
-		    if(!el) {
-			    post("py/pyext: cannot convert argument %i",any?i+1:i);
+        for(int i = 0; i < argc; ++i) {
+            PyObject *el = MakePyAtom(argv[i]);
+            if(!el) {
+                post("py/pyext: cannot convert argument %i",any?i+1:i);
                 
                 el = Py_None;
                 Py_INCREF(Py_None);
             }
-    		
-		    PyTuple_SET_ITEM(ret,pix++,el); // reference stolen
-	    }
+            
+            PyTuple_SET_ITEM(ret,pix++,el); // reference stolen
+        }
     }
 
-	return ret;
+    return ret;
 }
 
 inline bool issym(PyObject *p)
@@ -145,41 +141,41 @@ const t_symbol *pybase::getone(t_atom &at,PyObject *arg)
     else if(PyFloat_Check(arg)) { flext::SetFloat(at,(float)PyFloat_AsDouble(arg)); return flext::sym_float; }
     else if(pySymbol_Check(arg)) { flext::SetSymbol(at,pySymbol_AS_SYMBOL(arg)); return flext::sym_symbol; }
     else if(PyString_Check(arg)) { flext::SetString(at,PyString_AS_STRING(arg)); return flext::sym_symbol; }
-	else {
-		PyObject *tp = PyObject_Type(arg);
-		PyObject *stp = tp?PyObject_Str(tp):NULL;
-		const char *tmp = "";
-		if(stp) tmp = PyString_AS_STRING(stp);
-		flext::post("py/pyext: Could not convert argument %s",tmp);
-		Py_XDECREF(stp);
-		Py_XDECREF(tp);
+    else {
+        PyObject *tp = PyObject_Type(arg);
+        PyObject *stp = tp?PyObject_Str(tp):NULL;
+        const char *tmp = "";
+        if(stp) tmp = PyString_AS_STRING(stp);
+        flext::post("py/pyext: Could not convert argument %s",tmp);
+        Py_XDECREF(stp);
+        Py_XDECREF(tp);
 
         flext::SetSymbol(at,flext::sym__); 
         return sym_symbol;
-	}
+    }
 }
 
 const t_symbol *pybase::getlist(t_atom *lst,PyObject *seq,int cnt,int offs)
 {
-	for(int ix = 0; ix < cnt; ++ix) {
-		PyObject *arg = PySequence_GetItem(seq,ix+offs); // new reference
+    for(int ix = 0; ix < cnt; ++ix) {
+        PyObject *arg = PySequence_GetItem(seq,ix+offs); // new reference
         getone(lst[ix],arg);
         Py_DECREF(arg);
-	}
+    }
     return flext::sym_list;
 }
 
 const t_symbol *pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs)
 {
-	if(pValue == NULL) return NULL; 
+    if(pValue == NULL) return NULL; 
 
     // output bang on None returned
     if(pValue == Py_None) return sym_bang;
 
-	// analyze return value or tuple
+    // analyze return value or tuple
     const t_symbol *sym = NULL;
 
-	if(isseq(pValue)) {
+    if(isseq(pValue)) {
         // Python might crash here if pValue is no "real" sequence, but rather e.g. an instance
 
         int rargc = PySequence_Size(pValue);
@@ -192,28 +188,28 @@ const t_symbol *pybase::GetPyArgs(AtomList &lst,PyObject *pValue,int offs)
             if(issym(s) && isseq(l)) {
                 // is anything message
                 rargc = PySequence_Size(l);
-            	lst(offs+rargc);           
+                lst(offs+rargc);           
                 getlist(lst.Atoms(),l,rargc);
                 sym = pyObject_AsSymbol(s);
             }
             else {
                 // (symbol,atom) list
-            	lst(offs+rargc);           
-	    	    sym = getlist(lst.Atoms(),pValue,rargc);
+                lst(offs+rargc);           
+                sym = getlist(lst.Atoms(),pValue,rargc);
             }
 
             Py_DECREF(s);
             Py_DECREF(l);
         }
         else {
-        	lst(offs+rargc);           
-		    sym = getlist(lst.Atoms(),pValue,rargc);
+            lst(offs+rargc);           
+            sym = getlist(lst.Atoms(),pValue,rargc);
         }
-	}
+    }
     else {
         lst(offs+1);
         sym = getone(lst[offs],pValue);
-	}
+    }
 
     return sym;
 }

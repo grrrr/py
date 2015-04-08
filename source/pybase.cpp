@@ -1,13 +1,9 @@
-/* 
+/*
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2012 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
-
-$LastChangedRevision: 26 $
-$LastChangedDate$
-$LastChangedBy$
 */
 
 #include "pybase.h"
@@ -21,8 +17,8 @@ $LastChangedBy$
 
 static PyMethodDef StdOut_Methods[] =
 {
-	{ "write", pybase::StdOut_Write, 1 },
-	{ NULL,    NULL,           }  
+    { "write", pybase::StdOut_Write, 1 },
+    { NULL,    NULL,           }  
 };
 
 static PyObject *gcollect = NULL;
@@ -55,7 +51,7 @@ ThrState pybase::pythrsys = NULL;
 ThrState pybase::FindThreadState()
 {
     flext::thrid_t id = flext::GetThreadId();
-	PyThrMap::iterator it = pythrmap.find(id);
+    PyThrMap::iterator it = pythrmap.find(id);
     if(it == pythrmap.end()) {
         // Make new thread state
         ThrState st = PyThreadState_New(pymain);
@@ -69,7 +65,7 @@ ThrState pybase::FindThreadState()
 void pybase::FreeThreadState()
 {
     flext::thrid_t id = flext::GetThreadId();
-	PyThrMap::iterator it = pythrmap.find(id);
+    PyThrMap::iterator it = pythrmap.find(id);
     if(it != pythrmap.end()) {
         // clear out any cruft from thread state object
         PyThreadState_Clear(it->second);
@@ -105,18 +101,18 @@ void initbundle();
 void pybase::lib_setup()
 {   
     post("");
-	post("------------------------------------------------");
-	post("py/pyext %s - python script objects",PY__VERSION);
-	post("(C)2002-2011 Thomas Grill - http://grrrr.org/ext");
+    post("------------------------------------------------");
+    post("py/pyext %s - python script objects",PY__VERSION);
+    post("(C)2002-2015 Thomas Grill - http://grrrr.org/ext");
     post("");
     post("using Python %s",Py_GetVersion());
 
 #ifdef FLEXT_DEBUG
     post("");
-	post("DEBUG version compiled on %s %s",__DATE__,__TIME__);
+    post("DEBUG version compiled on %s %s",__DATE__,__TIME__);
 #endif
 
-	// -------------------------------------------------------------
+    // -------------------------------------------------------------
 
     sym_response = flext::MakeSymbol("response");
 
@@ -126,26 +122,26 @@ void pybase::lib_setup()
     sym_fint = sym_int;
 #endif
 
-	// -------------------------------------------------------------
+    // -------------------------------------------------------------
 
-	Py_Initialize();
+    Py_Initialize();
 
 #ifdef FLEXT_DEBUG
-//	Py_DebugFlag = 1;
-//	Py_VerboseFlag = 1;
+//  Py_DebugFlag = 1;
+//  Py_VerboseFlag = 1;
 #else
     Py_OptimizeFlag = 1;
 #endif
 
 #ifdef FLEXT_THREADS
     // enable thread support and acquire the global thread lock
-	PyEval_InitThreads();
+    PyEval_InitThreads();
 
 #ifndef PY_USE_GIL
     // get thread state
     pythrsys = PyThreadState_Get();
     // get main interpreter state
-	pymain = pythrsys->interp;
+    pymain = pythrsys->interp;
 
     // add thread state of main thread to map
     pythrmap[GetThreadId()] = pythrsys;
@@ -154,21 +150,21 @@ void pybase::lib_setup()
 #endif
 
     // sys.argv must be set to empty tuple
-    char *nothing = "";
-	PySys_SetArgv(0,&nothing);
+    const char *nothing = "";
+    PySys_SetArgv(0,const_cast<char **>(&nothing));
 
     // register/initialize pyext module only once!
-	module_obj = Py_InitModule(PYEXT_MODULE, func_tbl);
-	module_dict = PyModule_GetDict(module_obj); // borrowed reference
+    module_obj = Py_InitModule(const_cast<char *>(PYEXT_MODULE), func_tbl);
+    module_dict = PyModule_GetDict(module_obj); // borrowed reference
 
-	PyModule_AddStringConstant(module_obj,"__doc__",(char *)py_doc);
+    PyModule_AddStringConstant(module_obj,"__doc__",(char *)py_doc);
 
-	// redirect stdout
-	PyObject* py_out;
-    py_out = Py_InitModule("stdout", StdOut_Methods);
-	PySys_SetObject("stdout", py_out);
-    py_out = Py_InitModule("stderr", StdOut_Methods);
-	PySys_SetObject("stderr", py_out);
+    // redirect stdout
+    PyObject* py_out;
+    py_out = Py_InitModule(const_cast<char *>("stdout"), StdOut_Methods);
+    PySys_SetObject(const_cast<char *>("stdout"), py_out);
+    py_out = Py_InitModule(const_cast<char *>("stderr"), StdOut_Methods);
+    PySys_SetObject(const_cast<char *>("stderr"), py_out);
 
     // get garbage collector function
     PyObject *gcobj = PyImport_ImportModule("gc");
@@ -178,7 +174,7 @@ void pybase::lib_setup()
     }
 
     builtins_obj = PyImport_ImportModule("__builtin__");
-	builtins_dict = PyModule_GetDict(builtins_obj); // borrowed reference
+    builtins_dict = PyModule_GetDict(builtins_obj); // borrowed reference
 
     // add symbol type
     initsymbol();
@@ -200,7 +196,7 @@ void pybase::lib_setup()
     initbundle();
     PyModule_AddObject(module_obj,"Bundle",(PyObject *)&pyBundle_Type);
 
-	// -------------------------------------------------------------
+    // -------------------------------------------------------------
 #if FLEXT_SYS == FLEXT_SYS_PD && defined(PD_DEVEL_VERSION) && defined(PY_USE_INOFFICIAL)
     // add PD paths
 
@@ -209,13 +205,13 @@ void pybase::lib_setup()
         AddToPath(dir);
     }
 #endif
-	// -------------------------------------------------------------
+    // -------------------------------------------------------------
 
-	FLEXT_SETUP(pyobj);
-	FLEXT_SETUP(pymeth);
-	FLEXT_SETUP(pyext);
+    FLEXT_SETUP(pyobj);
+    FLEXT_SETUP(pymeth);
+    FLEXT_SETUP(pyext);
 #ifndef PY_NODSP
-	FLEXT_DSP_SETUP(pydsp);
+    FLEXT_DSP_SETUP(pydsp);
 #endif
 
 #ifdef FLEXT_THREADS
@@ -229,7 +225,7 @@ void pybase::lib_setup()
     LaunchThread(pyworker,NULL);
 #endif
 
-	post("------------------------------------------------");
+    post("------------------------------------------------");
     post("");
 }
 
@@ -246,17 +242,17 @@ pybase::pybase()
     , thrcount(0)
     , shouldexit(false),stoptick(0)
 #endif
-	, detach(0)
+    , detach(0)
     , pymsg(false)
 {
     ThrLock lock;
-	Py_INCREF(module_obj);
+    Py_INCREF(module_obj);
 }
 
 pybase::~pybase()
 {
     ThrLock lock;
-   	Py_XDECREF(module_obj);
+    Py_XDECREF(module_obj);
 }
 
 void pybase::Exit()
@@ -268,16 +264,16 @@ void pybase::Exit()
     qucond.Signal();
 
     if(thrcount) {
-		// Wait for a certain time
-		for(int i = 0; i < (PY_STOP_WAIT/PY_STOP_TICK) && thrcount; ++i) 
+        // Wait for a certain time
+        for(int i = 0; i < (PY_STOP_WAIT/PY_STOP_TICK) && thrcount; ++i) 
             Sleep(PY_STOP_TICK*0.001f);
         if(thrcount) {
-		    // Wait forever
-		    post("py/pyext - Waiting for thread termination!");
-		    while(thrcount) Sleep(PY_STOP_TICK*0.001f);
-		    post("py/pyext - Okay, all threads have terminated");
+            // Wait forever
+            post("py/pyext - Waiting for thread termination!");
+            while(thrcount) Sleep(PY_STOP_TICK*0.001f);
+            post("py/pyext - Okay, all threads have terminated");
         }
-	}
+    }
 #endif
 }
 
@@ -287,9 +283,9 @@ void pybase::GetDir(PyObject *obj,AtomList &lst)
         ThrLock lock;
     
         PyObject *pvar  = PyObject_Dir(obj);
-	    if(!pvar)
-		    PyErr_Print(); // no method found
-	    else {
+        if(!pvar)
+            PyErr_Print(); // no method found
+        else {
             const t_symbol *sym = GetPyArgs(lst,pvar);
             if(!sym)
                 post("py/pyext - Argument list could not be created");
@@ -313,34 +309,34 @@ void pybase::m__doc(PyObject *obj)
     if(obj) {
         ThrLock lock;
 
-		PyObject *docf = PyDict_GetItemString(obj,"__doc__"); // borrowed!!!
-		if(docf && PyString_Check(docf)) {
+        PyObject *docf = PyDict_GetItemString(obj,"__doc__"); // borrowed!!!
+        if(docf && PyString_Check(docf)) {
 
-			post("");
-			const char *s = PyString_AS_STRING(docf);
+            post("");
+            const char *s = PyString_AS_STRING(docf);
 
-			// FIX: Python doc strings can easily be larger than 1k characters
-			// -> split into separate lines
-			for(;;) {
-				char *nl = strchr((char *)s,'\n'); // the cast is for Borland C++
-				if(!nl) {
-					// no more newline found
-					post(s);
-					break;
-				}
-				else {
+            // FIX: Python doc strings can easily be larger than 1k characters
+            // -> split into separate lines
+            for(;;) {
+                char *nl = strchr((char *)s,'\n'); // the cast is for Borland C++
+                if(!nl) {
+                    // no more newline found
+                    post(s);
+                    break;
+                }
+                else {
                     char buf[1024];
-					// copy string before newline to temp buffer and post
-					unsigned int l = nl-s;
-					if(l >= sizeof(buf)) l = sizeof buf-1;
-					strncpy(buf,s,l); // copy all but newline
-					buf[l] = 0;
-					post(buf);
-					s = nl+1;  // set after newline
-				}
-			}
-		}
-	}
+                    // copy string before newline to temp buffer and post
+                    unsigned int l = nl-s;
+                    if(l >= sizeof(buf)) l = sizeof buf-1;
+                    strncpy(buf,s,l); // copy all but newline
+                    buf[l] = 0;
+                    post(buf);
+                    s = nl+1;  // set after newline
+                }
+            }
+        }
+    }
 }
 
 void pybase::OpenEditor()
@@ -372,32 +368,32 @@ void pybase::OpenEditor()
         post("py/pyext - Unknown error opening %s",fname);
        
 #elif FLEXT_OS == FLEXT_OS_MAC
-	FSRef ref;
+    FSRef ref;
     OSStatus err = FSPathMakeRef((unsigned char *)fname,&ref,NULL);
     if(err)
         post("py/pyext - Error interpreting path %s",fname);
     else {
-		FSRef editor;
-		err = LSGetApplicationForItem(&ref,kLSRolesEditor,&editor,NULL);
+        FSRef editor;
+        err = LSGetApplicationForItem(&ref,kLSRolesEditor,&editor,NULL);
         if(err) {
-			// Can't find associated application... try Textedit
-			err = FSPathMakeRef((unsigned char *)"/Applications/TextEdit.app",&editor,NULL);
-			if(err)
-				post("py/pyext - Can't find Textedit application");
-		}
-		
-		if(!err) {
-			LSLaunchFSRefSpec lspec;
-			lspec.appRef = &editor;
-			lspec.numDocs = 1;
-			lspec.itemRefs = &ref;
-			lspec.passThruParams = NULL;
-			lspec.launchFlags = kLSLaunchDefaults;
-			lspec.asyncRefCon = NULL;
-			err = LSOpenFromRefSpec(&lspec,NULL);
-			if(err)
-				post("py/pyext - Couldn't launch editor");
-		}
+            // Can't find associated application... try Textedit
+            err = FSPathMakeRef((unsigned char *)"/Applications/TextEdit.app",&editor,NULL);
+            if(err)
+                post("py/pyext - Can't find Textedit application");
+        }
+        
+        if(!err) {
+            LSLaunchFSRefSpec lspec;
+            lspec.appRef = &editor;
+            lspec.numDocs = 1;
+            lspec.itemRefs = &ref;
+            lspec.passThruParams = NULL;
+            lspec.launchFlags = kLSLaunchDefaults;
+            lspec.asyncRefCon = NULL;
+            err = LSOpenFromRefSpec(&lspec,NULL);
+            if(err)
+                post("py/pyext - Couldn't launch editor");
+        }
     }
 #else
     // thanks to Tim Blechmann
@@ -422,45 +418,45 @@ void pybase::OpenEditor()
 
 void pybase::SetArgs()
 {
-	// script arguments
+    // script arguments
     int argc = args.Count();
     const t_atom *argv = args.Atoms();
-	char **sargv = new char *[argc+1];
-	for(int i = 0; i <= argc; ++i) {
-		sargv[i] = new char[256];
-		if(!i) 
-			strcpy(sargv[i],"py/pyext");
-		else
-			GetAString(argv[i-1],sargv[i],255);
-	}
+    char **sargv = new char *[argc+1];
+    for(int i = 0; i <= argc; ++i) {
+        sargv[i] = new char[256];
+        if(!i) 
+            strcpy(sargv[i],"py/pyext");
+        else
+            GetAString(argv[i-1],sargv[i],255);
+    }
 
-	// the arguments to the module are only recognized once! (at first use in a patcher)
-	PySys_SetArgv(argc+1,sargv);
+    // the arguments to the module are only recognized once! (at first use in a patcher)
+    PySys_SetArgv(argc+1,sargv);
 
-	for(int j = 0; j <= argc; ++j) delete[] sargv[j];
-	delete[] sargv;
+    for(int j = 0; j <= argc; ++j) delete[] sargv[j];
+    delete[] sargv;
 }
 
 #if FLEXT_SYS == FLEXT_SYS_PD
 static void fileclose(int fd)
 {
 #if PD_MAJOR_VERSION > 0 || PD_MINOR_VERSION >= 43
-	sys_close(fd);
+    sys_close(fd);
 #elif FLEXT_OS == FLEXT_OS_WIN
 #error Pd version < 0.43 not supported for Windows
 #else
-	close(fd);
+    close(fd);
 #endif
 }
 #endif
 
-static bool getmodulesub(const char *mod,char *dir,int len,char *ext)
+static bool getmodulesub(const char *mod,char *dir,int len,const char *ext)
 {
 #if FLEXT_SYS == FLEXT_SYS_PD
-	char *name;
-	int fd = open_via_path("",mod,ext,dir,&name,len,0);
+    char *name;
+    int fd = open_via_path("",mod,ext,dir,&name,len,0);
     if(fd >= 0) {
-		fileclose(fd);
+        fileclose(fd);
         FLEXT_ASSERT(name && *name);
     }
     else {
@@ -470,10 +466,10 @@ static bool getmodulesub(const char *mod,char *dir,int len,char *ext)
         tmp += "/__init__";
         fd = open_via_path("",tmp.c_str(),ext,dir,&name,len,0);
         if(fd >= 0) {
-			fileclose(fd);
+            fileclose(fd);
             FLEXT_ASSERT(name && *name);
 
-			// we must remove the module name from dir
+            // we must remove the module name from dir
             char *t = dir+strlen(dir)-l;
             FLEXT_ASSERT(!strcmp(mod,t) && t[-1] == '/');
             t[-1] = 0;
@@ -482,8 +478,8 @@ static bool getmodulesub(const char *mod,char *dir,int len,char *ext)
             name = NULL;
     }
 
-	// if dir is current working directory... name points to dir
-	if(dir == name) strcpy(dir,".");
+    // if dir is current working directory... name points to dir
+    if(dir == name) strcpy(dir,".");
     return name != NULL;
 #elif FLEXT_SYS == FLEXT_SYS_MAX
     short path;
@@ -524,7 +520,7 @@ static bool getmodulesub(const char *mod,char *dir,int len,char *ext)
     if(ok) {
         // convert path into slash style needed for Python
 #if 0
-		// Max API function uses Volume:/Path notation
+        // Max API function uses Volume:/Path notation
         path_nameconform(smod,dir,PATH_STYLE_SLASH,PATH_TYPE_ABSOLUTE);
 #else
 #if FLEXT_OS == FLEXT_OS_WIN
@@ -582,14 +578,14 @@ void pybase::UnimportModule()
     if(module) {
         FLEXT_ASSERT(dict && module_obj && module_dict);
 
-	    Py_DECREF(module);
+        Py_DECREF(module);
 
-	    // reference count to module is not 0 here, altough probably the last instance was unloaded
-	    // Python retains one reference to the module all the time 
-	    // we don't care
+        // reference count to module is not 0 here, altough probably the last instance was unloaded
+        // Python retains one reference to the module all the time 
+        // we don't care
 
-	    module = NULL;
-	    dict = NULL;
+        module = NULL;
+        dict = NULL;
     }
 }
 
@@ -605,8 +601,8 @@ bool pybase::ReloadModule()
         else {
             // search in module path (TODO: check before if module is already present to avoid costly searching)
             char dir[1024];
-	        if(getmodulepath(modname.c_str(),dir,sizeof(dir)))
-    	        AddToPath(dir);
+            if(getmodulepath(modname.c_str(),dir,sizeof(dir)))
+                AddToPath(dir);
 //            else
 //                PyErr_SetString(PyExc_ImportError,"Module not found in path");
 
@@ -636,48 +632,48 @@ bool pybase::ReloadModule()
         Py_INCREF(newmod);
     }
 
-	if(!newmod) {
-		// unload faulty module
+    if(!newmod) {
+        // unload faulty module
         UnimportModule();
         return false;
-	}
-	else {
-		Py_XDECREF(module);
-		module = newmod;
-		dict = PyModule_GetDict(module); // borrowed
+    }
+    else {
+        Py_XDECREF(module);
+        module = newmod;
+        dict = PyModule_GetDict(module); // borrowed
         return true;
-	}
+    }
 }
 
 void pybase::AddToPath(const char *dir)
 {
-	if(dir && *dir) {
-		PyObject *pobj = PySys_GetObject("path");
-		if(pobj && PyList_Check(pobj)) {
-    		PyObject *ps = PyString_FromString(dir);
+    if(dir && *dir) {
+        PyObject *pobj = PySys_GetObject(const_cast<char *>("path"));
+        if(pobj && PyList_Check(pobj)) {
+            PyObject *ps = PyString_FromString(dir);
             if(!PySequence_Contains(pobj,ps))
-				PyList_Append(pobj,ps); // makes new reference
+                PyList_Append(pobj,ps); // makes new reference
             Py_DECREF(ps);
-		}
-		PySys_SetObject("path",pobj); // steals reference to pobj
-	}
+        }
+        PySys_SetObject(const_cast<char *>("path"),pobj); // steals reference to pobj
+    }
 }
 
 void pybase::AddCurrentPath(flext_base *o)
 {
-	char dir[1024];
+    char dir[1024];
 
     // add dir of current patch to path
     o->GetCanvasDir(dir,sizeof(dir));
-	if(*dir) AddToPath(dir);
+    if(*dir) AddToPath(dir);
 
-	// add current dir to path
+    // add current dir to path
 #if FLEXT_SYS == FLEXT_SYS_PD
-	AddToPath(GetString(canvas_getcurrentdir()));
+    AddToPath(GetString(canvas_getcurrentdir()));
 #elif FLEXT_SYS == FLEXT_SYS_MAX
     short path = path_getdefault();
-	path_topathname(path,NULL,dir);
-	AddToPath(dir);
+    path_topathname(path,NULL,dir);
+    AddToPath(dir);
 #endif
 }
 
@@ -697,9 +693,9 @@ bool pybase::OutObject(flext_base *ext,int o,PyObject *obj)
 
 void pybase::Reload()
 {
-	ThrLock lock;
+    ThrLock lock;
 
-	PyObject *reg = GetRegistry(REGNAME);
+    PyObject *reg = GetRegistry(REGNAME);
 
     if(reg) {
         PyObject *key;
@@ -713,7 +709,7 @@ void pybase::Reload()
         UnloadModule();
     }
 
-	bool ok = ReloadModule();
+    bool ok = ReloadModule();
 
     if(ok) {
         LoadModule();
@@ -744,37 +740,37 @@ PyObject* pybase::StdOut_Write(PyObject* self, PyObject* args)
     // should always be a tuple
     FLEXT_ASSERT(PyTuple_Check(args));
 
-	const int sz = PyTuple_GET_SIZE(args);
+    const int sz = PyTuple_GET_SIZE(args);
 
-	for(int i = 0; i < sz; ++i) {
-		PyObject *val = PyTuple_GET_ITEM(args,i); // borrowed reference
-		PyObject *str = PyObject_Str(val); // new reference
-		char *cstr = PyString_AS_STRING(str);
-		char *lf = strchr(cstr,'\n');
+    for(int i = 0; i < sz; ++i) {
+        PyObject *val = PyTuple_GET_ITEM(args,i); // borrowed reference
+        PyObject *str = PyObject_Str(val); // new reference
+        char *cstr = PyString_AS_STRING(str);
+        char *lf = strchr(cstr,'\n');
 
-		// line feed in string
-		if(!lf) {
-			// no -> just append
+        // line feed in string
+        if(!lf) {
+            // no -> just append
             if(output)
-				PyString_ConcatAndDel(&output,str); // str is decrefd
-			else
-				output = str; // take str reference
-		}
-		else {
-			// yes -> append up to line feed, reset output buffer to string remainder
-			PyObject *part = PyString_FromStringAndSize(cstr,lf-cstr); // new reference
+                PyString_ConcatAndDel(&output,str); // str is decrefd
+            else
+                output = str; // take str reference
+        }
+        else {
+            // yes -> append up to line feed, reset output buffer to string remainder
+            PyObject *part = PyString_FromStringAndSize(cstr,lf-cstr); // new reference
             if(output)
-				PyString_ConcatAndDel(&output,part); // str is decrefd	
-			else
-				output = part; // take str reference
+                PyString_ConcatAndDel(&output,part); // str is decrefd  
+            else
+                output = part; // take str reference
 
             // output concatenated string
-			post(PyString_AS_STRING(output));
+            post(PyString_AS_STRING(output));
 
-			Py_DECREF(output);
-			output = PyString_FromString(lf+1);  // new reference
-		}
-	}
+            Py_DECREF(output);
+            output = PyString_FromString(lf+1);  // new reference
+        }
+    }
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -792,14 +788,14 @@ public:
 
 bool pybase::gencall(PyObject *pmeth,PyObject *pargs)
 {
-	bool ret = false;
+    bool ret = false;
 
     // Now call method
     switch(detach) {
         case 0:
             ret = docall(pmeth,pargs);
-        	Py_DECREF(pargs);
-        	Py_DECREF(pmeth);
+            Py_DECREF(pargs);
+            Py_DECREF(pmeth);
             break;
 #ifdef FLEXT_THREADS
         case 1:
@@ -812,9 +808,9 @@ bool pybase::gencall(PyObject *pmeth,PyObject *pargs)
                 thr_params *p = new thr_params;
                 p->cl = (flext_base *)this;
                 p->var->_ext = new work_data(pmeth,pargs);
-			    ret = LaunchThread(thrworker,p);
-			    if(!ret) post("py/pyext - Failed to launch thread!");
-		    }
+                ret = LaunchThread(thrworker,p);
+                if(!ret) post("py/pyext - Failed to launch thread!");
+            }
             break;
 #endif
         default:
@@ -847,33 +843,33 @@ void pybase::thrworker(thr_params *p)
 {
     FLEXT_ASSERT(p);
     pybase *th = (pybase *)p->cl;
-	work_data *w = (work_data *)p->var->_ext;
+    work_data *w = (work_data *)p->var->_ext;
 
-	++th->thrcount; // \todo this should be atomic
+    ++th->thrcount; // \todo this should be atomic
     {
         ThrLock lock;
     // call worker
-	th->docall(w->fun,w->args);
-	delete w;
+    th->docall(w->fun,w->args);
+    delete w;
     }
     --th->thrcount; // \todo this should be atomic
 }
 
 /*! This thread function basically keeps alive the Python interpreter in the background
-	It's good for threads that have been started from scripted functions
+    It's good for threads that have been started from scripted functions
 */
 void pybase::pyworker(thr_params *)
 {
-	ThrLock lock;
-	PyObject *timemod = PyImport_ImportModule("time");
-	PyObject *sleep = PyObject_GetAttrString(timemod,"sleep");
-	PyObject *args = PyTuple_New(1);
-	PyTuple_SET_ITEM(args,0,PyFloat_FromDouble(1000000));
+    ThrLock lock;
+    PyObject *timemod = PyImport_ImportModule("time");
+    PyObject *sleep = PyObject_GetAttrString(timemod,"sleep");
+    PyObject *args = PyTuple_New(1);
+    PyTuple_SET_ITEM(args,0,PyFloat_FromDouble(1000000));
 
     for(;;) {
-		PyObject *res = PyObject_CallObject(sleep,args);
-		Py_DECREF(res);
-	}
+        PyObject *res = PyObject_CallObject(sleep,args);
+        Py_DECREF(res);
+    }
 }
 
 void pybase::quworker(thr_params *)
@@ -883,7 +879,7 @@ void pybase::quworker(thr_params *)
 
     for(;;) {
         while((el = qufifo.Get())) {
-        	++el->th->thrcount; // \todo this should be atomic
+            ++el->th->thrcount; // \todo this should be atomic
             {
                 ThrLock lock(my);
             el->th->docall(el->fun,el->args);

@@ -1,13 +1,9 @@
-/* 
+/*
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
-
-$LastChangedRevision: 26 $
-$LastChangedDate$
-$LastChangedBy$
 */
 
 #include "pyprefix.h"
@@ -65,8 +61,8 @@ static PyObject *symbol_richcompare(PyObject *a,PyObject *b,int cmp)
         const t_symbol *asym = pySymbol_AS_SYMBOL(a);
         const t_symbol *bsym = pySymbol_AS_SYMBOL(b);
 
-		int res = asym == bsym?0:strcmp(flext::GetString(asym),flext::GetString(bsym));
-		
+        int res = asym == bsym?0:strcmp(flext::GetString(asym),flext::GetString(bsym));
+        
         bool ret;
         switch(cmp) {
             case Py_LT: ret = res < 0; break;
@@ -75,13 +71,13 @@ static PyObject *symbol_richcompare(PyObject *a,PyObject *b,int cmp)
             case Py_NE: ret = res != 0; break;
             case Py_GE: ret = res >= 0; break;
             case Py_GT: ret = res > 0; break;
-			default:
-				FLEXT_ASSERT(false);
+            default:
+                FLEXT_ASSERT(false);
         }
         return PyBool_FromLong(ret);
     }
-	Py_INCREF(Py_NotImplemented);
-	return Py_NotImplemented;
+    Py_INCREF(Py_NotImplemented);
+    return Py_NotImplemented;
 }
 
 static long symbol_hash(PyObject *self)
@@ -154,13 +150,13 @@ static PyObject *symbol_repeat(PyObject *s,Py_ssize_t rep)
 }
 
 static PySequenceMethods symbol_as_seq = {
-	symbol_length,			/* inquiry sq_length;             __len__ */
-	symbol_concat,          /* __add__ */
-	symbol_repeat,          /* __mul__ */
-	symbol_item,			/* intargfunc sq_item;            __getitem__ */
-	symbol_slice,		 /* intintargfunc sq_slice;        __getslice__ */
-	NULL,		/* intobjargproc sq_ass_item;     __setitem__ */
-	NULL,	/* intintobjargproc sq_ass_slice; __setslice__ */
+    symbol_length,          /* inquiry sq_length;             __len__ */
+    symbol_concat,          /* __add__ */
+    symbol_repeat,          /* __mul__ */
+    symbol_item,            /* intargfunc sq_item;            __getitem__ */
+    symbol_slice,        /* intintargfunc sq_slice;        __getslice__ */
+    NULL,       /* intobjargproc sq_ass_item;     __setitem__ */
+    NULL,   /* intintobjargproc sq_ass_slice; __setslice__ */
 };
 
 static PyObject *symbol_iter(PyObject *s)
@@ -201,12 +197,12 @@ PyTypeObject pySymbol_Type = {
     0,                         /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT /*| Py_TPFLAGS_BASETYPE*/,   /*tp_flags*/
     "Symbol objects",           /* tp_doc */
-    0,		               /* tp_traverse */
-    0,		               /* tp_clear */
-    symbol_richcompare,	       /* tp_richcompare */
-    0,		               /* tp_weaklistoffset */
-    symbol_iter,		    /* tp_iter */
-    0,		               /* tp_iternext */
+    0,                     /* tp_traverse */
+    0,                     /* tp_clear */
+    symbol_richcompare,        /* tp_richcompare */
+    0,                     /* tp_weaklistoffset */
+    symbol_iter,            /* tp_iter */
+    0,                     /* tp_iternext */
     0,                          /* tp_methods */
     0,                          /* tp_members */
     0,                         /* tp_getset */
@@ -233,7 +229,7 @@ void initsymbol()
     if(PyType_Ready(&pySymbol_Type) < 0)
         return;
 
-	Py_INCREF(&pySymbol_Type);
+    Py_INCREF(&pySymbol_Type);
 
     // initialize predefined objects
     pySymbol__ = symbol_newsym(flext::sym__);

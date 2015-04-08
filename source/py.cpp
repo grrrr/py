@@ -1,13 +1,9 @@
-/* 
+/*
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2012 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
-
-$LastChangedRevision: 26 $
-$LastChangedDate$
-$LastChangedBy$
 */
 
 #include "pybase.h"
@@ -16,38 +12,38 @@ class pyobj
     : public pybase
     , public flext_base
 {
-	FLEXT_HEADER_S(pyobj,flext_base,Setup)
+    FLEXT_HEADER_S(pyobj,flext_base,Setup)
 
 public:
-	pyobj(int argc,const t_atom *argv);
-	~pyobj();
+    pyobj(int argc,const t_atom *argv);
+    ~pyobj();
 
 protected:
     virtual void Exit();
 
-	virtual bool CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv);
+    virtual bool CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv);
     virtual void CbClick();
 
     void m_help();    
 
     void m_reload() { Reload(); }
     void m_reload_(int argc,const t_atom *argv) { args(argc,argv); Reload(); }
-	void m_set(int argc,const t_atom *argv);
+    void m_set(int argc,const t_atom *argv);
     void m_dir_() { m__dir(function); }
     void m_doc_() { m__doc(function); }
 
-	const t_symbol *funname;
-	PyObject *function;
+    const t_symbol *funname;
+    PyObject *function;
     bool withfunction;
 
-	virtual void LoadModule();
-	virtual void UnloadModule();
+    virtual void LoadModule();
+    virtual void UnloadModule();
 
-	virtual void Load();
-	virtual void Unload();
+    virtual void Load();
+    virtual void Unload();
 
-	bool SetFunction(const t_symbol *func);
-	bool ResetFunction();
+    bool SetFunction(const t_symbol *func);
+    bool ResetFunction();
 
     virtual void DumpOut(const t_symbol *sym,int argc,const t_atom *argv);
 
@@ -57,26 +53,26 @@ private:
 
     virtual void callpy(PyObject *fun,PyObject *args);
 
-	static void Setup(t_classid c);
+    static void Setup(t_classid c);
 
-	FLEXT_CALLBACK(m_help)
-	FLEXT_CALLBACK(m_reload)
-	FLEXT_CALLBACK_V(m_reload_)
-	FLEXT_CALLBACK_V(m_set)
-	FLEXT_CALLBACK(m_dir_)
-	FLEXT_CALLBACK(m_doc_)
+    FLEXT_CALLBACK(m_help)
+    FLEXT_CALLBACK(m_reload)
+    FLEXT_CALLBACK_V(m_reload_)
+    FLEXT_CALLBACK_V(m_set)
+    FLEXT_CALLBACK(m_dir_)
+    FLEXT_CALLBACK(m_doc_)
 
-	// callbacks
-	FLEXT_ATTRVAR_I(detach)
-	FLEXT_ATTRVAR_B(pymsg)
-	FLEXT_ATTRVAR_B(respond)
+    // callbacks
+    FLEXT_ATTRVAR_I(detach)
+    FLEXT_ATTRVAR_B(pymsg)
+    FLEXT_ATTRVAR_B(respond)
 
-	FLEXT_CALLBACK_V(m_stop)
-	FLEXT_CALLBACK(m_dir)
-	FLEXT_CALLGET_V(mg_dir)
-	FLEXT_CALLBACK(m_doc)
+    FLEXT_CALLBACK_V(m_stop)
+    FLEXT_CALLBACK(m_dir)
+    FLEXT_CALLGET_V(mg_dir)
+    FLEXT_CALLBACK(m_doc)
 
-	FLEXT_CALLBACK(CbClick)
+    FLEXT_CALLBACK(CbClick)
 
 #ifdef FLEXT_THREADS
     FLEXT_CALLBACK_T(tick)
@@ -88,25 +84,25 @@ FLEXT_LIB_V("py",pyobj)
 
 void pyobj::Setup(t_classid c)
 {
-	FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
-	FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
+    FLEXT_CADDMETHOD_(c,0,"doc",m_doc);
+    FLEXT_CADDMETHOD_(c,0,"dir",m_dir);
 #ifdef FLEXT_THREADS
-	FLEXT_CADDATTR_VAR1(c,"detach",detach);
-	FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
+    FLEXT_CADDATTR_VAR1(c,"detach",detach);
+    FLEXT_CADDMETHOD_(c,0,"stop",m_stop);
 #endif
 
-	FLEXT_CADDMETHOD_(c,0,"help",m_help);
-	FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
+    FLEXT_CADDMETHOD_(c,0,"help",m_help);
+    FLEXT_CADDMETHOD_(c,0,"reload",m_reload_);
     FLEXT_CADDMETHOD_(c,0,"reload.",m_reload);
-	FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
-	FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
+    FLEXT_CADDMETHOD_(c,0,"doc+",m_doc_);
+    FLEXT_CADDMETHOD_(c,0,"dir+",m_dir_);
 
-	FLEXT_CADDMETHOD_(c,0,"set",m_set);
+    FLEXT_CADDMETHOD_(c,0,"set",m_set);
 
     FLEXT_CADDMETHOD_(c,0,"edit",CbClick);
 
-  	FLEXT_CADDATTR_VAR1(c,"py",pymsg);
-  	FLEXT_CADDATTR_VAR1(c,"respond",respond);
+    FLEXT_CADDATTR_VAR1(c,"py",pymsg);
+    FLEXT_CADDATTR_VAR1(c,"respond",respond);
 }
 
 pyobj::pyobj(int argc,const t_atom *argv)
@@ -119,7 +115,7 @@ pyobj::pyobj(int argc,const t_atom *argv)
     FLEXT_ADDTIMER(stoptmr,tick);
 #endif
 
-	ThrState state = PyLockSys();
+    ThrState state = PyLockSys();
 
     int inlets;
     if(argc && CanbeInt(*argv)) {
@@ -137,15 +133,15 @@ pyobj::pyobj(int argc,const t_atom *argv)
     }
 
     AddInAnything(1+(inlets < 0?1:inlets));
-	AddOutAnything();  
+    AddOutAnything();  
 
     const t_symbol *funnm = NULL;
 
-	// init script module
-	if(argc) {
+    // init script module
+    if(argc) {
         AddCurrentPath(this);
 
-	    const char *sn = GetAString(*argv);
+        const char *sn = GetAString(*argv);
         argv++,argc--;
 
         if(sn) {
@@ -165,27 +161,27 @@ pyobj::pyobj(int argc,const t_atom *argv)
         }
         else
             PyErr_SetString(PyExc_ValueError,"Invalid module name");
-	}
+    }
 
-	Register(GetRegistry(REGNAME));
+    Register(GetRegistry(REGNAME));
 
     if(funnm || argc) {
         if(!funnm) {
-	        funnm = GetASymbol(*argv);
+            funnm = GetASymbol(*argv);
             argv++,argc--;
         }
 
         if(funnm)
-	        SetFunction(funnm);
+            SetFunction(funnm);
         else
             PyErr_SetString(PyExc_ValueError,"Invalid function name");
     }
 
-	if(argc) args(argc,argv);
+    if(argc) args(argc,argv);
 
     Report();
 
-	PyUnlock(state);
+    PyUnlock(state);
 }
 
 pyobj::~pyobj() 
@@ -196,9 +192,9 @@ pyobj::~pyobj()
         delete[] objects;
     }
     
-	Unregister(GetRegistry(REGNAME));
+    Unregister(GetRegistry(REGNAME));
     Report();
-	PyUnlock(state);
+    PyUnlock(state);
 }
 
 void pyobj::Exit() 
@@ -209,65 +205,65 @@ void pyobj::Exit()
 
 void pyobj::m_set(int argc,const t_atom *argv)
 {
-	ThrState state = PyLockSys();
+    ThrState state = PyLockSys();
 
     // function name has precedence
-	if(argc >= 2) {
-	    const char *sn = GetAString(*argv);
-	    ++argv,--argc;
+    if(argc >= 2) {
+        const char *sn = GetAString(*argv);
+        ++argv,--argc;
 
         if(sn) {
-//		    if(!module || !strcmp(sn,PyModule_GetName(module))) 
+//          if(!module || !strcmp(sn,PyModule_GetName(module))) 
             {
-			    ImportModule(sn);
-			    Register(GetRegistry(REGNAME));
-		    }
+                ImportModule(sn);
+                Register(GetRegistry(REGNAME));
+            }
         }
         else
             PyErr_SetString(PyExc_ValueError,"Invalid module name");
-	}
+    }
 
     if(argc) {
-	    const t_symbol *fn = GetASymbol(*argv);
+        const t_symbol *fn = GetASymbol(*argv);
         if(fn)
-	        SetFunction(fn);
+            SetFunction(fn);
         else
             PyErr_SetString(PyExc_ValueError,"Invalid function name");
     }
 
     Report();
 
-	PyUnlock(state);
+    PyUnlock(state);
 }
 
 void pyobj::m_help()
 {
-	post("");
-	post("%s %s - python script object, (C)2002-2012 Thomas Grill",thisName(),PY__VERSION);
+    post("");
+    post("%s %s - python script object, (C)2002-2012 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
-	post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
+    post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
 
-	post("Arguments: %s [script name] [function name] {args...}",thisName());
+    post("Arguments: %s [script name] [function name] {args...}",thisName());
 
-	post("Inlet 1:messages to control the py object");
-	post("      2:call python function with message as argument(s)");
-	post("Outlet: 1:return values from python function");	
-	post("Methods:");
-	post("\thelp: shows this help");
-	post("\tbang: call script without arguments");
-	post("\tset [script name] [function name]: set (script and) function name");
-	post("\treload {args...}: reload python script");
-	post("\treload. : reload with former arguments");
-	post("\tdoc: display module doc string");
-	post("\tdoc+: display function doc string");
-	post("\tdir: dump module dictionary");
-	post("\tdir+: dump function dictionary");
+    post("Inlet 1:messages to control the py object");
+    post("      2:call python function with message as argument(s)");
+    post("Outlet: 1:return values from python function");   
+    post("Methods:");
+    post("\thelp: shows this help");
+    post("\tbang: call script without arguments");
+    post("\tset [script name] [function name]: set (script and) function name");
+    post("\treload {args...}: reload python script");
+    post("\treload. : reload with former arguments");
+    post("\tdoc: display module doc string");
+    post("\tdoc+: display function doc string");
+    post("\tdir: dump module dictionary");
+    post("\tdir+: dump function dictionary");
 #ifdef FLEXT_THREADS
-	post("\tdetach 0/1/2: detach threads");
-	post("\tstop {wait time (ms)}: stop threads");
+    post("\tdetach 0/1/2: detach threads");
+    post("\tstop {wait time (ms)}: stop threads");
 #endif
-	post("");
+    post("");
 }
 
 bool pyobj::ResetFunction()
@@ -276,22 +272,22 @@ bool pyobj::ResetFunction()
     function = NULL;
     
     if(!dict)
-		post("%s - No namespace available",thisName());
+        post("%s - No namespace available",thisName());
     else {
         if(funname) {
-	        function = PyDict_GetItemString(dict,(char *)GetString(funname)); // borrowed!!!
+            function = PyDict_GetItemString(dict,(char *)GetString(funname)); // borrowed!!!
 
             if(!function && dict == module_dict)
                 // search also in __builtins__
-    	        function = PyDict_GetItemString(builtins_dict,(char *)GetString(funname)); // borrowed!!!
+                function = PyDict_GetItemString(builtins_dict,(char *)GetString(funname)); // borrowed!!!
 
             if(!function) 
                 PyErr_SetString(PyExc_AttributeError,"Function not found");
             else if(!PyCallable_Check(function)) {
-    		    function = NULL;
+                function = NULL;
                 PyErr_SetString(PyExc_TypeError,"Attribute is not callable");
             }
-	    }
+        }
     }
 
     // exception could be set here
@@ -300,12 +296,12 @@ bool pyobj::ResetFunction()
 
 bool pyobj::SetFunction(const t_symbol *func)
 {
-	if(func) {
-		funname = func;
+    if(func) {
+        funname = func;
         withfunction = ResetFunction();
-	}
+    }
     else {
-		function = NULL,funname = NULL;
+        function = NULL,funname = NULL;
         withfunction = false;
     }
 
@@ -325,7 +321,7 @@ void pyobj::UnloadModule()
 
 void pyobj::Load()
 {
-	ResetFunction();
+    ResetFunction();
 }
 
 void pyobj::Unload()
@@ -366,14 +362,14 @@ bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
             if(function) {
                 Py_INCREF(function);
 
-		        PyObject *pargs;
+                PyObject *pargs;
             
                 if(objects || CntIn() == 1) {
                     int inlets = CntIn()-1;
-            	    pargs = PyTuple_New(inlets);
+                    pargs = PyTuple_New(inlets);
                     for(int i = 0; i < inlets; ++i) {
                         Py_INCREF(objects[i]);
-    		            PyTuple_SET_ITEM(pargs,i,objects[i]);
+                        PyTuple_SET_ITEM(pargs,i,objects[i]);
                     }
                 }
                 else
@@ -384,21 +380,21 @@ bool pyobj::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
                 gencall(function,pargs); // references are stolen
                 ret = true;
             }
-	        else
-		        PyErr_SetString(PyExc_RuntimeError,"No function set");
+            else
+                PyErr_SetString(PyExc_RuntimeError,"No function set");
         }
         else if(module) {
             // no function defined as creation argument -> use message tag
             if(s) {
                 PyObject *func = PyObject_GetAttrString(module,const_cast<char *>(GetString(s)));
                 if(func) {
-		            PyObject *pargs = MakePyArgs(sym_list,argc,argv);
+                    PyObject *pargs = MakePyArgs(sym_list,argc,argv);
                     gencall(func,pargs);
                     ret = true;
                 }
             }
             else
-		        PyErr_SetString(PyExc_RuntimeError,"No function set");
+                PyErr_SetString(PyExc_RuntimeError,"No function set");
         }
 
         Report();
