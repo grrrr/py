@@ -125,7 +125,7 @@ static PyObject *symbol_slice(PyObject *s,Py_ssize_t ilow = 0,Py_ssize_t ihigh =
 
 static PyObject *symbol_concat(PyObject *s,PyObject *op)
 {
-    pySymbol *self = reinterpret_cast<pySymbol *>(s);
+//    pySymbol *self = reinterpret_cast<pySymbol *>(s);
     PyObject *nobj = symbol_slice(s); // take all
     if(nobj) {
         PyObject *ret = PySequence_Concat(nobj,op);
@@ -138,7 +138,7 @@ static PyObject *symbol_concat(PyObject *s,PyObject *op)
 
 static PyObject *symbol_repeat(PyObject *s,Py_ssize_t rep)
 {
-    pySymbol *self = reinterpret_cast<pySymbol *>(s);
+//    pySymbol *self = reinterpret_cast<pySymbol *>(s);
     PyObject *nobj = symbol_slice(s); // take all
     if(nobj) {
         PyObject *ret = PySequence_Repeat(nobj,rep);
@@ -161,7 +161,7 @@ static PySequenceMethods symbol_as_seq = {
 
 static PyObject *symbol_iter(PyObject *s)
 {
-    pySymbol *self = reinterpret_cast<pySymbol *>(s);
+//    pySymbol *self = reinterpret_cast<pySymbol *>(s);
     PyObject *nobj = symbol_slice(s);
     if(nobj) {
         PyObject *it = PyObject_GetIter(nobj);

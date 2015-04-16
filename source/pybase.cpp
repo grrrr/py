@@ -875,16 +875,16 @@ void pybase::pyworker(thr_params *)
 void pybase::quworker(thr_params *)
 {
     FifoEl *el;
-    ThrState my = FindThreadState(),state;
+    ThrState my = FindThreadState();
 
     for(;;) {
         while((el = qufifo.Get())) {
             ++el->th->thrcount; // \todo this should be atomic
             {
                 ThrLock lock(my);
-            el->th->docall(el->fun,el->args);
-            Py_XDECREF(el->fun);
-            Py_XDECREF(el->args);
+                el->th->docall(el->fun,el->args);
+                Py_XDECREF(el->fun);
+                Py_XDECREF(el->args);
             }
             --el->th->thrcount; // \todo this should be atomic
             qufifo.Free(el);

@@ -374,7 +374,7 @@ static int buffer_ass_slice(PyObject *s,Py_ssize_t ilow,Py_ssize_t ihigh,PyObjec
         }
         else if(self->buf) {
             const int n = self->buf->Frames();
-            const int c = self->buf->Channels();
+//            const int c = self->buf->Channels();
             if(ilow < 0) ilow += n;
             if(ilow >= n) ilow = n-1;
             if(ihigh < 0) ihigh += n;
@@ -463,7 +463,7 @@ static PySequenceMethods buffer_as_seq = {
 
 static PyObject *buffer_iter(PyObject *s)
 {
-    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
+//    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     PyObject *nobj = buffer_slice(s);
     if(nobj) {
         PyObject *it = PyObject_GetIter(nobj);
@@ -589,7 +589,7 @@ static PyObject *buffer_negative(PyObject *s)
 
 static PyObject *buffer_pos(PyObject *s)
 {
-    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
+//    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     PyObject *nobj = buffer_slice(s);
     if(nobj) {
         PyObject *ret = PyNumber_Positive(nobj);
