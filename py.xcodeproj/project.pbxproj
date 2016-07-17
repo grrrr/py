@@ -428,17 +428,11 @@
 		E90EBB081ADDC06600CFDB74 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUGGING_SYMBOLS = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_EXTENSION = pd_darwin;
 				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
-				GCC_ALTIVEC_EXTENSIONS = YES;
-				GCC_MODEL_CPU = G4;
-				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = source/pyprefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -448,7 +442,6 @@
 					FLEXT_INLINE,
 					FLEXT_USE_CMEM,
 				);
-				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(flext)/source",
@@ -456,41 +449,25 @@
 				);
 				INSTALL_PATH = "~/Library/Pure Data";
 				LIBRARY_SEARCH_PATHS = "$(flext)/build";
-				LIBRARY_STYLE = STATIC;
 				MACH_O_TYPE = mh_dylib;
-				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-undefined",
 					dynamic_lookup,
 					"-framework",
 					Python,
 				);
-				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = py;
-				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
-				VALID_ARCHS = i386;
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				ZERO_LINK = YES;
 			};
 			name = Development;
 		};
 		E90EBB091ADDC06600CFDB74 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_EXTENSION = pd_darwin;
-				GCC_ALTIVEC_EXTENSIONS = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_MODEL_CPU = G4;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = source/pyprefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -506,37 +483,21 @@
 				);
 				INSTALL_PATH = "~/Library/Pure Data";
 				LIBRARY_SEARCH_PATHS = "$(flext)/build";
-				LIBRARY_STYLE = DYNAMIC;
 				MACH_O_TYPE = mh_dylib;
-				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-undefined",
 					dynamic_lookup,
 				);
-				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = py;
-				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
-				VALID_ARCHS = i386;
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				ZERO_LINK = NO;
 			};
 			name = Deployment;
 		};
 		E90EBB0A1ADDC06600CFDB74 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				COMBINE_HIDPI_IMAGES = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_EXTENSION = pd_darwin;
-				GCC_ALTIVEC_EXTENSIONS = YES;
-				GCC_MODEL_CPU = G4;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = source/pyprefix.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "FLEXT_SYS=2";
@@ -546,19 +507,8 @@
 				);
 				INSTALL_PATH = "~/Library/Pure Data";
 				LIBRARY_SEARCH_PATHS = "$(flext)/build";
-				LIBRARY_STYLE = DYNAMIC;
 				MACH_O_TYPE = mh_dylib;
-				OTHER_CFLAGS = "";
-				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = py;
-				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
-				VALID_ARCHS = i386;
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
 			};
 			name = Default;
 		};

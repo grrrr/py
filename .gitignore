@@ -26,3 +26,5 @@
 *.exe
 *.out
 *.app
+config.txt
+.DS_Store

@@ -864,7 +864,7 @@ void pybase::pyworker(thr_params *)
     PyObject *timemod = PyImport_ImportModule("time");
     PyObject *sleep = PyObject_GetAttrString(timemod,"sleep");
     PyObject *args = PyTuple_New(1);
-    PyTuple_SET_ITEM(args,0,PyFloat_FromDouble(1000000));
+    PyTuple_SET_ITEM(args,0,PyFloat_FromDouble(1));
 
     for(;;) {
         PyObject *res = PyObject_CallObject(sleep,args);
@@ -895,13 +895,13 @@ void pybase::quworker(thr_params *)
     // we never end
     if(false) {
         ThrLock lock(my);
-    // unref remaining Python objects
-    while((el = qufifo.Get())) {
-        Py_XDECREF(el->fun);
-        Py_XDECREF(el->args);
-        qufifo.Free(el);
+        // unref remaining Python objects
+        while((el = qufifo.Get())) {
+            Py_XDECREF(el->fun);
+            Py_XDECREF(el->args);
+            qufifo.Free(el);
+        }
     }
-}
 }
 
 void pybase::erasethreads()
