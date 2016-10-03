@@ -1,6 +1,7 @@
 pd-lib-builder cheatsheet
 =========================
 
+# Creating special builds
 
 ## cross-compiling W32 binaries from linux
 
@@ -12,3 +13,10 @@ Assuming you have unzipped a W32 package for Pd into `${WINPDPATH}`, run:
     make system=Windows pdbinpath="${WINPDPATH}/bin/" pdincludepath="${WINPDPATH}/src/" CC=i686-w64-mingw32-gcc
 
 (if the project uses C++, you might also need to sed `CXX=i686-w64-mingw32-g++`)
+
+
+## TODO universal binaries on OSX
+
+
+# Project management
+## TODO Keeping pd-lib-builder uptodate
