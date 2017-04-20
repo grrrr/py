@@ -1,6 +1,6 @@
 # py/pyext - python script objects for PD and MaxMSP
 #
-# Copyright (c) 2002-2012 Thomas Grill (gr@grrrr.org)
+# Copyright (c) 2002-2017 Thomas Grill (gr@grrrr.org)
 # For information on usage and redistribution, and for a DISCLAIMER OF ALL
 # WARRANTIES, see the file, "license.txt," in this distribution.  
 #
@@ -35,7 +35,8 @@ except:
 class gain(pyext._class):
     """Just a simple gain stage"""
     
-    gain = 0
+    def __init__(self):
+        self.gain = 0
 
     def _signal(self):
         # Multiply input vector by gain and copy to output
@@ -48,7 +49,8 @@ class gain(pyext._class):
 class gain2(pyext._class):
     """More optimized version"""
     
-    gain = 0
+    def __init__(self):
+        self.gain = 0
 
     def _dsp(self):
         if not self._arraysupport():
