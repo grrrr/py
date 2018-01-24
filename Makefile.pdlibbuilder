@@ -213,10 +213,6 @@ version = 0.5.0
 # INSTALL
 # Definition of install program.
 #
-# PD_PATH:
-# Equivalent to PDDIR. Supported for compatibility with pd-extended central
-# makefile, but deprecated otherwise.
-#
 # objectsdir:
 # Root directory for installation of Pd library directories, like PDLIBDIR but
 # not overridable by environment. Supported for compatibility with pd-extended
@@ -634,10 +630,9 @@ endif
 
 # Platform-dependent default paths are specified above, but overridable.
 # Path variables in upper case can be defined as make command argument or in the
-# environment. 'PD_PATH' and 'objectsdir' are supported for compatibility with
+# environment. Variable 'objectsdir' is supported for compatibility with
 # the build system that pd-l2ork has inherited from pd-extended.
 
-PDDIR ?= $(PD_PATH)
 PDINCLUDEDIR ?= $(pdincludepath)
 PDBINDIR ?= $(pdbinpath)
 PDLIBDIR ?= $(firstword $(objectsdir) $(pkglibdir))
