@@ -591,12 +591,9 @@ endif
 # paths for 32-bit executables on 64-bit Windows aren't yet defined here (TODO)
 ifeq ($(system), Windows)
   pkglibdir := $(APPDATA)/Pd
-  ifndef pdbinpath
-    pdbinpath := $(shell ls -d "$(PROGRAMFILES)/pd/bin")
-  endif
-  ifndef pdincludepath
-    pdincludepath := $(shell ls -d "$(PROGRAMFILES)/pd/src")
-  endif
+  pdbinpath := $(shell ls -d "$(PROGRAMFILES)/pd/bin")
+  pdincludepath := $(shell ls -d "$(PROGRAMFILES)/pd/src")
+  PDBINDIR ?= $(pdbinpath)
 endif
 
 # TODO: decide whether -mms-bitfields should be specified.
@@ -613,14 +610,14 @@ ifeq ($(system), Windows)
   extension = dll
   c.flags :=
   c.ldflags = -static-libgcc -shared \
-    -Wl,--enable-auto-import "$(pdbinpath)/pd.dll"
+    -Wl,--enable-auto-import "$(PDBINDIR)/pd.dll"
   c.ldlibs :=
   cxx.flags := -fcheck-new
   cxx.ldflags = -static-libstdc++ -shared \
-    -Wl,--enable-auto-import "$(pdbinpath)/pd.dll"
+    -Wl,--enable-auto-import "$(PDBINDIR)/pd.dll"
   cxx.ldlibs :=
   shared.extension = dll
-  shared.ldflags = -static-libgcc -shared "$(pdbinpath)/pd.dll"
+  shared.ldflags = -static-libgcc -shared "$(PDBINDIR)/pd.dll"
   stripflags = --strip-unneeded -R .note -R .comment
 endif
 
@@ -634,7 +631,6 @@ endif
 # the build system that pd-l2ork has inherited from pd-extended.
 
 PDINCLUDEDIR ?= $(pdincludepath)
-PDBINDIR ?= $(pdbinpath)
 PDLIBDIR ?= $(firstword $(objectsdir) $(pkglibdir))
 
 ifneq ($(PDDIR),)
