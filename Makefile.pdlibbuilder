@@ -588,11 +588,16 @@ endif
 # variables are assembled or re-expanded later, great care must be taken to put
 # quotes at appropriate points throughout the makefile. Thanks, Bill.
 
-# paths for 32-bit executables on 64-bit Windows aren't yet defined here (TODO)
+# default paths in Mingw environments
 ifeq ($(system), Windows)
   pkglibdir := $(APPDATA)/Pd
-  pdbinpath := $(shell ls -d "$(PROGRAMFILES)/pd/bin")
-  pdincludepath := $(shell ls -d "$(PROGRAMFILES)/pd/src")
+  ifeq ($(MINGW_CHOST), i686-w64-mingw32)
+    programfiles := ${ProgramFiles(x86)}
+  else
+    programfiles := $(PROGRAMFILES)
+  endif
+  pdbinpath := $(shell ls -d "$(programfiles)/Pd/bin")
+  pdincludepath := $(shell ls -d "$(programfiles)/Pd/src")
   PDBINDIR ?= $(pdbinpath)
 endif
 
