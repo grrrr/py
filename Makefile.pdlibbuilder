@@ -604,6 +604,16 @@ ifeq ($(system), Windows)
   endif
   pdbinpath := $(shell ls -d "$(programfiles)/Pd/bin")
   pdincludepath := $(shell ls -d "$(programfiles)/Pd/src")
+endif
+
+# Store default path to pd.dll in PDBINDIR if the latter is not user-defined.
+# For include path this is done in the platform-independent paths section below,
+# but for PDBINDIR it is done here so ld flags can be evaluated as immediate
+# variables.
+ifeq ($(system), Windows)
+  ifdef PDDIR
+    PDBINDIR := $(PDDIR)/bin
+  endif
   PDBINDIR ?= $(pdbinpath)
 endif
 
@@ -620,15 +630,15 @@ ifeq ($(system), Windows)
   endif
   extension = dll
   c.flags :=
-  c.ldflags = -static-libgcc -shared \
+  c.ldflags := -static-libgcc -shared \
     -Wl,--enable-auto-import "$(PDBINDIR)/pd.dll"
   c.ldlibs :=
   cxx.flags := -fcheck-new
-  cxx.ldflags = -static-libstdc++ -shared \
+  cxx.ldflags := -static-libstdc++ -shared \
     -Wl,--enable-auto-import "$(PDBINDIR)/pd.dll"
   cxx.ldlibs :=
   shared.extension = dll
-  shared.ldflags = -static-libgcc -shared "$(PDBINDIR)/pd.dll"
+  shared.ldflags := -static-libgcc -shared "$(PDBINDIR)/pd.dll"
   stripflags = --strip-unneeded -R .note -R .comment
 endif
 
@@ -644,9 +654,8 @@ endif
 PDINCLUDEDIR ?= $(pdincludepath)
 PDLIBDIR ?= $(firstword $(objectsdir) $(pkglibdir))
 
-ifneq ($(PDDIR),)
+ifdef PDDIR
   PDINCLUDEDIR := $(wildcard $(PDDIR)/src)
-  PDBINDIR := $(wildcard $(PDDIR)/bin)
 endif
 
 # base path where all components of the lib will be installed by default
