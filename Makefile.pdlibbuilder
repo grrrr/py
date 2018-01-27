@@ -238,7 +238,13 @@ version = 0.5.0
 #
 # OSX:      /Applications/Pd*.app/Contents/Resources/src
 #
-# Windows:  %PROGRAMFILES%/pd/src
+# Windows:  %PROGRAMFILES%/Pd/src
+#           %PROGRAMFILES(X86)%/Pd/src (32 bit builds on 64 bit Windows)
+#
+# Default search path for binary pd.dll (Windows), overridable by PDBINDIR
+#
+#           %PROGRAMFILES%/Pd/bin
+#           %PROGRAMFILES(X86)%/Pd/bin (32 bit builds on 64 bit Windows)
 #
 # Default location to install pd libraries is platform dependent, and
 # overridable by PDLIBDIR:
