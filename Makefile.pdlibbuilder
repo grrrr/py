@@ -602,8 +602,8 @@ ifeq ($(system), Windows)
   else
     programfiles := $(PROGRAMFILES)
   endif
-  pdbinpath := $(shell ls -d "$(programfiles)/Pd/bin")
-  pdincludepath := $(shell ls -d "$(programfiles)/Pd/src")
+  pdbinpath := $(programfiles)/Pd/bin
+  pdincludepath := $(programfiles)/Pd/src
 endif
 
 # Store default path to pd.dll in PDBINDIR if the latter is not user-defined.
@@ -745,6 +745,11 @@ endif
 # store path to Pd API m_pd.h if it is found
 ifdef PDINCLUDEDIR
   mpdh := $(shell ls "$(PDINCLUDEDIR)/m_pd.h")
+endif
+
+# store path to pd.dll; if not found, ls will give a useful error
+ifeq ($(system), Windows)
+  pddll := $(shell ls "$(PDBINDIR)/pd.dll")
 endif
 
 # print Makefile.pdlibbuilder version
