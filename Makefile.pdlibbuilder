@@ -100,7 +100,6 @@ version = 0.5.0
 #
 # Deprecated path variables:
 #
-# - PD_PATH
 # - pdincludepath
 # - pdbinpath
 # - objectsdir
@@ -323,7 +322,6 @@ version = 0.5.0
 # - decide whether to use -static-libgcc or shared dll in MinGW
 # - cygwin support
 # - android support
-# - Windows 64 bit support
 # - figure out how to handle '$' in filenames
 # - add makefile template targets dpkg-source dist libdir distclean tags?
 #
@@ -589,12 +587,13 @@ endif
 
 # Standard paths on Windows contain spaces, and GNU make functions treat such
 # paths as lists, with unintended effects. Therefore we must use shell function
-# ls instead of make's wildcard, and probe for each standard path individually.
-# Using double quotes around paths with spaces is obligatory. Since some path
-# variables are assembled or re-expanded later, great care must be taken to put
-# quotes at appropriate points throughout the makefile. Thanks, Bill.
+# ls instead of make's wildcard when probing for a path, and use double quotes
+# when specifying a path in a command argument.
 
-# default paths in Mingw environments
+# Default paths in Mingw / Mingw-w64 environments. 'PROGRAMFILES' is standard
+# location for builds with native architecture, 'ProgramFiles(x86)' for i686
+# builds on x86_64 Windows (detection method by Lucas Cordiviola). Curly braces
+# required because of parentheses in variable name.
 ifeq ($(system), Windows)
   pkglibdir := $(APPDATA)/Pd
   ifeq ($(MINGW_CHOST), i686-w64-mingw32)
