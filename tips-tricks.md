@@ -14,6 +14,29 @@ Assuming you have unzipped a W32 package for Pd into `${WINPDPATH}`, run:
 
 (if the project uses C++, you might also need to sed `CXX=i686-w64-mingw32-g++`)
 
+## building double-precision externals
+
+At the time of writing (2018-02) there is no official Pd that supports
+double-precision numbers yet.
+However, if you do get hold of an experimental double-precision Pd, you can
+easily build your externals for 64-bit numbers:
+
+   make CPPFLAGS="-DPD_FLOATSIZE=64"
+
+## building externals for W64 (64-bit Windows)
+
+At the time of writing (2018-02) there is no official Pd that supports
+W64 yet.
+However, if you do get hold of an experimental W64 Pd, you can
+easily build your externals for this environment with
+
+   make CPPFLAGS="-DPD_LONGINTTYPE=__int64" CC=x86_64-w64-mingw32-gcc
+
+
+To build a double-precision external for W64, use something like:
+
+   make CPPFLAGS="-DPD_LONGINTTYPE=__int64 -DPD_FLOATSIZE=64" CC=x86_64-w64-mingw32-gcc
+
 
 ## TODO universal binaries on OSX
 
