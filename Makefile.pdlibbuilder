@@ -166,7 +166,7 @@ version = 0.5.0
 # Makefile.pdlibbuilder will try to build all classes into a single library
 # executable (but it will force exit if lib.setup.sources is undefined).
 # If your makefile defines 'make-lib-executable=yes' as the library default,
-# this can still be overriden with 'make-lib-executable=no' as command argument
+# this can still be overridden with 'make-lib-executable=no' as command argument
 # to build individual class executables (the Makefile.pdlibbuilder default.)
 #
 # suppress-wunused:
