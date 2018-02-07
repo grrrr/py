@@ -36,6 +36,67 @@ include $(PDLIBBUILDER_DIR)/Makefile.pdlibbuilder
 
 ## Keeping pd-lib-builder up-to-date
 
+### `git subtree`
+
+With git-subtrees, you make the pd-lib-builder repository (or any other
+repository for that matter) part of your own repository - with full history and
+everything - put nicely into a distinct subdirectory.
+
+Support for *manipulating* subtrees has been added with Git-v1.7.11 (May 2012).
+The nice thing however is, that from "outside" the subtree is part of your
+repository like any other directory. E.g. older versions of Git can clone your
+repository with the full subtree (and all it's history) just fine.
+You can also use git-archive to make a complete snapshot of your repository
+(including the subtree) - nice, if you e.g. want self-contained downloads of
+your project from git hosting platforms (like Github, Gitlab, Bitbucket,...)
+
+In short, `git subtree` is the better `git submodule`.
+
+So here's how to do it:
+
+#### Initial setup/check-out
+This will create a `pd-lib-builder/` directory containing the full history of
+the pd-lib-builder repository up to its release `v0.5.0`
+
+~~~sh
+git subtree add --prefix=pd-lib-builder/ https://github.com/pure-data/pd-lib-builder v0.5.0
+~~~
+
+This will automatically merge the `pd-lib-builder/` history into your current
+branch, so everything is ready to go.
+
+#### Cloning your repository with the subtree
+Nothing special, really.
+Just clone your repository as always:
+
+~~~sh
+git clone https://git.example.org/pd/superbonk~.git
+~~~
+
+#### Updating pd-lib-builder
+Time passes and sooner or later you will find, that there is a shiny new
+pd-lib-builder with plenty of bugfixes and new features.
+To update your local copy to pd-lib-builder's current `master`, simply run:
+
+~~~sh
+git subtree pull --prefix pd-lib-builder/ https://github.com/pure-data/pd-lib-builder master
+~~~
+
+#### Pulling the updated pd-lib-builder into existing clones
+Again, nothing special.
+Just pull as always:
+
+~~~sh
+git pull
+~~~
+
+
+#### Further reading
+More on the power of `git subtree` can be found online
+- https://medium.com/@v/git-subtrees-a-tutorial-6ff568381844
+- https://www.atlassian.com/blog/git/alternatives-to-git-submodule-git-subtree
+- ...
+
 ### ~~`git submodule`~~ [DISCOURAGED]
 
 
@@ -123,65 +184,5 @@ git submodule update
   source code.
 
 In general, I would suggest to **avoid** `git submodule`, and instead use the
-better `git subtree` (below).
+better `git subtree` (above).
 
-### `git subtree`
-
-With git-subtrees, you make the pd-lib-builder repository (or any other
-repository for that matter) part of your own repository - with full history and
-everything - put nicely into a distinct subdirectory.
-
-Support for *manipulating* subtrees has been added with Git-v1.7.11 (May 2012).
-The nice thing however is, that from "outside" the subtree is part of your
-repository like any other directory. E.g. older versions of Git can clone your
-repository with the full subtree (and all it's history) just fine.
-You can also use git-archive to make a complete snapshot of your repository
-(including the subtree) - nice, if you e.g. want self-contained downloads of
-your project from git hosting platforms (like Github, Gitlab, Bitbucket,...)
-
-In short, `git subtree` is the better `git submodule`.
-
-So here's how to do it:
-
-#### Initial setup/check-out
-This will create a `pd-lib-builder/` directory containing the full history of
-the pd-lib-builder repository up to its release `v0.5.0`
-
-~~~sh
-git subtree add --prefix=pd-lib-builder/ https://github.com/pure-data/pd-lib-builder v0.5.0
-~~~
-
-This will automatically merge the `pd-lib-builder/` history into your current
-branch, so everything is ready to go.
-
-#### Cloning your repository with the subtree
-Nothing special, really.
-Just clone your repository as always:
-
-~~~sh
-git clone https://git.example.org/pd/superbonk~.git
-~~~
-
-#### Updating pd-lib-builder
-Time passes and sooner or later you will find, that there is a shiny new
-pd-lib-builder with plenty of bugfixes and new features.
-To update your local copy to pd-lib-builder's current `master`, simply run:
-
-~~~sh
-git subtree pull --prefix pd-lib-builder/ https://github.com/pure-data/pd-lib-builder master
-~~~
-
-#### Pulling the updated pd-lib-builder into existing clones
-Again, nothing special.
-Just pull as always:
-
-~~~sh
-git pull
-~~~
-
-
-#### Further reading
-More on the power of `git subtree` can be found online
-- https://medium.com/@v/git-subtrees-a-tutorial-6ff568381844
-- https://www.atlassian.com/blog/git/alternatives-to-git-submodule-git-subtree
-- ...
