@@ -73,7 +73,7 @@ Just clone your repository as always:
 git clone https://git.example.org/pd/superbonk~.git
 ~~~
 
-#### Updating pd-lib-builder
+#### Updating the subtree
 Time passes and sooner or later you will find, that there is a shiny new
 pd-lib-builder with plenty of bugfixes and new features.
 To update your local copy to pd-lib-builder's current `master`, simply run:
@@ -82,7 +82,7 @@ To update your local copy to pd-lib-builder's current `master`, simply run:
 git subtree pull --prefix pd-lib-builder/ https://github.com/pure-data/pd-lib-builder master
 ~~~
 
-#### Pulling the updated pd-lib-builder into existing clones
+#### Pulling the updated subtree into existing clones
 Again, nothing special.
 Just pull as always:
 
@@ -126,7 +126,7 @@ git submodule init
 git submodule update
 ~~~
 
-#### Updating pd-lib-builder
+#### Updating the submodule
 Submodules are usually fixed to a given commit in their repository.
 To update the `pd-lib-builder` submodule to the current `master` do something
 like:
@@ -140,7 +140,7 @@ git status pd-lib-builder
 git commit pd-lib-builder -m "Updated pd-lib-builder to current master"
 ~~~
 
-#### Pulling the updated pd-lib-builder into existing clones
+#### Pulling the updated submodule into existing clones
 After you have pushed the submodule updates in your repository, other clones of
 the repository can be updated as follows:
 
