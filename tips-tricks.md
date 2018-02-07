@@ -36,7 +36,7 @@ include $(PDLIBBUILDER_DIR)/Makefile.pdlibbuilder
 
 ## Keeping pd-lib-builder up-to-date
 
-### ++`git submodule`++ [DISCOURAGED]
+### ~~`git submodule`~~ [DISCOURAGED]
 
 
 #### Initial setup/check-out
