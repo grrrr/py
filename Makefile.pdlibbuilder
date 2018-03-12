@@ -538,7 +538,6 @@ ifeq ($(system), Linux)
   cxx.ldlibs := -lc -lm -lstdc++
   shared.extension = so
   shared.ldflags := -rdynamic -fPIC -shared -Wl,-soname,$(shared.lib)
-  stripflags = --strip-unneeded -R .note -R .comment
 endif
 
 
@@ -566,7 +565,6 @@ ifeq ($(system), Darwin)
   shared.ldflags = -dynamiclib -undefined dynamic_lookup \
     -install_name @loader_path/$(shared.lib) \
     -compatibility_version 1 -current_version 1.0
-  stripflags = -x
   version.flag := $(filter $(cflags), -mmacosx-version-min=%)
   ifeq ($(target.arch), i386)
     cxx.flags := -fcheck-new
@@ -638,7 +636,7 @@ ifeq ($(system), Windows)
   cxx.ldlibs :=
   shared.extension = dll
   shared.ldflags := -static-libgcc -shared "$(PDBINDIR)/pd.dll"
-  stripflags = --strip-unneeded -R .note -R .comment
+  stripflags = --strip-all
 endif
 
 
@@ -1048,9 +1046,32 @@ endef
 ################################################################################
 
 
+#=== strip =====================================================================
+
+
+# Stripping of installed binaries will only be done when variable 'stripflags'
+# is defined non-empty. No default definition is provided except for Windows
+# where the unstripped binaries are large, especially in the case of Mingw-w64.
+
+# Note: while stripping all symbols ('-s' or '--strip-all') is possible for
+# Linux and Windows, in the case of OSX only non-global symbols can be stripped
+# (option '-x' or '--discard-all').
+
+# Make definition of strip command overridable so it can be defined in an
+# environment for cross-compilation.
+STRIP ?= strip
+
+# Commands in 'strip-executables' will be executed conditionally in the rule for
+# target 'install-executables'.
+strip-executables = cd "$(installpath)" && \
+  $(foreach v, $(executables), $(STRIP) $(stripflags) '$v';)
+
+
+#=== install ===================================================================
+
+
 # Install targets depend on successful exit status of target all because nothing
 # must be installed in case of a build error.
-
 
 # -p = preserve time stamps
 # -m = set permission mode (as in chmod)
@@ -1077,6 +1098,7 @@ install-executables: all
 	$(INSTALL_PROGRAM) '$v' "$(installpath)";)
 	$(info ++++ info: executables of lib $(lib.name) installed \
         from $(CURDIR) to $(installpath))
+	$(if $(stripflags), $(strip-executables),)
 
 install-datafiles: all
 	$(INSTALL_DIR) -v "$(installpath)"
