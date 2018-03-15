@@ -96,6 +96,7 @@ version = 0.5.0
 # - CC
 # - CXX
 # - INSTALL
+# - STRIP
 # - DESTDIR
 #
 # Deprecated path variables:
@@ -211,6 +212,10 @@ version = 0.5.0
 #
 # INSTALL
 # Definition of install program.
+#
+# STRIP
+# Name of strip program. Default 'strip' can be overridden in cross compilation
+# environments.
 #
 # objectsdir:
 # Root directory for installation of Pd library directories, like PDLIBDIR but
