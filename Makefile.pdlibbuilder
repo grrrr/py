@@ -450,7 +450,7 @@ ifeq ($(uname), Darwin)
   system = Darwin
 endif
 
-ifeq ($(filter MINGW% MSYS%, $(uname)), $(uname)) 
+ifeq ($(filter MINGW% MSYS%, $(uname)), $(uname))
   system = Windows
 endif
 
@@ -514,11 +514,11 @@ else ifeq ($(target.arch), armv7l)
 # Intel 32 bit, build with SSE and SSE2 instructions
 else ifeq ($(findstring $(target.arch), i386 i686), $(target.arch))
   arch.c.flags = -march=pentium4 -mfpmath=sse -msse -msse2
-  
+
 # Intel/AMD 64 bit, build with SSE, SSE2 and SSE3 instructions
 else ifeq ($(findstring $(target.arch), x86_64), $(target.arch))
   arch.c.flags = -march=core2 -mfpmath=sse -msse -msse2 -msse3
-  
+
 # if none of the above architectures detected
 else
   arch.c.flags =
