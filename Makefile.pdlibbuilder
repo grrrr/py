@@ -578,7 +578,7 @@ ifeq ($(system), Darwin)
   endif
   ifeq ($(target.arch), x86_64)
     arch := i386 x86_64
-    version.flag = -mmacosx-version-min=10.5
+    version.flag = -mmacosx-version-min=10.6
   endif
   ifneq ($(filter -mmacosx-version-min=%, $(cflags)),)
     version.flag := $(filter -mmacosx-version-min=%, $(cflags))
