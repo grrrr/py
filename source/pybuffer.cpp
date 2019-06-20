@@ -527,12 +527,42 @@ static PyObject *buffer_multiply(PyObject *s,PyObject *op)
         return NULL;
 }
 
+#if PY_MAJOR_VERSION < 3
 static PyObject *buffer_divide(PyObject *s,PyObject *op)
 {
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     PyObject *nobj = buffer_slice(s);
     if(nobj) {
         PyObject *ret = PyNumber_Divide(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+#endif
+
+static PyObject *buffer_true_divide(PyObject *s,PyObject *op)
+{
+    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
+    PyObject *nobj = buffer_slice(s);
+    if(nobj) {
+        PyObject *ret = PyNumber_TrueDivide(nobj, op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
+static PyObject *buffer_floor_divide(PyObject *s,PyObject *op)
+{
+    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
+    PyObject *nobj = buffer_slice(s);
+    if(nobj) {
+        PyObject *ret = PyNumber_FloorDivide(nobj, op);
         if(ret == nobj) self->dirty = true;
         Py_DECREF(nobj);
         return ret;
@@ -677,12 +707,28 @@ static PyObject *buffer_inplace_multiply(PyObject *s,PyObject *op)
         return NULL;
 }
 
+#if PY_MAJOR_VERSION < 3
 static PyObject *buffer_inplace_divide(PyObject *s,PyObject *op)
 {
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     PyObject *nobj = buffer_slice(s);
     if(nobj) {
         PyObject *ret = PyNumber_InPlaceDivide(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+#endif
+
+static PyObject *buffer_inplace_floor_divide(PyObject *s,PyObject *op)
+{
+    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
+    PyObject *nobj = buffer_slice(s);
+    if(nobj) {
+        PyObject *ret = PyNumber_InPlaceFloorDivide(nobj,op);
         if(ret == nobj) self->dirty = true;
         Py_DECREF(nobj);
         return ret;
@@ -725,7 +771,11 @@ static PyNumberMethods buffer_as_number = {
     (binaryfunc)buffer_add, /*nb_add*/
     (binaryfunc)buffer_subtract, /*nb_subtract*/
     (binaryfunc)buffer_multiply, /*nb_multiply*/
+#if PY_MAJOR_VERSION < 3
     (binaryfunc)buffer_divide, /*nb_divide*/
+#else
+    0, /*nb_divide not supported */ 
+#endif
     (binaryfunc)buffer_remainder, /*nb_remainder*/
     (binaryfunc)buffer_divmod, /*nb_divmod*/
     (ternaryfunc)buffer_power, /*nb_power*/
@@ -748,7 +798,11 @@ static PyNumberMethods buffer_as_number = {
     (binaryfunc)buffer_inplace_add,     /* nb_inplace_add */
     (binaryfunc)buffer_inplace_subtract,        /* nb_inplace_subtract */
     (binaryfunc)buffer_inplace_multiply,        /* nb_inplace_multiply */
+#if PY_MAJOR_VERSION < 3
     (binaryfunc)buffer_inplace_divide,      /* nb_inplace_divide */
+#else
+    0, /* nb_inplace_divide not supported */
+#endif
     (binaryfunc)buffer_inplace_remainder,       /* nb_inplace_remainder */
     (ternaryfunc)buffer_inplace_power,      /* nb_inplace_power */
     0,      /* nb_inplace_lshift */
@@ -756,9 +810,9 @@ static PyNumberMethods buffer_as_number = {
     0,      /* nb_inplace_and */
     0,      /* nb_inplace_xor */
     0,      /* nb_inplace_or */
-//  buffer_floor_div, /* nb_floor_divide */
-//  buffer_div, /* nb_true_divide */
-//  buffer_inplace_floor_div,       /* nb_inplace_floor_divide */
+    (binaryfunc)buffer_floor_divide, /* nb_floor_divide */
+    (binaryfunc)buffer_true_divide, /* nb_true_divide */
+    (binaryfunc)buffer_inplace_floor_divide,       /* nb_inplace_floor_divide */
 //  buffer_inplace_div,     /* nb_inplace_true_divide */
 };
 

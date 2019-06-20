@@ -421,14 +421,19 @@ bool pyext::MakeInstance()
     // pyobj should already have been decref'd / cleared before getting here!!
     
     if(module && methname) {
-        PyObject *pref = PyObject_GetAttrString(module,const_cast<char *>(GetString(methname)));  
+        PyObject *pref = PyObject_GetAttrString(module, const_cast<char *>(GetString(methname)));  
         if(!pref) 
             PyErr_Print();
         else {
+#if PY_MAJOR_VERSION < 3
             if(PyClass_Check(pref)) {
                 // make instance, but don't call __init__ 
-                pyobj = PyInstance_NewRaw(pref,NULL);
-
+                pyobj = PyInstance_NewRaw(pref, NULL);
+#else
+            if(PyObject_IsInstance(pref, (PyObject *)&PyType_Type)) {
+                // pyobj = PyBaseObject_Type.tp_new()
+                // TODO: correctly initialize instance
+#endif
                 if(!pyobj) PyErr_Print();
             }
             else
@@ -537,7 +542,7 @@ bool pyext::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
 void pyext::m_help()
 {
     post("");
-    post("%s %s - python class object, (C)2002-2012 Thomas Grill",thisName(),PY__VERSION);
+    post("%s %s - python class object, (C)2002-2019 Thomas Grill",thisName(),PY__VERSION);
 #ifdef FLEXT_DEBUG
     post("DEBUG VERSION, compiled on " __DATE__ " " __TIME__);
 #endif
