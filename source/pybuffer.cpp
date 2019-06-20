@@ -1,7 +1,7 @@
 /*
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2019 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 */
@@ -105,8 +105,12 @@ static int buffer_init(PyObject *obj, PyObject *args, PyObject *kwds)
 
     if(pySymbol_Check(arg))
         self->sym = pySymbol_AS_SYMBOL(arg);
+#if PY_MAJOR_VERSION < 3
     else if(PyString_Check(arg))
         self->sym = flext::MakeSymbol(PyString_AS_STRING(arg));
+#endif
+    else if(PyUnicode_Check(arg))
+        self->sym = flext::MakeSymbol(PyUnicode_AsUTF8(arg));
     else
         ret = -1;
     Py_DECREF(arg);
@@ -125,7 +129,13 @@ static int buffer_init(PyObject *obj, PyObject *args, PyObject *kwds)
 static PyObject *buffer_repr(PyObject *self)
 {
     FLEXT_ASSERT(pySamplebuffer_Check(self));
-    return (PyObject *)PyString_FromFormat("<Samplebuffer %s>",pySamplebuffer_AS_STRING(self));
+    return (PyObject *)
+#if PY_MAJOR_VERSION < 3
+        PyString_FromFormat
+#else
+        PyUnicode_FromFormat
+#endif
+            ("<Samplebuffer %s>", pySamplebuffer_AS_STRING(self));
 }
 
 static long buffer_hash(PyObject *self)

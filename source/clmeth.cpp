@@ -1,7 +1,7 @@
 /*
 py/pyext - python external object for PD and Max/MSP
 
-Copyright (c)2002-2008 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2019 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 */
@@ -85,7 +85,13 @@ PyObject* pyext::pyext__str__(PyObject *,PyObject *args)
         return NULL;
     }
 
-    return PyString_FromFormat("<pyext object %p>",self);
+    return
+#if PY_MAJOR_VERSION < 3
+        PyString_FromFormat
+#else
+        PyUnicode_FromFormat
+#endif
+            ("<pyext object %p>", self);
 }
 
 PyObject* pyext::pyext_setattr(PyObject *,PyObject *args)
@@ -120,14 +126,19 @@ PyObject* pyext::pyext_setattr(PyObject *,PyObject *args)
 
 PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
 {
-    PyObject *self,*name,*ret = NULL;
-    if(!PyArg_ParseTuple(args, "OO:pyext_getattr", &self,&name)) {
+    PyObject *self, *name, *ret = NULL;
+    if(!PyArg_ParseTuple(args, "OO:pyext_getattr", &self, &name)) {
         // handle error
         ERRINTERNAL();
     }
 
+#if PY_MAJOR_VERSION < 3
     if(PyString_Check(name)) {
-        char* sname = PyString_AS_STRING(name);
+        const char *sname = PyString_AS_STRING(name);
+#else
+    if(PyUnicode_Check(name)) {
+        const char *sname = PyUnicode_AsUTF8(name);
+#endif
         if(sname) {
 #ifdef FLEXT_THREADS
             if(!strcmp(sname,"_shouldexit")) {
@@ -182,7 +193,12 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
     if(
         sz >= 2 &&
         (self = PyTuple_GET_ITEM(args,0)) != NULL && PyInstance_Check(self) && 
-        (outl = PyTuple_GET_ITEM(args,1)) != NULL && PyInt_Check(outl)
+        (outl = PyTuple_GET_ITEM(args,1)) != NULL &&
+#if PY_MAJOR_VERSION < 3
+            PyInt_Check(outl)
+#else
+            PyLong_Check(outl)
+#endif
     ) {
         pyext *ext = GetThis(self);
         if(!ext) {    
@@ -211,7 +227,12 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
             val = PyTuple_GetSlice(args,2,sz);  // new ref
 #endif
 
-        int o = PyInt_AS_LONG(outl);
+        int o;
+#if PY_MAJOR_VERSION < 3
+        o = PyInt_AS_LONG(outl);
+#else
+        o = PyLong_AS_LONG(outl);
+#endif
         if(o >= 1 && o <= ext->Outlets()) {
             // offset outlet by signal outlets
             o += ext->sigoutlets;

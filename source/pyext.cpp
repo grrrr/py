@@ -1,7 +1,7 @@
 /*
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2019 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 */
@@ -48,7 +48,12 @@ void pyext::Setup(t_classid c)
 
     // register/initialize pyext base class along with module
     class_dict = PyDict_New();
-    PyObject *className = PyString_FromString(PYEXT_CLASS);
+    PyObject *className;
+#if PY_MAJOR_VERSION < 3
+    className = PyString_FromString(PYEXT_CLASS);
+#else
+    className = PyUnicode_FromString(PYEXT_CLASS);
+#endif
     PyMethodDef *def;
 
     // add setattr/getattr to class 
@@ -78,7 +83,13 @@ void pyext::Setup(t_classid c)
     // after merge so that it's not in class_dict as well...
     PyDict_SetItemString(module_dict, PYEXT_CLASS,class_obj); // increases class_obj ref count by 1
 
-    PyDict_SetItemString(class_dict,"__doc__",PyString_FromString(pyext_doc));
+    PyObject *str;
+#if PY_MAJOR_VERSION < 3
+    str = PyString_FromString(pyext_doc);
+#else
+    str = PyUnicode_FromString(pyext_doc);
+#endif
+    PyDict_SetItemString(class_dict, "__doc__", str);
 }
 
 pyext *pyext::GetThis(PyObject *self)
@@ -327,12 +338,24 @@ bool pyext::InitInOut(int &inl,int &outl)
 {
     if(inl >= 0) {
         // set number of inlets
-        int ret = PyObject_SetAttrString(pyobj,"_inlets",PyInt_FromLong(inl));
+        PyObject *obj;
+#if PY_MAJOR_VERSION < 3
+        obj = PyInt_FromLong(inl);
+#else
+        obj = PyLong_FromLong(inl);
+#endif
+        int ret = PyObject_SetAttrString(pyobj, "_inlets", obj);
         FLEXT_ASSERT(!ret);
     }
     if(outl >= 0) {
         // set number of outlets
-        int ret = PyObject_SetAttrString(pyobj,"_outlets",PyInt_FromLong(outl));
+        PyObject *obj;
+#if PY_MAJOR_VERSION < 3
+        obj = PyInt_FromLong(outl);
+#else
+        obj = PyLong_FromLong(outl);
+#endif
+        int ret = PyObject_SetAttrString(pyobj, "_outlets", obj);
         FLEXT_ASSERT(!ret);
     }
 
@@ -350,8 +373,15 @@ bool pyext::InitInOut(int &inl,int &outl)
                 Py_DECREF(res);
                 res = fres;
             }
+#if PY_MAJOR_VERSION < 3
             if(PyInt_Check(res)) 
                 inl = PyInt_AS_LONG(res);
+            else
+#endif
+            if(PyLong_Check(res)) 
+                inl = PyLong_AS_LONG(res);
+            else
+                PyErr_SetString(PyExc_TypeError, "Type must be integer");
             Py_DECREF(res);
         }
         else 
@@ -367,8 +397,16 @@ bool pyext::InitInOut(int &inl,int &outl)
                 Py_DECREF(res);
                 res = fres;
             }
+#if PY_MAJOR_VERSION < 3
             if(PyInt_Check(res))
                 outl = PyInt_AS_LONG(res);
+            else
+#endif
+            if(PyLong_Check(res))
+                outl = PyLong_AS_LONG(res);
+            else
+                PyErr_SetString(PyExc_TypeError, "Type must be integer");
+
             Py_DECREF(res);
         }
         else

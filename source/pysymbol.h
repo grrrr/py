@@ -1,7 +1,7 @@
 /*
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2019 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 */
@@ -61,7 +61,18 @@ inline PyObject *pySymbol_FromString(const char *str)
 
 inline PyObject *pySymbol_FromString(PyObject *str)
 {
-    return pySymbol_FromString(PyString_AsString(str));
+    const char *cstr;
+#if PY_MAJOR_VERSION < 3
+    if(PyString_Check(str))
+        cstr = PyString_AsString(str);
+    else
+#endif
+    if(PyUnicode_Check(str))
+        cstr = PyUnicode_AsUTF8(str);
+    else
+        PyErr_SetString(PyExc_TypeError, "Type must be string or unicode"); 
+    
+    return pySymbol_FromString(cstr);
 }
 
 inline const t_symbol *pySymbol_AS_SYMBOL(PyObject *op) 
@@ -81,8 +92,13 @@ inline const char *pySymbol_AS_STRING(PyObject *op)
 
 inline const t_symbol *pyObject_AsSymbol(PyObject *op)
 {
+#if PY_MAJOR_VERSION < 3
     if(PyString_Check(op))
         return flext::MakeSymbol(PyString_AS_STRING(op));
+    else
+#endif
+    if(PyUnicode_Check(op))
+        return flext::MakeSymbol(PyUnicode_AsUTF8(op));
     else
         return pySymbol_AsSymbol(op);
 }

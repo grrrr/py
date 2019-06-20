@@ -1,7 +1,7 @@
 /*
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2019 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 */
@@ -103,7 +103,7 @@ void pybase::lib_setup()
     post("");
     post("------------------------------------------------");
     post("py/pyext %s - python script objects",PY__VERSION);
-    post("(C)2002-2015 Thomas Grill - http://grrrr.org/ext");
+    post("(C)2002-2019 Thomas Grill - http://grrrr.org/ext");
     post("");
     post("using Python %s",Py_GetVersion());
 
@@ -310,10 +310,21 @@ void pybase::m__doc(PyObject *obj)
         ThrLock lock;
 
         PyObject *docf = PyDict_GetItemString(obj,"__doc__"); // borrowed!!!
-        if(docf && PyString_Check(docf)) {
+        if(docf && 
+#if PY_MAJOR_VERSION < 3
+            PyString_Check(docf)
+#else
+            PyUnicode_Check(docf)
+#endif
+        ) {
 
             post("");
-            const char *s = PyString_AS_STRING(docf);
+            const char *s;
+#if PY_MAJOR_VERSION < 3
+            s = PyString_AS_STRING(docf);
+#else
+            s = PyUnicode_AsUTF8(docf);
+#endif
 
             // FIX: Python doc strings can easily be larger than 1k characters
             // -> split into separate lines
@@ -650,7 +661,12 @@ void pybase::AddToPath(const char *dir)
     if(dir && *dir) {
         PyObject *pobj = PySys_GetObject(const_cast<char *>("path"));
         if(pobj && PyList_Check(pobj)) {
-            PyObject *ps = PyString_FromString(dir);
+            PyObject *ps;
+#if PY_MAJOR_VERSION < 3
+            ps = PyString_FromString(dir);
+#else
+            ps = PyUnicode_FromString(dir);
+#endif
             if(!PySequence_Contains(pobj,ps))
                 PyList_Append(pobj,ps); // makes new reference
             Py_DECREF(ps);
@@ -745,30 +761,67 @@ PyObject* pybase::StdOut_Write(PyObject* self, PyObject* args)
     for(int i = 0; i < sz; ++i) {
         PyObject *val = PyTuple_GET_ITEM(args,i); // borrowed reference
         PyObject *str = PyObject_Str(val); // new reference
-        char *cstr = PyString_AS_STRING(str);
-        char *lf = strchr(cstr,'\n');
+        const char *cstr;
+#if PY_MAJOR_VERSION < 3
+        cstr = PyString_AS_STRING(str);
+#else
+        cstr = PyUnicode_AsUTF8(str);
+#endif
+        const char *lf = strchr(cstr, '\n');
 
         // line feed in string
         if(!lf) {
             // no -> just append
-            if(output)
-                PyString_ConcatAndDel(&output,str); // str is decrefd
+            if(output) {
+#if PY_MAJOR_VERSION < 3
+                PyString_ConcatAndDel(&output, str); // str is decrefd
+#else
+                PyObject *newobj = PyUnicode_Concat(output, str);
+                Py_DECREF(output);
+                Py_DECREF(str);
+                output = newobj;
+#endif
+            }
             else
                 output = str; // take str reference
         }
         else {
             // yes -> append up to line feed, reset output buffer to string remainder
-            PyObject *part = PyString_FromStringAndSize(cstr,lf-cstr); // new reference
-            if(output)
-                PyString_ConcatAndDel(&output,part); // str is decrefd  
+            PyObject *part =
+#if PY_MAJOR_VERSION < 3
+                PyString_FromStringAndSize
+#else
+                PyUnicode_FromStringAndSize
+#endif
+                    (cstr, lf-cstr); // new reference
+            if(output) {
+#if PY_MAJOR_VERSION < 3
+                PyString_ConcatAndDel(&output, part); // part is decrefd
+#else
+                PyObject *newobj = PyUnicode_Concat(output, part);
+                Py_DECREF(output);
+                Py_DECREF(part);
+                output = newobj;
+#endif
+            }
             else
                 output = part; // take str reference
 
             // output concatenated string
+#if PY_MAJOR_VERSION < 3
             post(PyString_AS_STRING(output));
+#else
+            post(PyUnicode_AsUTF8(output));
+#endif
 
             Py_DECREF(output);
-            output = PyString_FromString(lf+1);  // new reference
+            output =
+#if PY_MAJOR_VERSION < 3
+                PyString_FromString
+#else
+                PyUnicode_FromString
+#endif
+                    (lf+1);  // new reference
         }
     }
 

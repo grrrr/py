@@ -1,7 +1,7 @@
 /*
 py/pyext - python external object for PD and MaxMSP
 
-Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2019 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 */
@@ -20,7 +20,13 @@ static PyObject *MakePyAtom(const t_atom &at)
         // if a number can be an integer... let it be an integer!
         int ival = flext::GetAInt(at);
         double fval = flext::GetAFloat(at);
-        return (double)ival == fval?PyInt_FromLong(ival):PyFloat_FromDouble(fval);
+        return (double)ival == fval?
+#if PY_MAJOR_VERSION < 3
+            PyInt_FromLong(ival)
+#else
+            PyLong_FromLong(ival)
+#endif
+            :PyFloat_FromDouble(fval);
     }
 #else
     else if(flext::IsFloat(at))
@@ -69,7 +75,13 @@ PyObject *pybase::MakePyArgs(const t_symbol *s,int argc,const t_atom *argv,int i
         int pix = 0;
 
         if(inlet >= 0)
-            PyTuple_SET_ITEM(ret,pix++,PyInt_FromLong(inlet)); 
+            PyTuple_SET_ITEM(ret, pix++,
+#if PY_MAJOR_VERSION < 3
+                PyInt_FromLong(inlet)
+#else
+                PyLong_FromLong(inlet)
+#endif
+            ); 
 
         if(any)
             PyTuple_SET_ITEM(ret,pix++,pySymbol_FromSymbol(s)); 
@@ -126,7 +138,12 @@ PyObject *pybase::MakePyArg(const t_symbol *s,int argc,const t_atom *argv)
 
 inline bool issym(PyObject *p)
 {
-    return PyString_Check(p) || pySymbol_Check(p);
+return 
+    PyUnicode_Check(p)
+#if PY_MAJOR_VERSION < 3
+    || PyString_Check(p) 
+#endif
+    || pySymbol_Check(p);
 }
 
 inline bool isseq(PyObject *p)
@@ -136,16 +153,27 @@ inline bool isseq(PyObject *p)
 
 const t_symbol *pybase::getone(t_atom &at,PyObject *arg)
 {
+#if PY_MAJOR_VERSION < 3
     if(PyInt_Check(arg)) { flext::SetInt(at,PyInt_AsLong(arg)); return sym_fint; }
-    else if(PyLong_Check(arg)) { flext::SetInt(at,PyLong_AsLong(arg)); return sym_fint; }
+    else
+#endif
+    if(PyLong_Check(arg)) { flext::SetInt(at,PyLong_AsLong(arg)); return sym_fint; }
     else if(PyFloat_Check(arg)) { flext::SetFloat(at,(float)PyFloat_AsDouble(arg)); return flext::sym_float; }
     else if(pySymbol_Check(arg)) { flext::SetSymbol(at,pySymbol_AS_SYMBOL(arg)); return flext::sym_symbol; }
+#if PY_MAJOR_VERSION < 3
     else if(PyString_Check(arg)) { flext::SetString(at,PyString_AS_STRING(arg)); return flext::sym_symbol; }
+#endif
+    else if(PyUnicode_Check(arg)) { flext::SetString(at,PyUnicode_AsUTF8(arg)); return flext::sym_symbol; }
     else {
         PyObject *tp = PyObject_Type(arg);
         PyObject *stp = tp?PyObject_Str(tp):NULL;
         const char *tmp = "";
-        if(stp) tmp = PyString_AS_STRING(stp);
+        if(stp) 
+#if PY_MAJOR_VERSION < 3
+            tmp = PyString_AS_STRING(stp);
+#else
+            tmp = PyUnicode_AsUTF8(stp);
+#endif
         flext::post("py/pyext: Could not convert argument %s",tmp);
         Py_XDECREF(stp);
         Py_XDECREF(tp);

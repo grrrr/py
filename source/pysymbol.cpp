@@ -1,7 +1,7 @@
 /*
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2019 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 */
@@ -32,10 +32,14 @@ static int symbol_init(PyObject *self, PyObject *args, PyObject *kwds)
 
     if(pySymbol_Check(arg))
         ((pySymbol *)self)->sym = pySymbol_AS_SYMBOL(arg);
+#if PY_MAJOR_VERSION < 3
     else if(PyString_Check(arg))
         ((pySymbol *)self)->sym = flext::MakeSymbol(PyString_AS_STRING(arg));
+#endif
+    else if(PyUnicode_Check(arg))
+        ((pySymbol *)self)->sym = flext::MakeSymbol(PyUnicode_AsUTF8(arg));
     else {
-        PyErr_SetString(PyExc_TypeError,"string or symbol argument expected");
+        PyErr_SetString(PyExc_TypeError, "string, unicode or symbol argument expected");
         ret = -1;
     }
     Py_DECREF(arg);
@@ -46,13 +50,25 @@ static int symbol_init(PyObject *self, PyObject *args, PyObject *kwds)
 static PyObject *symbol_str(PyObject *self)
 {
     FLEXT_ASSERT(pySymbol_Check(self));
-    return (PyObject *)PyString_FromString(pySymbol_AS_STRING(self));
+    return (PyObject *)
+#if PY_MAJOR_VERSION < 3
+        PyString_FromString
+#else
+        PyUnicode_FromString
+#endif
+            (pySymbol_AS_STRING(self));
 }
 
 static PyObject *symbol_repr(PyObject *self)
 {
     FLEXT_ASSERT(pySymbol_Check(self));
-    return (PyObject *)PyString_FromFormat("<Symbol %s>",pySymbol_AS_STRING(self));
+    return (PyObject *)
+#if PY_MAJOR_VERSION < 3
+        PyString_FromFormat
+#else
+        PyUnicode_FromFormat
+#endif
+            ("<Symbol %s>", pySymbol_AS_STRING(self));
 }
 
 static PyObject *symbol_richcompare(PyObject *a,PyObject *b,int cmp)
@@ -101,7 +117,13 @@ static PyObject *symbol_item(PyObject *s,Py_ssize_t i)
     if(i < 0) i += len;
 
     if(i >= 0 && i < len)
-        return PyString_FromStringAndSize(str+i,1);
+        return
+#if PY_MAJOR_VERSION < 3
+            PyString_FromStringAndSize
+#else
+            PyUnicode_FromStringAndSize
+#endif
+                (str+i,1);
     else {
         Py_INCREF(Py_None);
         return Py_None;
@@ -120,7 +142,13 @@ static PyObject *symbol_slice(PyObject *s,Py_ssize_t ilow = 0,Py_ssize_t ihigh =
     if(ihigh < 0) ihigh += len;
     if(ihigh >= len) ihigh = len-1;
 
-    return PyString_FromStringAndSize(str+ilow,ilow <= ihigh?ihigh-ilow+1:0);
+    return
+#if PY_MAJOR_VERSION < 3
+        PyString_FromStringAndSize
+#else
+        PyUnicode_FromStringAndSize
+#endif
+            (str+ilow, ilow <= ihigh?ihigh-ilow+1:0);
 }
 
 static PyObject *symbol_concat(PyObject *s,PyObject *op)

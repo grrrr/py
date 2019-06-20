@@ -1,7 +1,7 @@
 /*
 py/pyext - python script object for PD and Max/MSP
 
-Copyright (c)2002-2015 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2019 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 */
@@ -56,7 +56,13 @@ static PyObject *bundle_send(PyObject *obj)
 static PyObject *bundle_repr(PyObject *self)
 {
     FLEXT_ASSERT(pyBundle_Check(self));
-    return (PyObject *)PyString_FromFormat("<Bundle %p>",pyBundle_AS_BUNDLE(self));
+    return (PyObject *)
+#if PY_MAJOR_VERSION < 3
+        PyString_FromFormat
+#else
+        PyUnicode_FromFormat
+#endif
+            ("<Bundle %p>", pyBundle_AS_BUNDLE(self));
 }
 
 static PyObject *bundle_str(PyObject *self)
@@ -103,12 +109,22 @@ static PyObject *bundle_append(PyObject *self,PyObject *args)
 
         if(sz > 2 &&
             (tg = PyTuple_GET_ITEM(args,0)) != NULL && PyInstance_Check(tg) && 
-            (outl = PyTuple_GET_ITEM(args,1)) != NULL && PyInt_Check(outl)
+            (outl = PyTuple_GET_ITEM(args,1)) != NULL && 
+#if PY_MAJOR_VERSION < 3
+                PyInt_Check(outl)
+#else
+                PyLong_Check(outl)
+#endif
         ) {
             // Sending to outlet
             ext = pyext::GetThis(tg);
+            
+#if PY_MAJOR_VERSION < 3
             o = PyInt_AS_LONG(outl);
-
+#else
+            o = PyLong_AS_LONG(outl);
+#endif
+            
             if(o < 1 || o > ext->Outlets()) {
                 PyErr_SetString(PyExc_ValueError,"Outlet index out of range");
                 return NULL;
