@@ -29,6 +29,7 @@ endif
 LIBS += $(PY_CONDA_ROOT)/lib/libpython$(PY_MAJOR_VERSION).$(PY_MINOR_VERSION).dylib
 INCPATH += -I$(PY_CONDA_ROOT)/include
 INCPATH += -I$(PY_CONDA_ROOT)/include/python$(PY_MAJOR_VERSION).$(PY_MINOR_VERSION)
+LDFLAGS += -rpath $(PY_CONDA_ROOT)/lib
 
 ifdef PY_NUMPY
 INCPATH += -I$(PY_CONDA_ROOT)/lib/python$(PY_MAJOR_VERSION).$(PY_MINOR_VERSION)/site-packages/numpy/core/include
