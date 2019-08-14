@@ -18,6 +18,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 static PyMethodDef StdOut_Methods[] =
 {
     { "write", pybase::StdOut_Write, 1 },
+    { "flush", pybase::StdOut_Flush, 1 },
     { NULL,    NULL,           }  
 };
 
@@ -776,6 +777,12 @@ PyObject* pybase::StdOut_Write(PyObject* self, PyObject* args)
     return Py_None;
 }
 
+// dummy flush method, since some logging libraries call this
+PyObject* pybase::StdOut_Flush(PyObject* self, PyObject* args)
+{
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 
 class work_data
 {
