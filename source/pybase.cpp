@@ -15,6 +15,9 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <ApplicationServices/ApplicationServices.h>
 #endif
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 static PyMethodDef StdOut_Methods[] =
 {
     { "write", pybase::StdOut_Write, 1 },
@@ -99,8 +102,17 @@ void initsymbol();
 void initsamplebuffer();
 void initbundle();
 
+
+
 void pybase::lib_setup()
-{   
+{
+#ifdef PY_INTERPRETER
+    {
+        static char py_program_name[] = TOSTRING(PY_INTERPRETER);
+        Py_SetProgramName(py_program_name);
+    }
+#endif
+    
     post("");
     post("------------------------------------------------");
     post("py/pyext %s - python script objects",PY__VERSION);
