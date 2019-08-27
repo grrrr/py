@@ -16,7 +16,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 // otherwise some functions don't get defined
 #include <cmath>
 
-#if FLEXT_OS == FLEXT_OS_MAC
+#ifdef PY_USE_FRAMEWORK
 #include <Python/Python.h>
 #else
 #include <Python.h>

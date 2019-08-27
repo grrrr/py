@@ -38,6 +38,8 @@ endif
 
 else
 
+DEFS += -DPY_USE_FRAMEWORK
+
 # don't use -framework Python, since this will stick to the default system version
 
 _LOCAL_FRAMEWORK := /Library/Frameworks/Python.framework/Versions/$(PY_MAJOR_VERSION).$(PY_MINOR_VERSION)
