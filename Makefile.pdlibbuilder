@@ -434,6 +434,28 @@ endif
 ################################################################################
 
 
+#=== target platform ===========================================================
+
+
+# PLATFORM: optional user variable to define target platform for cross
+# compilation. Redefine build tools accordingly. PLATFORM should match
+# the exact target prefix of tools present in $PATH, like x86_64-w64-mingw32,
+# x86_64-apple-darwin12 etc. Tool definitions are exported to ensure submakes
+# will get the same.
+
+ifneq ($(PLATFORM),)
+  ifneq ($(findstring darwin, $(PLATFORM)),)
+    export CC = $(PLATFORM)-cc
+    export CXX = $(PLATFORM)-c++
+    export CPP = $(PLATFORM)-cc
+  else
+    export CC = $(PLATFORM)-gcc
+    export CXX = $(PLATFORM)-g++
+    export CPP = $(PLATFORM)-cpp
+  endif
+  STRIP = $(PLATFORM)-strip
+endif
+
 # Let (native or cross-) compiler report target triplet and isolate individual
 # words therein to facilitate later processing.
 target.triplet := $(subst -, ,$(shell $(CC) -dumpmachine))
