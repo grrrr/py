@@ -559,16 +559,11 @@ ifeq ($(system), Darwin)
   ifneq ($(filter %g++, $(CXX)),)
     cxx.flags := -fcheck-new
   endif
-  version.flag := $(filter $(cflags), -mmacosx-version-min=%)
   arch := $(target.arch)
-  ifeq ($(target.arch), i386)
-    version.flag = -mmacosx-version-min=10.4
-  endif
-  ifeq ($(target.arch), x86_64)
-    version.flag = -mmacosx-version-min=10.6
-  endif
   ifneq ($(filter -mmacosx-version-min=%, $(cflags)),)
     version.flag := $(filter -mmacosx-version-min=%, $(cflags))
+  else
+    version.flag = -mmacosx-version-min=10.6
   endif
   arch.c.flags := $(addprefix -arch , $(arch)) $(version.flag)
   arch.ld.flags := $(arch.c.flags)
