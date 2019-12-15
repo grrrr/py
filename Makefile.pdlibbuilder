@@ -540,8 +540,8 @@ endif
 
 # On OSX we try to build fat binaries by default. It is assumed that OSX i386
 # can build for ppc and OSX x86_64 can't. TODO: try to refine this condition.
-# LLVM-clang doesn't support -fcheck-new, therefore this flag is omitted for
-# OSX x86_64.
+# LLVM-clang doesn't support -fcheck-new, therefore this flag is only used when
+# compiling with g++.
 
 
 ifeq ($(system), Darwin)
@@ -559,9 +559,11 @@ ifeq ($(system), Darwin)
   shared.ldflags = -dynamiclib -undefined dynamic_lookup \
     -install_name @loader_path/$(shared.lib) \
     -compatibility_version 1 -current_version 1.0
+  ifneq ($(filter %g++, $(CXX)),)
+    cxx.flags := -fcheck-new
+  endif
   version.flag := $(filter $(cflags), -mmacosx-version-min=%)
   ifeq ($(target.arch), i386)
-    cxx.flags := -fcheck-new
     arch := ppc i386 x86_64
     version.flag = -mmacosx-version-min=10.4
   endif
