@@ -1297,6 +1297,16 @@ help:
 	@echo
 
 
+#=== platform test =============================================================
+
+
+# This target can be used to test if the compiler for specified PLATFORM is
+# correctly defined and available.
+
+dumpmachine:
+	@$(CC) -dumpmachine
+
+
 #=== dummy target ==============================================================
 
 
