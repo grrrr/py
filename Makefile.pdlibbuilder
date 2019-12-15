@@ -720,6 +720,18 @@ compile-cxx := $(CXX)
 # At this point most variables are defined. Now do some checks and info's
 # before rules begin.
 
+# print Makefile.pdlibbuilder version before possible termination
+$(info ++++ info: using Makefile.pdlibbuilder version $(version))
+
+# Terminate if target triplet remained empty, to avoid all sorts of confusing
+# scenarios and spurious bugs.
+ifeq ($(target.triplet),)
+  $(error Command "$(CC) -dumpmachine" did not return a target triplet, \
+  needed for a build. \
+  Is compiler "$(CC)" installed in your PATH? ($(PATH)). \
+  Does compiler "$(CC)" support option "-dumpmachine"?)
+endif
+
 # 'forward declaration' of default target, needed to do checks
 all:
 
@@ -745,9 +757,6 @@ endif
 ifeq ($(system), Windows)
   pddll := $(shell ls "$(PDBINDIR)/pd.dll")
 endif
-
-# print Makefile.pdlibbuilder version
-$(info ++++ info: using Makefile.pdlibbuilder version $(version))
 
 # when making target all, check if m_pd.h is found and print info about it
 ifeq ($(goals), all)
