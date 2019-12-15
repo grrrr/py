@@ -538,11 +538,8 @@ endif
 #=== flags and paths for Darwin ================================================
 
 
-# On OSX we try to build fat binaries by default. It is assumed that OSX i386
-# can build for ppc and OSX x86_64 can't. TODO: try to refine this condition.
 # LLVM-clang doesn't support -fcheck-new, therefore this flag is only used when
 # compiling with g++.
-
 
 ifeq ($(system), Darwin)
   pkglibdir = $(HOME)/Library/Pd
@@ -563,12 +560,11 @@ ifeq ($(system), Darwin)
     cxx.flags := -fcheck-new
   endif
   version.flag := $(filter $(cflags), -mmacosx-version-min=%)
+  arch := $(target.arch)
   ifeq ($(target.arch), i386)
-    arch := ppc i386 x86_64
     version.flag = -mmacosx-version-min=10.4
   endif
   ifeq ($(target.arch), x86_64)
-    arch := i386 x86_64
     version.flag = -mmacosx-version-min=10.6
   endif
   ifneq ($(filter -mmacosx-version-min=%, $(cflags)),)
