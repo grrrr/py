@@ -591,7 +591,7 @@ endif
 # required because of parentheses in variable name.
 ifeq ($(system), Windows)
   pkglibdir := $(APPDATA)/Pd
-  ifeq ($(MINGW_CHOST), i686-w64-mingw32)
+  ifeq ($(target.arch), i686)
     programfiles := ${ProgramFiles(x86)}
   else
     programfiles := $(PROGRAMFILES)
@@ -614,9 +614,9 @@ endif
 # TODO: decide whether -mms-bitfields should be specified.
 ifeq ($(system), Windows)
   cpp.flags := -DMSW -DNT
-  ifeq ($(filter i%86 mingw32, $(target.arch)), $(target.arch))
+  ifeq ($(target.arch), i686)
      arch.c.flags := -march=pentium4 -msse -msse2 -mfpmath=sse
-  else ifeq (x86_64, $(target.arch))
+  else ifeq ($(target.arch), x86_64)
     cpp.flags := -DMSW -DNT -DPD_LONGINTTYPE=__int64
     arch.c.flags := -march=core2 -msse -msse2 -msse3 -mfpmath=sse
   else
