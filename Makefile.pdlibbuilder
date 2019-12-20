@@ -99,6 +99,10 @@ version = 0.5.1
 # - STRIP
 # - DESTDIR
 #
+# Optional user variables for make command line or environment:
+#
+# - PLATFORM
+#
 # Deprecated path variables:
 #
 # - pdincludepath
@@ -194,6 +198,13 @@ version = 0.5.1
 # DESTDIR:
 # Prepended path component for staged install.
 #
+# PLATFORM:
+# Target platform for cross compilation in the form of GNU triplet:
+# cpu-vendor-os. Example: x86_64-w64-mingw32. This specifies the tool chain that
+# pdlibbuilder will use, if installed and locatable. System and architecture
+# will then be autodefined accordingly. In most cases no other variables need to
+# be overridden.
+#
 # CPPFLAGS:
 # Preprocessor flags which are not strictly required for building.
 #
@@ -279,6 +290,7 @@ version = 0.5.1
 # vars: print makefile variables
 # allvars: print all variables
 # depend: print generated prerequisites
+# dumpmachine: print compiler output of option '-dumpmachine'
 # coffee: dummy target
 #
 # Variable $(executables) expands to class executables plus optional shared lib,
