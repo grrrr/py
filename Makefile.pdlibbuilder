@@ -1,5 +1,5 @@
-# Makefile.pdlibbuilder dated 2018-03-15
-version = 0.5.1
+# Makefile.pdlibbuilder dated 2019-12-21
+version = 0.6.0
 
 # Helper makefile for Pure Data external libraries.
 # Written by Katja Vetter March-June 2015 for the public domain. No warranties.
