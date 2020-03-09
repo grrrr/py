@@ -1,6 +1,9 @@
-# set PY_DEFAULT=0 if you manually installed Python on your system 
-# (overriding the one that came with OS X by default)
-PY_DEFAULT=1
+# which kind of Python installation to use
+#   system - macOS system default
+#   local - local installation
+#   conda - conda environment; specify the environment root dir using the
+#           PY_CONDA_ROOT environment variable
+PY_KIND=conda
 
 #########################################################################
 
@@ -10,8 +13,8 @@ PY_DEFAULT=1
 # Mac OSX 10.5 -> default Python version (major.minor) = 2.5
 # Mac OSX 10.6 -> default Python version (major.minor) = 2.6
 
-PY_MAJOR_VERSION=2
-PY_MINOR_VERSION=6
+PY_MAJOR_VERSION=3
+PY_MINOR_VERSION=7
 
 #########################################################################
 
@@ -19,7 +22,7 @@ PY_MINOR_VERSION=6
 # for info see http://numeric.scipy.org
 # numarray and numeric are outdated
 
-# PY_NUMPY=1
+PY_NUMPY=1
 # PY_NUMARRAY=1
 # PY_NUMERIC=1
 

@@ -133,7 +133,7 @@
 , 			{
 				"box" : 				{
 					"maxclass" : "message",
-					"text" : "gain 0.5",
+					"text" : "set gain 0.5",
 					"fontsize" : 12.0,
 					"numinlets" : 2,
 					"patching_rect" : [ 100.77256, 1262.583496, 53.0, 18.0 ],

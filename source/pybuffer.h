@@ -15,7 +15,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.5.0
 #endif
 
-#if FLEXT_OS == FLEXT_OS_MAC
+#ifdef PY_USE_FRAMEWORK
 #include <Python/Python.h>
 #else
 #include <Python.h>

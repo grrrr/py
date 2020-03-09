@@ -18,7 +18,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #ifdef PY_ARRAYS
 
 #ifdef PY_NUMARRAY
-#   if FLEXT_OS == FLEXT_OS_MAC
+#   ifdef PY_USE_FRAMEWORK
 #       include <Python/numarray/libnumarray.h>
 #   else
 #       include <numarray/libnumarray.h>
@@ -31,7 +31,7 @@ inline bool arrsupport() { return numtype != tAny; }
 #   if defined(PY_NUMPY)
 #       include <numpy/arrayobject.h>
 #   else
-#       if FLEXT_OS == FLEXT_OS_MAC
+#       ifdef PY_USE_FRAMEWORK
 #           include <Python/numarray/arrayobject.h>
 #       else
 #           include <numarray/arrayobject.h>
@@ -60,7 +60,7 @@ PyObject *pybase::py_arraysupport(PyObject *self,PyObject *args)
 // PD defines a T_OBJECT symbol
 #undef T_OBJECT
 
-#if FLEXT_OS == FLEXT_OS_MAC
+#ifdef PY_USE_FRAMEWORK
 #include "Python/bufferobject.h"
 #include "Python/structmember.h"
 #else

@@ -269,6 +269,7 @@ public:
     };
 
     static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);
+    static PyObject* StdOut_Flush(PyObject* Self, PyObject* Args);
 };
 
 #endif

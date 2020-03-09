@@ -2,7 +2,7 @@
 PYTHONPREFIX=/usr
 
 # which Python version do you want to compile against?
-PYTHONVERSION=2.4
+PYTHONVERSION=2.7
 
 # uncomment if numpy/numarray/numeric support should be compiled in
 # for info see http://numeric.scipy.org
