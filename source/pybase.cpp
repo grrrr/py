@@ -411,7 +411,7 @@ void pybase::OpenEditor()
 #else
     // thanks to Tim Blechmann
 
-    char *editor = getenv("EDITOR");
+    const char *editor = getenv("EDITOR");
 
     if(!editor) { // || !strcmp(editor, "/usr/bin/nano") || !strcmp(editor, "/usr/bin/pico") || !strcmp(editor, "/usr/bin/vi")) {
         // no environment variable or console text editor found ... use idle instead (should have come with Python)
@@ -496,7 +496,7 @@ static bool getmodulesub(const char *mod,char *dir,int len,const char *ext)
     return name != NULL;
 #elif FLEXT_SYS == FLEXT_SYS_MAX
     short path;
-    long type;
+    unsigned int type;
     char smod[1024];
     strcpy(smod,mod);
     strcat(smod,ext);

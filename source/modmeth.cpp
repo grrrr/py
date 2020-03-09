@@ -235,10 +235,10 @@ PyObject *pybase::py_getvalue(PyObject *self,PyObject *args)
     PyObject *ret;
 
     if(
-        sz == 1 && 
+        sz == 1 &&
         (sym = pyObject_AsSymbol(PyTuple_GET_ITEM(args,0))) != NULL
     ) {
-        float f;
+        t_float f;
         if(value_getfloat(const_cast<t_symbol *>(sym),&f)) {
             post("py/pyext - Could not get value '%s'",GetString(sym));
             Py_INCREF(Py_None);
