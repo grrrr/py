@@ -33,3 +33,6 @@ PY_USE_GIL=1
 
 # use inofficial (pure data) functionality
 # PY_USE_INOFFICIAL=1
+
+# use python with pymalloc (look for "pythonX.Ym" files)
+PY_USE_PYMALLOC=1

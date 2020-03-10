@@ -27,10 +27,14 @@ $(error PY_CONDA_ROOT is undefined)
 endif
 
 DEFS += -DPY_INTERPRETER=$(PY_CONDA_ROOT)/bin/python
-LIBS += $(PY_CONDA_ROOT)/lib/libpython$(PY_MAJOR_VERSION).$(PY_MINOR_VERSION).dylib
 INCPATH += -I$(PY_CONDA_ROOT)/include
+ifdef PY_USE_PYMALLOC
 INCPATH += -I$(PY_CONDA_ROOT)/include/python$(PY_MAJOR_VERSION).$(PY_MINOR_VERSION)m
+LIBS += $(PY_CONDA_ROOT)/lib/libpython$(PY_MAJOR_VERSION).$(PY_MINOR_VERSION)m.dylib
+else
 INCPATH += -I$(PY_CONDA_ROOT)/include/python$(PY_MAJOR_VERSION).$(PY_MINOR_VERSION)
+LIBS += $(PY_CONDA_ROOT)/lib/libpython$(PY_MAJOR_VERSION).$(PY_MINOR_VERSION).dylib
+endif
 LDFLAGS += -rpath $(PY_CONDA_ROOT)/lib
 
 ifdef PY_NUMPY
