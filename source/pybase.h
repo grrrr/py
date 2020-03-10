@@ -111,6 +111,9 @@ protected:
     static PyObject *module_obj,*module_dict;
     static PyObject *builtins_obj,*builtins_dict;
     static PyMethodDef func_tbl[],attr_tbl[];
+#if PY_MAJOR_VERSION >= 3
+    static PyModuleDef pyext_module_def;
+#endif
 
     static PyObject *py__doc__(PyObject *,PyObject *args);
     static PyObject *py_send(PyObject *,PyObject *args);

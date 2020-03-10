@@ -27,6 +27,30 @@ static PyMethodDef StdOut_Methods[] =
     { NULL,    NULL,           }  
 };
 
+static PyModuleDef StdOut_ModuleDef = {
+    PyModuleDef_HEAD_INIT, // PyModuleDef_Base m_base
+    "stdout", // const char *m_name
+    "pyext standard output", // const char *m_doc
+    -1, // Py_ssize_t m_size
+    StdOut_Methods, // PyMethodDef *m_methods
+    NULL, // PyModuleDef_Slot *m_slots
+    NULL, // traverseproc m_traverse
+    NULL, // inquiry m_clear
+    NULL // freefunc m_free
+};
+
+static PyModuleDef StdErr_ModuleDef = {
+    PyModuleDef_HEAD_INIT, // PyModuleDef_Base m_base
+    "pyext standard error", // const char *m_name
+    "", // const char *m_doc
+    -1, // Py_ssize_t m_size
+    StdOut_Methods, // PyMethodDef *m_methods
+    NULL, // PyModuleDef_Slot *m_slots
+    NULL, // traverseproc m_traverse
+    NULL, // inquiry m_clear
+    NULL // freefunc m_free
+};
+
 static PyObject *gcollect = NULL;
 
 #ifdef FLEXT_THREADS
@@ -181,17 +205,6 @@ void pybase::lib_setup()
 #if PY_MAJOR_VERSION < 3
     module_obj = Py_InitModule(const_cast<char *>(PYEXT_MODULE), func_tbl);
 #else
-    struct PyModuleDef pyext_module_def = {
-        PyModuleDef_HEAD_INIT, // PyModuleDef_Base m_base
-        PYEXT_MODULE, // const char *m_name
-        py_doc, // const char *m_doc
-        -1, // Py_ssize_t m_size
-        func_tbl, // PyMethodDef *m_methods
-        NULL, // PyModuleDef_Slot *m_slots
-        NULL, // traverseproc m_traverse
-        NULL, // inquiry m_clear
-        NULL // freefunc m_free
-    };
     module_obj = PyModule_Create(&pyext_module_def);
 #endif
     module_dict = PyModule_GetDict(module_obj); // borrowed reference
@@ -203,35 +216,13 @@ void pybase::lib_setup()
 #if PY_MAJOR_VERSION < 3
     py_out = Py_InitModule(const_cast<char *>("stdout"), StdOut_Methods);
 #else
-    struct PyModuleDef stdout_module_def = {
-        PyModuleDef_HEAD_INIT, // PyModuleDef_Base m_base
-        "stdout", // const char *m_name
-        "", // const char *m_doc
-        -1, // Py_ssize_t m_size
-        func_tbl, // PyMethodDef *m_methods
-        NULL, // PyModuleDef_Slot *m_slots
-        NULL, // traverseproc m_traverse
-        NULL, // inquiry m_clear
-        NULL // freefunc m_free
-    };
-    py_out = PyModule_Create(&stdout_module_def);
+    py_out = PyModule_Create(&StdOut_ModuleDef);
 #endif
     PySys_SetObject(const_cast<char *>("stdout"), py_out);
 #if PY_MAJOR_VERSION < 3
     py_out = Py_InitModule(const_cast<char *>("stderr"), StdOut_Methods);
 #else
-    struct PyModuleDef stderr_module_def = {
-        PyModuleDef_HEAD_INIT, // PyModuleDef_Base m_base
-        "stderr", // const char *m_name
-        "", // const char *m_doc
-        -1, // Py_ssize_t m_size
-        func_tbl, // PyMethodDef *m_methods
-        NULL, // PyModuleDef_Slot *m_slots
-        NULL, // traverseproc m_traverse
-        NULL, // inquiry m_clear
-        NULL // freefunc m_free
-    };
-    py_out = PyModule_Create(&stdout_module_def);
+    py_out = PyModule_Create(&StdErr_ModuleDef);
 #endif
     PySys_SetObject(const_cast<char *>("stderr"), py_out);
 
@@ -242,7 +233,11 @@ void pybase::lib_setup()
         Py_DECREF(gcobj);
     }
 
+#if PY_MAJOR_VERSION < 3
     builtins_obj = PyImport_ImportModule("__builtin__");
+#else
+    builtins_obj = PyImport_ImportModule("builtins");
+#endif
     builtins_dict = PyModule_GetDict(builtins_obj); // borrowed reference
 
     // add symbol type
