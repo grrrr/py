@@ -72,7 +72,11 @@ void pyext::Setup(t_classid c)
     // add methods to class 
     for (def = meth_tbl; def->ml_name != NULL; def++) {
         PyObject *func = PyCFunction_New(def, NULL);
-        PyObject *method = PyInstanceMethod_New(func); // increases class_obj ref count by 1
+#if PY_MAJOR_VERSION < 3
+        PyObject *method = PyMethod_New(func, NULL, class_obj); // increases class_obj ref count by 1
+#else
+        PyObject *method = PyInstanceMethod_New(func);
+#endif
         PyDict_SetItemString(class_dict, def->ml_name, method);
         Py_DECREF(func);
         Py_DECREF(method);
@@ -379,10 +383,10 @@ bool pyext::InitInOut(int &inl,int &outl)
 #if PY_MAJOR_VERSION < 3
             if(PyInt_Check(res)) 
                 inl = PyInt_AS_LONG(res);
-            else
-#endif
+#else
             if(PyLong_Check(res)) 
                 inl = PyLong_AS_LONG(res);
+#endif
             else
                 PyErr_SetString(PyExc_TypeError, "Type must be integer");
             Py_DECREF(res);
@@ -403,10 +407,10 @@ bool pyext::InitInOut(int &inl,int &outl)
 #if PY_MAJOR_VERSION < 3
             if(PyInt_Check(res))
                 outl = PyInt_AS_LONG(res);
-            else
-#endif
+#else
             if(PyLong_Check(res))
                 outl = PyLong_AS_LONG(res);
+#endif
             else
                 PyErr_SetString(PyExc_TypeError, "Type must be integer");
 

@@ -35,9 +35,10 @@ static int symbol_init(PyObject *self, PyObject *args, PyObject *kwds)
 #if PY_MAJOR_VERSION < 3
     else if(PyString_Check(arg))
         ((pySymbol *)self)->sym = flext::MakeSymbol(PyString_AS_STRING(arg));
-#endif
+#else
     else if(PyUnicode_Check(arg))
         ((pySymbol *)self)->sym = flext::MakeSymbol(PyUnicode_AsUTF8(arg));
+#endif
     else {
         PyErr_SetString(PyExc_TypeError, "string, unicode or symbol argument expected");
         ret = -1;

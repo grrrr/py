@@ -60,10 +60,10 @@ inline PyObject *pySamplebuffer_FromString(PyObject *str)
 #if PY_MAJOR_VERSION < 3
     if(PyString_Check(str))
         cstr = PyString_AsString(str);
-    else
-#endif
+#else
     if(PyUnicode_Check(str))
         cstr = PyUnicode_AsUTF8(str);
+#endif
     else
         PyErr_SetString(PyExc_TypeError, "Type must be string or unicode");
     return pySamplebuffer_FromString(cstr);

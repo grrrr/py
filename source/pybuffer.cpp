@@ -106,9 +106,10 @@ static int buffer_init(PyObject *obj, PyObject *args, PyObject *kwds)
 #if PY_MAJOR_VERSION < 3
     else if(PyString_Check(arg))
         self->sym = flext::MakeSymbol(PyString_AS_STRING(arg));
-#endif
+#else
     else if(PyUnicode_Check(arg))
         self->sym = flext::MakeSymbol(PyUnicode_AsUTF8(arg));
+#endif
     else
         ret = -1;
     Py_DECREF(arg);
@@ -193,6 +194,38 @@ static PyMethodDef buffer_methods[] = {
 
 // support the buffer protocol
 
+static Py_ssize_t buffer_readbuffer(PyObject *obj, Py_ssize_t segment, void **ptrptr)
+{
+    flext::buffer *b = ((pySamplebuffer *)obj)->buf;
+    ptrptr[0] = b->Data();
+    return b->Channels()*b->Frames()*sizeof(t_sample);
+}
+
+static Py_ssize_t buffer_writebuffer(PyObject *obj, Py_ssize_t segment, void **ptrptr)
+{
+    flext::buffer *b = ((pySamplebuffer *)obj)->buf;
+    ptrptr[0] = b->Data();
+    return b->Channels()*b->Frames()*sizeof(t_sample);
+}
+
+static Py_ssize_t buffer_segcount(PyObject *obj, Py_ssize_t *lenp)
+{
+    flext::buffer *b = ((pySamplebuffer *)obj)->buf;
+    if(lenp) lenp[0] = b->Channels()*b->Frames()*sizeof(t_sample);
+    return 1;
+}
+
+static Py_ssize_t buffer_charbuffer(PyObject *obj, Py_ssize_t segment,
+#if PY_VERSION_HEX < 0x02050000
+    const
+#endif
+    char **ptrptr)
+{
+    flext::buffer *b = ((pySamplebuffer *)obj)->buf;
+    ptrptr[0] = (char *)b->Data();
+    return b->Channels()*b->Frames()*sizeof(t_sample);
+}
+
 static int buffer_getbuffer(PyObject *obj, Py_buffer *view, int flags) {
     if(flags & PyBUF_INDIRECT) {
         PyErr_SetString(PyExc_BufferError, "PyBUF_INDIRECT not supported");
@@ -246,8 +279,15 @@ static void buffer_releasebuffer(PyObject *obj, Py_buffer *view) {
 }
 
 static PyBufferProcs buffer_as_buffer = {
+#if PY_MAJOR_VERSION < 3
+    buffer_readbuffer,
+    buffer_writebuffer,
+    buffer_segcount,
+    buffer_charbuffer
+#else
     buffer_getbuffer,
     buffer_releasebuffer
+#endif
 };
 
 static Py_ssize_t buffer_length(PyObject *s)
@@ -868,10 +908,11 @@ PyTypeObject pySamplebuffer_Type = {
     0,                         /*tp_getattro*/
     0,                         /*tp_setattro*/
     &buffer_as_buffer,             /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT /*| Py_TPFLAGS_BASETYPE*/,   /*tp_flags*/
+    Py_TPFLAGS_DEFAULT /*| Py_TPFLAGS_BASETYPE*/   /*tp_flags*/
 #if PY_MAJOR_VERSION < 3
     | Py_TPFLAGS_HAVE_NEWBUFFER
 #endif
+    ,
     "Samplebuffer objects",           /* tp_doc */
     0,                     /* tp_traverse */
     0,                     /* tp_clear */
@@ -894,15 +935,22 @@ PyTypeObject pySamplebuffer_Type = {
 
 // Must have this as a function because the import_array macro in numpy version 1.01 strangely has a return statement included.
 // Furthermore the import error printout from this macro is ugly, but we accept that for now, waiting for later numpy updates to fix all of this.
+// The situation is further complicated by Python 3, where numpy's import_array returns NULL...
 #ifdef PY_ARRAYS
-static int __import_array__()
+#ifdef PY_NUMARRAY
+#define IMPORT_ARRAY_RET_TYPE void
+#elif PY_MAJOR_VERSION < 3
+#define IMPORT_ARRAY_RET_TYPE void
+#else
+#define IMPORT_ARRAY_RET_TYPE void *
+#endif
+static IMPORT_ARRAY_RET_TYPE __import_array__()
 {
 #ifdef PY_NUMARRAY
     import_libnumarray();
 #else
     import_array();
 #endif
-    return 0;
 }
 #endif
 
