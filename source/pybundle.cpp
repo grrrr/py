@@ -108,7 +108,7 @@ static PyObject *bundle_append(PyObject *self,PyObject *args)
         int o;
 
         if(sz > 2 &&
-            (tg = PyTuple_GET_ITEM(args,0)) != NULL && PyInstance_Check(tg) && 
+            (tg = PyTuple_GET_ITEM(args,0)) != NULL && 
             (outl = PyTuple_GET_ITEM(args,1)) != NULL && 
 #if PY_MAJOR_VERSION < 3
                 PyInt_Check(outl)
@@ -195,8 +195,7 @@ static PyMethodDef bundle_methods[] = {
 
 
 PyTypeObject pyBundle_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
     "Bundle",              /*tp_name*/
     sizeof(pyBundle),          /*tp_basicsize*/
     0,                         /*tp_itemsize*/

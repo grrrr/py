@@ -114,10 +114,7 @@ PyObject* pyext::pyext_setattr(PyObject *,PyObject *args)
     }
 */
     if(!handled) {
-        if(PyInstance_Check(self)) 
-            PyDict_SetItem(((PyInstanceObject *)self)->in_dict, name,val);
-        else
-            ERRINTERNAL();
+        PyDict_SetItem(self, name, val);
     }
 
     Py_INCREF(Py_None);
@@ -192,7 +189,7 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 
     if(
         sz >= 2 &&
-        (self = PyTuple_GET_ITEM(args,0)) != NULL && PyInstance_Check(self) && 
+        (self = PyTuple_GET_ITEM(args,0)) != NULL && 
         (outl = PyTuple_GET_ITEM(args,1)) != NULL &&
 #if PY_MAJOR_VERSION < 3
             PyInt_Check(outl)
@@ -333,7 +330,7 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
     PyObject *self; // borrowed ref
     if(
         sz >= 1 &&
-        (self = PyTuple_GET_ITEM(args,0)) != NULL && PyInstance_Check(self)
+        (self = PyTuple_GET_ITEM(args,0)) != NULL
     ) {
         pyext *ext = GetThis(self);
         if(!ext) {

@@ -61,10 +61,8 @@ PyObject *pybase::py_arraysupport(PyObject *self,PyObject *args)
 #undef T_OBJECT
 
 #ifdef PY_USE_FRAMEWORK
-#include "Python/bufferobject.h"
 #include "Python/structmember.h"
 #else
-#include "bufferobject.h"
 #include "structmember.h"
 #endif
 
@@ -168,7 +166,8 @@ static PyObject *buffer_dirty(PyObject *obj)
 
 static PyObject *buffer_resize(PyObject *obj,PyObject *args,PyObject *kwds)
 {
-    flext::buffer *b = ((pySamplebuffer *)obj)->buf;
+    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(obj);
+    flext::buffer *b = self->buf;
     if(b) {
         int frames,keep = 1,zero = 1;
         static char const *kwlist[] = {"frames", "keep", "zero", NULL};
@@ -192,47 +191,63 @@ static PyMethodDef buffer_methods[] = {
     {NULL}  /* Sentinel */
 };
 
-
-
 // support the buffer protocol
 
-static Py_ssize_t buffer_readbuffer(PyObject *obj, Py_ssize_t segment, void **ptrptr)
-{
-    flext::buffer *b = ((pySamplebuffer *)obj)->buf;
-    ptrptr[0] = b->Data();
-    return b->Channels()*b->Frames()*sizeof(t_sample);
+static int buffer_getbuffer(PyObject *obj, Py_buffer *view, int flags) {
+    if(flags & PyBUF_INDIRECT) {
+        PyErr_SetString(PyExc_BufferError, "PyBUF_INDIRECT not supported");
+        view->obj = NULL;
+        return -1;
+    }
+
+    if(flags & PyBUF_STRIDES) {
+        PyErr_SetString(PyExc_BufferError, "PyBUF_STRIDES not supported");
+        view->obj = NULL;
+        return -1;
+    }
+
+    if(flags & PyBUF_ND) {
+        PyErr_SetString(PyExc_BufferError, "PyBUF_ND not supported");
+        view->obj = NULL;
+        return -1;
+    }
+
+    if(flags & PyBUF_F_CONTIGUOUS) {
+        PyErr_SetString(PyExc_BufferError, "PyBUF_F_CONTIGUOUS not supported");
+        view->obj = NULL;
+        return -1;
+    }
+
+    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(obj);
+    flext::buffer *b = self->buf;
+    
+    view->buf = (void *)b->Data();
+    Py_INCREF(obj);
+    view->obj = obj;
+    view->len = b->Channels()*b->Frames()*sizeof(t_sample);
+    view->readonly = false;
+    view->itemsize = 1;
+    view->format = NULL;
+    view->ndim = 1;
+    view->shape = NULL;
+    view->strides = NULL;
+    view->suboffsets = NULL;
+    view->internal = NULL;
+
+    if(flags & PyBUF_FORMAT) {
+        view->format = "B";
+    }
+
+    return 0;
 }
 
-static Py_ssize_t buffer_writebuffer(PyObject *obj, Py_ssize_t segment, void **ptrptr)
-{
-    flext::buffer *b = ((pySamplebuffer *)obj)->buf;
-    ptrptr[0] = b->Data();
-    return b->Channels()*b->Frames()*sizeof(t_sample);
-}
-
-static Py_ssize_t buffer_segcount(PyObject *obj, Py_ssize_t *lenp)
-{
-    flext::buffer *b = ((pySamplebuffer *)obj)->buf;
-    if(lenp) lenp[0] = b->Channels()*b->Frames()*sizeof(t_sample);
-    return 1;
-}
-
-static Py_ssize_t buffer_charbuffer(PyObject *obj, Py_ssize_t segment,
-#if PY_VERSION_HEX < 0x02050000
-    const
-#endif
-    char **ptrptr)
-{
-    flext::buffer *b = ((pySamplebuffer *)obj)->buf;
-    ptrptr[0] = (char *)b->Data();
-    return b->Channels()*b->Frames()*sizeof(t_sample);
+static void buffer_releasebuffer(PyObject *obj, Py_buffer *view) {
+    // nothing to do here
 }
 
 static PyBufferProcs buffer_as_buffer = {
-    buffer_readbuffer,
-    buffer_writebuffer,
-    buffer_segcount,
-    buffer_charbuffer
+    buffer_getbuffer,
+    buffer_releasebuffer
 };
 
 static Py_ssize_t buffer_length(PyObject *s)
@@ -279,16 +294,15 @@ PyObject *arrayfrombuffer(PyObject *buf,int c,int n)
 #ifdef PY_NUMARRAY
         arr = (PyObject *)NA_NewAllFromBuffer(c == 1?1:2,shape,numtype,buf,0,0,NA_ByteOrder(),1,1);
 #else
-        void *data;
-        Py_ssize_t len;
-        int err = PyObject_AsWriteBuffer(buf,&data,&len);
+        Py_buffer view;
+        int err = PyObject_GetBuffer(buf, &view, PyBUF_SIMPLE | PyBUF_WRITABLE);
         if(!err) {
-            FLEXT_ASSERT(len <= n*c*sizeof(t_sample));
+            FLEXT_ASSERT(view->len <= n*c*sizeof(t_sample));
 //            Py_INCREF(buf); // ATTENTION... this won't be released any more!!
 #   ifdef PY_NUMPY
-            arr = PyArray_NewFromDescr(&PyArray_Type,PyArray_DescrNewFromType(numtype),c == 1?1:2,shape,0,(char *)data,NPY_WRITEABLE|NPY_C_CONTIGUOUS,NULL);
+            arr = PyArray_NewFromDescr(&PyArray_Type,PyArray_DescrNewFromType(numtype),c == 1?1:2,shape,0,(char *)view.buf,NPY_WRITEABLE|NPY_C_CONTIGUOUS,NULL);
 #   else
-            arr = PyArray_FromDimsAndData(c == 1?1:2,shape,numtype,(char *)data);
+            arr = PyArray_FromDimsAndData(c == 1?1:2,shape,numtype,(char *)view.buf);
 #   endif
         }
         else {
@@ -462,13 +476,14 @@ static PyObject *buffer_repeat(PyObject *s,Py_ssize_t rep)
 
 
 static PySequenceMethods buffer_as_seq = {
-    buffer_length,          /* inquiry sq_length;             __len__ */
-    buffer_concat,          /* __add__ */
-    buffer_repeat,          /* __mul__ */
-    buffer_item,            /* intargfunc sq_item;            __getitem__ */
-    buffer_slice,        /* intintargfunc sq_slice;        __getslice__ */
-    buffer_ass_item,        /* intobjargproc sq_ass_item;     __setitem__ */
-    buffer_ass_slice,   /* intintobjargproc sq_ass_slice; __setslice__ */
+    buffer_length,          /* lenfunc sq_length              __len__ */
+    buffer_concat,          /* binaryfunc sq_concat           __add__ */
+    buffer_repeat,          /* ssizeargfunc sq_repeat         __mul__ */
+    buffer_item,            /* ssizeargfunc sq_item;          __getitem__ */
+    NULL,                   /* ssizeobjargproc sq_ass_item    __setitem__ */
+    NULL,                   /* objobjproc sq_contains         __contains__ */
+    NULL,                   /* binaryfunc sq_inplace_concat   __iadd__ */
+    NULL                    /* ssizeargfunc sq_inplace_repeat __imul */
 };
 
 static PyObject *buffer_iter(PyObject *s)
@@ -723,6 +738,20 @@ static PyObject *buffer_inplace_divide(PyObject *s,PyObject *op)
 }
 #endif
 
+static PyObject *buffer_inplace_true_divide(PyObject *s,PyObject *op)
+{
+    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
+    PyObject *nobj = buffer_slice(s);
+    if(nobj) {
+        PyObject *ret = PyNumber_InPlaceTrueDivide(nobj,op);
+        if(ret == nobj) self->dirty = true;
+        Py_DECREF(nobj);
+        return ret;
+    }
+    else
+        return NULL;
+}
+
 static PyObject *buffer_inplace_floor_divide(PyObject *s,PyObject *op)
 {
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
@@ -768,57 +797,59 @@ static PyObject *buffer_inplace_power(PyObject *s,PyObject *op1,PyObject *op2)
 
 
 static PyNumberMethods buffer_as_number = {
-    (binaryfunc)buffer_add, /*nb_add*/
-    (binaryfunc)buffer_subtract, /*nb_subtract*/
-    (binaryfunc)buffer_multiply, /*nb_multiply*/
+    (binaryfunc)buffer_add, // binaryfunc nb_add
+    (binaryfunc)buffer_subtract, // binaryfunc nb_subtract
+    (binaryfunc)buffer_multiply, // binaryfunc nb_multiply
 #if PY_MAJOR_VERSION < 3
-    (binaryfunc)buffer_divide, /*nb_divide*/
-#else
-    0, /*nb_divide not supported */ 
+    (binaryfunc)buffer_divide, // binaryfunc nb_divide
 #endif
-    (binaryfunc)buffer_remainder, /*nb_remainder*/
-    (binaryfunc)buffer_divmod, /*nb_divmod*/
-    (ternaryfunc)buffer_power, /*nb_power*/
-    (unaryfunc)buffer_negative, 
-    (unaryfunc)buffer_pos, /*nb_pos*/ 
-    (unaryfunc)buffer_absolute, /* (unaryfunc)buffer_abs,  */
-    0, //(inquiry)buffer_nonzero, /*nb_nonzero*/
-    0,      /*nb_invert*/
-    0,      /*nb_lshift*/
-    0,      /*nb_rshift*/
-    0,      /*nb_and*/
-    0,      /*nb_xor*/
-    0,      /*nb_or*/
-    (coercion)buffer_coerce, /*nb_coerce*/
-    0, /*nb_int*/
-    0, /*nb_long*/
-    0, /*nb_float*/
-    0,      /*nb_oct*/
-    0,      /*nb_hex*/
-    (binaryfunc)buffer_inplace_add,     /* nb_inplace_add */
-    (binaryfunc)buffer_inplace_subtract,        /* nb_inplace_subtract */
-    (binaryfunc)buffer_inplace_multiply,        /* nb_inplace_multiply */
+    (binaryfunc)buffer_remainder, // nb_binaryfunc remainder
+    (binaryfunc)buffer_divmod, // binaryfunc nb_divmod
+    (ternaryfunc)buffer_power, // ternaryfunc nb_power
+    (unaryfunc)buffer_negative, // unaryfunc nb_negative
+    (unaryfunc)buffer_pos, // unaryfunc nb_pos
+    (unaryfunc)buffer_absolute, // unaryfunc np_absolute
+    0, //(inquiry)buffer_nonzero, // inquiry nb_nonzero
+    0, // unaryfunc nb_invert
+    0, // binaryfunc nb_lshift
+    0, // binaryfunc nb_rshift
+    0, // binaryfunc nb_and
+    0, // binaryfunc nb_xor
+    0, // binaryfunc nb_or
 #if PY_MAJOR_VERSION < 3
-    (binaryfunc)buffer_inplace_divide,      /* nb_inplace_divide */
-#else
-    0, /* nb_inplace_divide not supported */
+    (coercion)buffer_coerce, // coercion nb_coerce
 #endif
-    (binaryfunc)buffer_inplace_remainder,       /* nb_inplace_remainder */
-    (ternaryfunc)buffer_inplace_power,      /* nb_inplace_power */
-    0,      /* nb_inplace_lshift */
-    0,      /* nb_inplace_rshift */
-    0,      /* nb_inplace_and */
-    0,      /* nb_inplace_xor */
-    0,      /* nb_inplace_or */
-    (binaryfunc)buffer_floor_divide, /* nb_floor_divide */
-    (binaryfunc)buffer_true_divide, /* nb_true_divide */
-    (binaryfunc)buffer_inplace_floor_divide,       /* nb_inplace_floor_divide */
-//  buffer_inplace_div,     /* nb_inplace_true_divide */
+    0, // unaryfunc nb_int
+#if PY_MAJOR_VERSION < 3
+    0, // unaryfunc nb_long
+    0, // unaryfunc nb_float
+    0, // unaryfunc nb_oct
+    0, // unaryfunc nb_hex
+#else
+    0, // void *nb_reserved
+    0, // unaryfunc nb_float
+#endif
+    (binaryfunc)buffer_inplace_add, // binaryfunc nb_inplace_add
+    (binaryfunc)buffer_inplace_subtract, // binaryfunc nb_inplace_subtract
+    (binaryfunc)buffer_inplace_multiply, // binaryfunc nb_inplace_multiply
+#if PY_MAJOR_VERSION < 3
+    (binaryfunc)buffer_inplace_divide, // binaryfunc nb_inplace_divide
+#endif
+    (binaryfunc)buffer_inplace_remainder, // binaryfunc nb_inplace_remainder
+    (ternaryfunc)buffer_inplace_power, // ternaryfunc nb_inplace_power
+    0, // binaryfunc nb_inplace_lshift
+    0, // binaryfunc nb_inplace_rshift
+    0, // binaryfunc nb_inplace_and
+    0, // binaryfunc nb_inplace_xor
+    0, // binaryfunc nb_inplace_or
+    (binaryfunc)buffer_floor_divide, // binaryfunc nb_floor_divide
+    (binaryfunc)buffer_true_divide, // binaryfunc nb_true_divide
+    (binaryfunc)buffer_inplace_floor_divide, // binaryfunc nb_inplace_floor_divide
+    (binaryfunc)buffer_inplace_true_divide, // binaryfunc nb_inplace_true_divide
 };
 
 PyTypeObject pySamplebuffer_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
+    PyVarObject_HEAD_INIT(NULL, 0)
     "Buffer",              /*tp_name*/
     sizeof(pySamplebuffer),          /*tp_basicsize*/
     0,                         /*tp_itemsize*/
@@ -838,6 +869,9 @@ PyTypeObject pySamplebuffer_Type = {
     0,                         /*tp_setattro*/
     &buffer_as_buffer,             /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT /*| Py_TPFLAGS_BASETYPE*/,   /*tp_flags*/
+#if PY_MAJOR_VERSION < 3
+    | Py_TPFLAGS_HAVE_NEWBUFFER
+#endif
     "Samplebuffer objects",           /* tp_doc */
     0,                     /* tp_traverse */
     0,                     /* tp_clear */
@@ -861,13 +895,14 @@ PyTypeObject pySamplebuffer_Type = {
 // Must have this as a function because the import_array macro in numpy version 1.01 strangely has a return statement included.
 // Furthermore the import error printout from this macro is ugly, but we accept that for now, waiting for later numpy updates to fix all of this.
 #ifdef PY_ARRAYS
-static void __import_array__()
+static int __import_array__()
 {
 #ifdef PY_NUMARRAY
     import_libnumarray();
 #else
     import_array();
 #endif
+    return 0;
 }
 #endif
 

@@ -63,13 +63,16 @@ void pyext::Setup(t_classid c)
             Py_DECREF(func);
     }
 
-    class_obj = PyClass_New(NULL, class_dict, className);
+    //class_obj = PyClass_New(NULL, class_dict, className);
+    PyObject *classBases = PyTuple_New(0);
+    class_obj = PyObject_CallFunctionObjArgs((PyObject *)&PyType_Type, className, classBases, class_dict, NULL);
+    Py_DECREF(classBases);
     Py_DECREF(className);
 
     // add methods to class 
     for (def = meth_tbl; def->ml_name != NULL; def++) {
         PyObject *func = PyCFunction_New(def, NULL);
-        PyObject *method = PyMethod_New(func, NULL, class_obj); // increases class_obj ref count by 1
+        PyObject *method = PyInstanceMethod_New(func); // increases class_obj ref count by 1
         PyDict_SetItemString(class_dict, def->ml_name, method);
         Py_DECREF(func);
         Py_DECREF(method);

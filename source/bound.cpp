@@ -86,7 +86,7 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
     PyObject *self,*meth,*name;
     if(!PyArg_ParseTuple(args, "OOO:pyext_bind", &self,&name,&meth)) // borrowed references
         post("py/pyext - Wrong arguments!");
-    else if(!PyInstance_Check(self) || !PyCallable_Check(meth)) {
+    else if(!PyCallable_Check(meth)) {
         post("py/pyext - Wrong argument types!");
     }
     else {
@@ -131,7 +131,7 @@ PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
     PyObject *self,*meth,*name;
     if(!PyArg_ParseTuple(args, "OOO:pyext_bind", &self,&name,&meth))  // borrowed references
         post("py/pyext - Wrong arguments!");
-    else if(!PyInstance_Check(self) || !PyCallable_Check(meth)) {
+    else if(!PyCallable_Check(meth)) {
         post("py/pyext - Wrong argument types!");
     }
     else {

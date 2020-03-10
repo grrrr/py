@@ -382,7 +382,11 @@ bool pymeth::CbMethodResort(int n,const t_symbol *s,int argc,const t_atom *argv)
             else if(self != objects[0]) {
                 // type hasn't changed, but object has
                 PyObject *f = function;
+#if PY_MAJOR_VERSION < 3
                 function = PyMethod_New(PyMethod_GET_FUNCTION(f),objects[0],PyMethod_GET_CLASS(f));
+#else
+                function = PyMethod_New(PyMethod_GET_FUNCTION(f),objects[0]);
+#endif
                 Py_DECREF(f);
             }
         }

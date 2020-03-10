@@ -17,6 +17,8 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
+#define WSTRINGIFY(x) L ## #x
+#define TOWSTRING(x) WSTRINGIFY(x)
 
 static PyMethodDef StdOut_Methods[] =
 {
@@ -108,7 +110,11 @@ void pybase::lib_setup()
 {
 #ifdef PY_INTERPRETER
     {
+#if PY_MAJOR_VERSION < 3
         static char py_program_name[] = TOSTRING(PY_INTERPRETER);
+#else
+        static wchar_t py_program_name[] = TOWSTRING(PY_INTERPRETER);
+#endif
         Py_SetProgramName(py_program_name);
     }
 #endif
@@ -163,20 +169,70 @@ void pybase::lib_setup()
 #endif
 
     // sys.argv must be set to empty tuple
+#if PY_MAJOR_VERSION < 3
     const char *nothing = "";
     PySys_SetArgv(0,const_cast<char **>(&nothing));
+#else
+    const wchar_t *nothing = L"";
+    PySys_SetArgv(0,const_cast<wchar_t **>(&nothing));
+#endif
 
     // register/initialize pyext module only once!
+#if PY_MAJOR_VERSION < 3
     module_obj = Py_InitModule(const_cast<char *>(PYEXT_MODULE), func_tbl);
+#else
+    struct PyModuleDef pyext_module_def = {
+        PyModuleDef_HEAD_INIT, // PyModuleDef_Base m_base
+        PYEXT_MODULE, // const char *m_name
+        py_doc, // const char *m_doc
+        -1, // Py_ssize_t m_size
+        func_tbl, // PyMethodDef *m_methods
+        NULL, // PyModuleDef_Slot *m_slots
+        NULL, // traverseproc m_traverse
+        NULL, // inquiry m_clear
+        NULL // freefunc m_free
+    };
+    module_obj = PyModule_Create(&pyext_module_def);
+#endif
     module_dict = PyModule_GetDict(module_obj); // borrowed reference
 
     PyModule_AddStringConstant(module_obj,"__doc__",(char *)py_doc);
 
     // redirect stdout
     PyObject* py_out;
+#if PY_MAJOR_VERSION < 3
     py_out = Py_InitModule(const_cast<char *>("stdout"), StdOut_Methods);
+#else
+    struct PyModuleDef stdout_module_def = {
+        PyModuleDef_HEAD_INIT, // PyModuleDef_Base m_base
+        "stdout", // const char *m_name
+        "", // const char *m_doc
+        -1, // Py_ssize_t m_size
+        func_tbl, // PyMethodDef *m_methods
+        NULL, // PyModuleDef_Slot *m_slots
+        NULL, // traverseproc m_traverse
+        NULL, // inquiry m_clear
+        NULL // freefunc m_free
+    };
+    py_out = PyModule_Create(&stdout_module_def);
+#endif
     PySys_SetObject(const_cast<char *>("stdout"), py_out);
+#if PY_MAJOR_VERSION < 3
     py_out = Py_InitModule(const_cast<char *>("stderr"), StdOut_Methods);
+#else
+    struct PyModuleDef stderr_module_def = {
+        PyModuleDef_HEAD_INIT, // PyModuleDef_Base m_base
+        "stderr", // const char *m_name
+        "", // const char *m_doc
+        -1, // Py_ssize_t m_size
+        func_tbl, // PyMethodDef *m_methods
+        NULL, // PyModuleDef_Slot *m_slots
+        NULL, // traverseproc m_traverse
+        NULL, // inquiry m_clear
+        NULL // freefunc m_free
+    };
+    py_out = PyModule_Create(&stdout_module_def);
+#endif
     PySys_SetObject(const_cast<char *>("stderr"), py_out);
 
     // get garbage collector function
@@ -445,13 +501,32 @@ void pybase::SetArgs()
     // script arguments
     int argc = args.Count();
     const t_atom *argv = args.Atoms();
+#if PY_MAJOR_VERSION < 3
     char **sargv = new char *[argc+1];
+#else
+    wchar_t **sargv = new wchar_t *[argc+1];
+#endif
     for(int i = 0; i <= argc; ++i) {
+#if PY_MAJOR_VERSION < 3
         sargv[i] = new char[256];
-        if(!i) 
+#else
+        sargv[i] = new wchar_t[256];
+#endif
+        if(!i) {
+#if PY_MAJOR_VERSION < 3
             strcpy(sargv[i],"py/pyext");
-        else
+#else
+            wcscpy(sargv[i],L"py/pyext");
+#endif
+        } else {
+#if PY_MAJOR_VERSION < 3
             GetAString(argv[i-1],sargv[i],255);
+#else
+            char *arg = new char[256];
+            GetAString(argv[i-1],arg,255);
+            mbstowcs(sargv[i],arg,255);
+#endif
+        }
     }
 
     // the arguments to the module are only recognized once! (at first use in a patcher)

@@ -65,7 +65,7 @@ protected:
     void ms_initargs(const AtomList &a) { m_reload_(a.Count(),a.Atoms()); }
     void m_dir_() { m__dir(pyobj); }
     void mg_dir_(AtomList &lst) { GetDir(pyobj,lst); }
-    void m_doc_() { m__doc(((PyInstanceObject *)pyobj)->in_class->cl_dict); }
+    void m_doc_() { m__doc(pyobj); }
 
     void m_get(const t_symbol *s);
     void m_set(int argc,const t_atom *argv);

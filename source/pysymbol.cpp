@@ -178,13 +178,14 @@ static PyObject *symbol_repeat(PyObject *s,Py_ssize_t rep)
 }
 
 static PySequenceMethods symbol_as_seq = {
-    symbol_length,          /* inquiry sq_length;             __len__ */
-    symbol_concat,          /* __add__ */
-    symbol_repeat,          /* __mul__ */
-    symbol_item,            /* intargfunc sq_item;            __getitem__ */
-    symbol_slice,        /* intintargfunc sq_slice;        __getslice__ */
-    NULL,       /* intobjargproc sq_ass_item;     __setitem__ */
-    NULL,   /* intintobjargproc sq_ass_slice; __setslice__ */
+    symbol_length,          /* lenfunc sq_length              __len__ */
+    symbol_concat,          /* binaryfunc sq_concat           __add__ */
+    symbol_repeat,          /* ssizeargfunc sq_repeat         __mul__ */
+    symbol_item,            /* ssizeargfunc sq_item;          __getitem__ */
+    NULL,                   /* ssizeobjargproc sq_ass_item    __setitem__ */
+    NULL,                   /* objobjproc sq_contains         __contains__ */
+    NULL,                   /* binaryfunc sq_inplace_concat   __iadd__ */
+    NULL                    /* ssizeargfunc sq_inplace_repeat __imul */
 };
 
 static PyObject *symbol_iter(PyObject *s)
@@ -203,45 +204,44 @@ static PyObject *symbol_iter(PyObject *s)
 
 
 PyTypeObject pySymbol_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
-    "Symbol",              /*tp_name*/
-    sizeof(pySymbol),          /*tp_basicsize*/
-    0,                         /*tp_itemsize*/
-    0,                         /*tp_dealloc*/
-    0,                         /*tp_print*/
-    0,                         /*tp_getattr*/
-    0,                         /*tp_setattr*/
-    0,            /*tp_compare*/
-    symbol_repr,               /*tp_repr*/
-    0,                         /*tp_as_number*/
-    &symbol_as_seq,            /*tp_as_sequence*/
-    0,                         /*tp_as_mapping*/
-    symbol_hash,               /*tp_hash */
-    0,                         /*tp_call*/
-    symbol_str,                /*tp_str*/
-    0,                         /*tp_getattro*/
-    0,                         /*tp_setattro*/
-    0,                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT /*| Py_TPFLAGS_BASETYPE*/,   /*tp_flags*/
-    "Symbol objects",           /* tp_doc */
-    0,                     /* tp_traverse */
-    0,                     /* tp_clear */
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "Symbol",                  /* tp_name */
+    sizeof(pySymbol),          /* tp_basicsize */
+    0,                         /* tp_itemsize */
+    0,                         /* tp_dealloc */
+    0,                         /* tp_print */
+    0,                         /* tp_getattr */
+    0,                         /* tp_setattr */
+    0,                         /* tp_compare */
+    symbol_repr,               /* tp_repr */
+    0,                         /* tp_as_number */
+    &symbol_as_seq,            /* tp_as_sequence */
+    0,                         /* tp_as_mapping */
+    symbol_hash,               /* tp_hash */
+    0,                         /* tp_call */
+    symbol_str,                /* tp_str */
+    0,                         /* tp_getattro */
+    0,                         /* tp_setattro */
+    0,                         /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT /* | Py_TPFLAGS_BASETYPE*/,   /* tp_flags */
+    "Symbol objects",          /* tp_doc */
+    0,                         /* tp_traverse */
+    0,                         /* tp_clear */
     symbol_richcompare,        /* tp_richcompare */
-    0,                     /* tp_weaklistoffset */
-    symbol_iter,            /* tp_iter */
-    0,                     /* tp_iternext */
-    0,                          /* tp_methods */
-    0,                          /* tp_members */
+    0,                         /* tp_weaklistoffset */
+    symbol_iter,               /* tp_iter */
+    0,                         /* tp_iternext */
+    0,                         /* tp_methods */
+    0,                         /* tp_members */
     0,                         /* tp_getset */
     0,                         /* tp_base */
     0,                         /* tp_dict */
     0,                         /* tp_descr_get */
     0,                         /* tp_descr_set */
     0,                         /* tp_dictoffset */
-    symbol_init,            /* tp_init */
+    symbol_init,               /* tp_init */
     0,                         /* tp_alloc */
-    symbol_new,                 /* tp_new */
+    symbol_new,                /* tp_new */
 };
 
 pySymbol *pySymbol__;
