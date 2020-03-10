@@ -24,6 +24,26 @@ WARRANTIES, see the file, "license.txt," in this distribution.
     typedef int ThrState; // dummy
 #endif
 
+#if PY_MAJOR_VERSION < 3
+#define MOD_ERROR_VAL
+#define MOD_SUCCESS_VAL(val)
+#define MOD_INIT_NAME(name) init##name
+#define MOD_INIT(name) void MOD_INIT_NAME(name)(void)
+#define MOD_DEF(ob, name, doc, methods)                 \
+    ob = Py_InitModule3(name, methods, doc);
+#else
+#define MOD_ERROR_VAL NULL
+#define MOD_SUCCESS_VAL(val) val
+#define MOD_INIT_NAME(name) PyInit_##name
+#define MOD_INIT(name) PyMODINIT_FUNC MOD_INIT_NAME(name)(void)
+#define MOD_DEF(ob, name, doc, methods)           \
+    static struct PyModuleDef moduledef = {                   \
+        PyModuleDef_HEAD_INIT, name, doc, -1, methods, };     \
+    ob = PyModule_Create(&moduledef);
+#endif
+
+MOD_INIT(pyext);
+
 class pybase
     : public flext
 {
@@ -38,6 +58,7 @@ public:
     static const t_symbol *GetPyArgs(AtomList &lst,PyObject *pValue,int offs = 0);
     static const t_symbol *GetPyAtom(AtomList &lst,PyObject *pValue);
 
+    static PyObject *pyext_init();
     static void lib_setup();
 
 protected:

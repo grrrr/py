@@ -27,30 +27,6 @@ static PyMethodDef StdOut_Methods[] =
     { NULL,    NULL,           }  
 };
 
-static PyModuleDef StdOut_ModuleDef = {
-    PyModuleDef_HEAD_INIT, // PyModuleDef_Base m_base
-    "stdout", // const char *m_name
-    "pyext standard output", // const char *m_doc
-    -1, // Py_ssize_t m_size
-    StdOut_Methods, // PyMethodDef *m_methods
-    NULL, // PyModuleDef_Slot *m_slots
-    NULL, // traverseproc m_traverse
-    NULL, // inquiry m_clear
-    NULL // freefunc m_free
-};
-
-static PyModuleDef StdErr_ModuleDef = {
-    PyModuleDef_HEAD_INIT, // PyModuleDef_Base m_base
-    "pyext standard error", // const char *m_name
-    "", // const char *m_doc
-    -1, // Py_ssize_t m_size
-    StdOut_Methods, // PyMethodDef *m_methods
-    NULL, // PyModuleDef_Slot *m_slots
-    NULL, // traverseproc m_traverse
-    NULL, // inquiry m_clear
-    NULL // freefunc m_free
-};
-
 static PyObject *gcollect = NULL;
 
 #ifdef FLEXT_THREADS
@@ -128,7 +104,46 @@ void initsymbol();
 void initsamplebuffer();
 void initbundle();
 
+MOD_INIT(pyext)
+{
+    return MOD_SUCCESS_VAL(pybase::pyext_init());
+}
 
+PyObject *pybase::pyext_init()
+{
+    if(module_obj == NULL) {
+        PyObject *m;
+    
+        MOD_DEF(m, PYEXT_MODULE, py_doc, func_tbl);
+    
+        PyModule_AddStringConstant(m,"__doc__",(char *)py_doc);
+
+        // add symbol type
+        initsymbol();
+        PyModule_AddObject(m,"Symbol",(PyObject *)&pySymbol_Type);
+
+        // pre-defined symbols
+        PyModule_AddObject(m,"_s_",(PyObject *)pySymbol__);
+        PyModule_AddObject(m,"_s_bang",(PyObject *)pySymbol_bang);
+        PyModule_AddObject(m,"_s_list",(PyObject *)pySymbol_list);
+        PyModule_AddObject(m,"_s_symbol",(PyObject *)pySymbol_symbol);
+        PyModule_AddObject(m,"_s_float",(PyObject *)pySymbol_float);
+        PyModule_AddObject(m,"_s_int",(PyObject *)pySymbol_int);
+
+        // add samplebuffer type
+        initsamplebuffer();
+        PyModule_AddObject(m,"Buffer",(PyObject *)&pySamplebuffer_Type);
+
+        // add message bundle type
+        initbundle();
+        PyModule_AddObject(m,"Bundle",(PyObject *)&pyBundle_Type);
+
+        module_obj = m;
+        module_dict = PyModule_GetDict(m); // borrowed reference
+    }
+
+    return module_obj;
+}
 
 void pybase::lib_setup()
 {
@@ -167,6 +182,8 @@ void pybase::lib_setup()
 
     // -------------------------------------------------------------
 
+    PyImport_AppendInittab(PYEXT_MODULE, MOD_INIT_NAME(pyext));
+    
     Py_Initialize();
 
 #ifdef FLEXT_DEBUG
@@ -201,31 +218,22 @@ void pybase::lib_setup()
     PySys_SetArgv(0,const_cast<wchar_t **>(&nothing));
 #endif
 
-    // register/initialize pyext module only once!
-#if PY_MAJOR_VERSION < 3
-    module_obj = Py_InitModule(const_cast<char *>(PYEXT_MODULE), func_tbl);
-#else
-    module_obj = PyModule_Create(&pyext_module_def);
-#endif
-    module_dict = PyModule_GetDict(module_obj); // borrowed reference
-
-    PyModule_AddStringConstant(module_obj,"__doc__",(char *)py_doc);
-
+    // import the pyext module to ensure init
+    PyImport_ImportModule(PYEXT_MODULE);
+    
     // redirect stdout
     PyObject* py_out;
-#if PY_MAJOR_VERSION < 3
-    py_out = Py_InitModule(const_cast<char *>("stdout"), StdOut_Methods);
-#else
-    py_out = PyModule_Create(&StdOut_ModuleDef);
-#endif
-    PySys_SetObject(const_cast<char *>("stdout"), py_out);
-#if PY_MAJOR_VERSION < 3
-    py_out = Py_InitModule(const_cast<char *>("stderr"), StdOut_Methods);
-#else
-    py_out = PyModule_Create(&StdErr_ModuleDef);
-#endif
-    PySys_SetObject(const_cast<char *>("stderr"), py_out);
 
+    {
+        MOD_DEF(py_out, "stdout", "pyext standard output", StdOut_Methods);
+    }
+    PySys_SetObject(const_cast<char *>("stdout"), py_out);
+    
+    {
+        MOD_DEF(py_out, "stderr", "pyext standard error", StdOut_Methods);
+    }
+    PySys_SetObject(const_cast<char *>("stderr"), py_out);
+    
     // get garbage collector function
     PyObject *gcobj = PyImport_ImportModule("gc");
     if(gcobj) {
@@ -239,26 +247,6 @@ void pybase::lib_setup()
     builtins_obj = PyImport_ImportModule("builtins");
 #endif
     builtins_dict = PyModule_GetDict(builtins_obj); // borrowed reference
-
-    // add symbol type
-    initsymbol();
-    PyModule_AddObject(module_obj,"Symbol",(PyObject *)&pySymbol_Type);
-
-    // pre-defined symbols
-    PyModule_AddObject(module_obj,"_s_",(PyObject *)pySymbol__);
-    PyModule_AddObject(module_obj,"_s_bang",(PyObject *)pySymbol_bang);
-    PyModule_AddObject(module_obj,"_s_list",(PyObject *)pySymbol_list);
-    PyModule_AddObject(module_obj,"_s_symbol",(PyObject *)pySymbol_symbol);
-    PyModule_AddObject(module_obj,"_s_float",(PyObject *)pySymbol_float);
-    PyModule_AddObject(module_obj,"_s_int",(PyObject *)pySymbol_int);
-
-    // add samplebuffer type
-    initsamplebuffer();
-    PyModule_AddObject(module_obj,"Buffer",(PyObject *)&pySamplebuffer_Type);
-
-    // add message bundle type
-    initbundle();
-    PyModule_AddObject(module_obj,"Bundle",(PyObject *)&pyBundle_Type);
 
     // -------------------------------------------------------------
 #if FLEXT_SYS == FLEXT_SYS_PD && defined(PD_DEVEL_VERSION) && defined(PY_USE_INOFFICIAL)

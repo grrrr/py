@@ -1,3 +1,4 @@
+from __future__ import print_function
 # py/pyext - python script objects for PD and MaxMSP
 #
 # Copyright (c) 2002-2007 Thomas Grill (gr@grrrr.org)
@@ -68,72 +69,71 @@ pyext Usage:
 try:
 	import pyext
 except:
-	print "ERROR: This script must be loaded by the PD/Max pyext external"
+	print("ERROR: This script must be loaded by the PD/Max pyext external")
 
 #################################################################
 
 class ex1(pyext._class):
 	"""Example of a simple class which receives messages and prints to the console"""
-
+    
 	# number of inlets and outlets
 	_inlets=3
 	_outlets=0
 
-
 	# methods for first inlet
 
 	def bang_1(self):
-		print "Bang into first inlet"
+		print("Bang into first inlet")
 
 	def int_1(self,f):
-		print "Integer",f,"into first inlet"
+		print("Integer",f,"into first inlet")
 
 	def float_1(self,f):
-		print "Float",f,"into first inlet"
+		print("Float",f,"into first inlet")
 
 	def list_1(self,*s):
-		print "List",s,"into first inlet"
+		print("List",s,"into first inlet")
 
 
 	# methods for second inlet
 
 	def hey_2(self):
-		print "Tag 'hey' into second inlet"
+		print("Tag 'hey' into second inlet")
 
 	def ho_2(self):
-		print "Tag 'ho' into second inlet"
+		print("Tag 'ho' into second inlet")
 
 	def lets_2(self):
-		print "Tag 'lets' into second inlet"
+		print("Tag 'lets' into second inlet")
 
 	def go_2(self):
-		print "Tag 'go' into second inlet"
+		print("Tag 'go' into second inlet")
 
 	def _anything_2(self,*args):
-		print "Some other message into second inlet:",args
+		print("Some other message into second inlet:",args)
 
 
 	# methods for third inlet
 
 	def onearg_3(self,a):
-		print "Tag 'onearg' into third inlet:",a
+		print("Tag 'onearg' into third inlet:",a)
 
 	def twoargs_3(self,*a):
 		if len(a) == 2:
-			print "Tag 'twoargs' into third inlet:",a[0],a[1]
+			print("Tag 'twoargs' into third inlet:",a[0],a[1])
 		else:
-			print "Tag 'twoargs': wrong number of arguments"
+			print("Tag 'twoargs': wrong number of arguments")
 
 	def threeargs_3(self,*a):
 		if len(a) == 3:
-			print "Tag 'threeargs' into third inlet",a[0],a[1],a[2]
+			print("Tag 'threeargs' into third inlet",a[0],a[1],a[2])
 		else:
-			print "Tag 'threeargs': wrong number of arguments"
+			print("Tag 'threeargs': wrong number of arguments")
 
 	def varargs_3(self,*args):
 		# with *args there can be arguments or not
 
-		print "Tag 'varargs' into third inlet",args
+		print("Tag 'varargs' into third inlet",args)
 
 
 
@@ -149,10 +149,10 @@ class ex2(pyext._class):
 	# methods for all inlets
 
 	def hello_(self,n):
-		print "Tag 'hello' into inlet",n
+		print("Tag 'hello' into inlet",n)
 
 	def _anything_(self,n,*args):
-		print "Message into inlet",n,":",args
+		print("Message into inlet",n,":",args)
 
 
 	# methods for first inlet
@@ -196,7 +196,7 @@ class ex3(pyext._class):
 			if isNumber(args[0]):
 				self.tmp = args[0]
 			else:
-				print "ex3: __init__ has superfluous arguments"
+				print("ex3: __init__ has superfluous arguments")
 
 	# methods 
 
@@ -212,3 +212,4 @@ class ex3(pyext._class):
 
 	def int_2(self,f):  
 		self.float_2(f)
+
