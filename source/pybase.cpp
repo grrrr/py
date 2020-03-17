@@ -1058,7 +1058,11 @@ bool pybase::collect()
         PyObject *ret = PyObject_CallObject(gcollect,NULL);
         if(ret) {
 #ifdef FLEXT_DEBUG
+#if PY_MAJOR_VERSION < 3
             int refs = PyInt_AsLong(ret);
+#else
+            int refs = PyLong_AsLong(ret);
+#endif
             if(refs) post("py/pyext - Garbage collector reports %i unreachable objects",refs);
 #endif
             Py_DECREF(ret);

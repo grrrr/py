@@ -214,7 +214,10 @@ bool pyext::Init()
 
     if(methname) {
         MakeInstance();
-        if(pyobj) InitInOut(inlets,outlets);
+        if(pyobj) {
+            SetThis();
+            InitInOut(inlets,outlets);
+        }
     }
     else
         inlets = outlets = 0;
@@ -366,9 +369,11 @@ bool pyext::InitInOut(int &inl,int &outl)
         FLEXT_ASSERT(!ret);
     }
 
+#if PY_MAJOR_VERSION < 3
     // __init__ can override the number of inlets and outlets
     if(!DoInit()) // call __init__ constructor
         return false;
+#endif
 
     if(inl < 0) {
         // get number of inlets
@@ -440,6 +445,16 @@ bool pyext::MakeInstance()
             if(PyObject_IsInstance(pref, (PyObject *)&PyType_Type)) {
                 // pyobj = PyBaseObject_Type.tp_new()
                 // TODO: correctly initialize instance
+
+                PyObject *pargs = MakePyArgs(NULL, initargs.Count(), initargs.Atoms());
+
+                if(!pargs) {
+                    PyErr_Print();
+                } else {
+                    pyobj = PyObject_CallObject(pref, pargs);
+
+                    Py_DECREF(pargs);
+                }
 #endif
                 if(!pyobj) PyErr_Print();
             }

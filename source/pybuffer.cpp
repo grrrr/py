@@ -337,7 +337,7 @@ PyObject *arrayfrombuffer(PyObject *buf,int c,int n)
         Py_buffer view;
         int err = PyObject_GetBuffer(buf, &view, PyBUF_SIMPLE | PyBUF_WRITABLE);
         if(!err) {
-            FLEXT_ASSERT(view->len <= n*c*sizeof(t_sample));
+            FLEXT_ASSERT(view.len <= n*c*sizeof(t_sample));
 //            Py_INCREF(buf); // ATTENTION... this won't be released any more!!
 #   ifdef PY_NUMPY
             arr = PyArray_NewFromDescr(&PyArray_Type,PyArray_DescrNewFromType(numtype),c == 1?1:2,shape,0,(char *)view.buf,NPY_WRITEABLE|NPY_C_CONTIGUOUS,NULL);

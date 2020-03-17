@@ -29,16 +29,21 @@ PyMethodDef pyext::meth_tbl[] =
 #endif
     { "_invec", pyext::pyext_invec, METH_VARARGS,"Get input vector" },
     { "_outvec", pyext::pyext_outvec, METH_VARARGS,"Get output vector" },
+#if PY_MAJOR_VERSION >= 3
+    { "__setattr__", pyext::pyext_setattr, METH_VARARGS,"Set class attribute" },
+    { "__getattr__", pyext::pyext_getattr, METH_VARARGS,"Get class attribute" },
+#endif
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
 PyMethodDef pyext::attr_tbl[] =
 {
+#if PY_MAJOR_VERSION < 3
     { "__setattr__", pyext::pyext_setattr, METH_VARARGS,"Set class attribute" },
     { "__getattr__", pyext::pyext_getattr, METH_VARARGS,"Get class attribute" },
+#endif
     { NULL, NULL,0,NULL },
 };
-
 
 const char *pyext::pyext_doc =
     "py/pyext - python external object for PD and Max/MSP, (C)2002-2008 Thomas Grill\n"
@@ -76,15 +81,21 @@ PyObject* pyext::pyext__del__(PyObject *,PyObject *args)
 }
 */
 
+#if PY_MAJOR_VERSION < 3
 PyObject* pyext::pyext__str__(PyObject *,PyObject *args)
+#else
+PyObject* pyext::pyext__str__(PyObject *self, PyObject *args)
+#endif    
 {
+#if PY_MAJOR_VERSION < 3
     PyObject *self; 
     if(!PyArg_ParseTuple(args, "O:pyext__str__",&self)) {
         // handle error
         ERRINTERNAL();
         return NULL;
     }
-
+#endif
+    
     return
 #if PY_MAJOR_VERSION < 3
         PyString_FromFormat
@@ -94,10 +105,20 @@ PyObject* pyext::pyext__str__(PyObject *,PyObject *args)
             ("<pyext object %p>", self);
 }
 
+#if PY_MAJOR_VERSION < 3
 PyObject* pyext::pyext_setattr(PyObject *,PyObject *args)
+#else
+PyObject* pyext::pyext_setattr(PyObject *self, PyObject *args)
+#endif
 {
+#if PY_MAJOR_VERSION < 3
     PyObject *self,*name,*val;
-    if(!PyArg_ParseTuple(args, "OOO:pyext_setattr", &self,&name,&val)) {
+    if(!PyArg_ParseTuple(args, "OOO:pyext_setattr", &self,&name,&val))
+#else
+    PyObject *name, *val;
+    if(!PyArg_ParseTuple(args, "OO:pyext_setattr", &name, &val))
+#endif
+    {
         // handle error
         ERRINTERNAL();
         return NULL;
@@ -121,19 +142,35 @@ PyObject* pyext::pyext_setattr(PyObject *,PyObject *args)
     return Py_None;
 }
 
+#if PY_MAJOR_VERSION < 3
 PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
+#else
+PyObject* pyext::pyext_getattr(PyObject *self, PyObject *args)
+#endif
 {
+#if PY_MAJOR_VERSION < 3
     PyObject *self, *name, *ret = NULL;
-    if(!PyArg_ParseTuple(args, "OO:pyext_getattr", &self, &name)) {
+    if(!PyArg_ParseTuple(args, "OO:pyext_getattr", &self, &name))
+#else
+    PyObject *name, *ret = NULL;
+    if(!PyArg_ParseTuple(args, "O:pyext_getattr", &name))
+#endif
+    {
         // handle error
         ERRINTERNAL();
+        return NULL;
     }
 
 #if PY_MAJOR_VERSION < 3
-    if(PyString_Check(name)) {
+    if(PyString_Check(name))
+#else
+    if(PyUnicode_Check(name))
+
+#endif
+    {
+#if PY_MAJOR_VERSION < 3
         const char *sname = PyString_AS_STRING(name);
 #else
-    if(PyUnicode_Check(name)) {
         const char *sname = PyUnicode_AsUTF8(name);
 #endif
         if(sname) {
@@ -175,7 +212,11 @@ PyObject* pyext::pyext_getattr(PyObject *,PyObject *args)
 }
 
 //! Send message to outlet
+#if PY_MAJOR_VERSION < 3
 PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
+#else
+PyObject *pyext::pyext_outlet(PyObject *self, PyObject *args)
+#endif
 {
     bool ok = false;
 
@@ -185,11 +226,19 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
     int sz = PyTuple_GET_SIZE(args);
 
     // borrowed references!
+#if PY_MAJOR_VERSION < 3
     PyObject *self,*outl;
+#else
+    PyObject *outl;
+#endif
 
     if(
         sz >= 2 &&
-        (self = PyTuple_GET_ITEM(args,0)) != NULL && 
+#if PY_MAJOR_VERSION < 3
+        (self = PyTuple_GET_ITEM(args,0)) != NULL &&
+#else
+        self != NULL &&
+#endif
         (outl = PyTuple_GET_ITEM(args,1)) != NULL &&
 #if PY_MAJOR_VERSION < 3
             PyInt_Check(outl)
@@ -256,11 +305,23 @@ PyObject *pyext::pyext_outlet(PyObject *,PyObject *args)
 
 #ifdef FLEXT_THREADS
 //! Detach threads
+#if PY_MAJOR_VERSION < 3
 PyObject *pyext::pyext_detach(PyObject *,PyObject *args)
+#else
+PyObject *pyext::pyext_detach(PyObject *self, PyObject *args)
+#endif
 {
-    PyObject *self; 
+#if PY_MAJOR_VERSION < 3
+    PyObject *self;
+#endif
     int val;
-    if(!PyArg_ParseTuple(args, "Oi:pyext_detach",&self,&val)) {
+    if(
+#if PY_MAJOR_VERSION < 3
+        !PyArg_ParseTuple(args, "Oi:pyext_detach",&self,&val)
+#else
+        !PyArg_ParseTuple(args, "i:pyext_detach", &val)
+#endif        
+    ) {
         // handle error
         PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _detach(self,[0/1/2])");
         return NULL;
@@ -284,11 +345,23 @@ PyObject *pyext::pyext_detach(PyObject *,PyObject *args)
 }
 
 //! Stop running threads
+#if PY_MAJOR_VERSION < 3
 PyObject *pyext::pyext_stop(PyObject *,PyObject *args)
+#else
+PyObject *pyext::pyext_stop(PyObject *self, PyObject *args)
+#endif
 {
-    PyObject *self; 
+#if PY_MAJOR_VERSION < 3
+    PyObject *self;
+#endif
     int val = -1;
-    if(!PyArg_ParseTuple(args, "O|i:pyext_stop",&self,&val)) {
+    if(
+#if PY_MAJOR_VERSION < 3
+        !PyArg_ParseTuple(args, "O|i:pyext_stop",&self,&val)
+#else
+        !PyArg_ParseTuple(args, "|i:pyext_stop", &val)
+#endif
+    ) {
         // handle error
         PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _stop(self,{wait time})");
         return NULL;
@@ -320,17 +393,27 @@ PyObject *pyext::pyext_stop(PyObject *,PyObject *args)
 
 #if FLEXT_SYS == FLEXT_SYS_PD
 //! Send message to canvas
+#if PY_MAJOR_VERSION < 3
 PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
+#else
+PyObject *pyext::pyext_tocanvas(PyObject *self, PyObject *args)    
+#endif
 {
     FLEXT_ASSERT(PyTuple_Check(args));
 
     int sz = PyTuple_GET_SIZE(args);
 
     bool ok = false;
+#if PY_MAJOR_VERSION < 3
     PyObject *self; // borrowed ref
+#endif
     if(
         sz >= 1 &&
+#if PY_MAJOR_VERSION < 3
         (self = PyTuple_GET_ITEM(args,0)) != NULL
+#else
+        self != NULL
+#endif
     ) {
         pyext *ext = GetThis(self);
         if(!ext) {
@@ -381,11 +464,23 @@ PyObject *pyext::pyext_tocanvas(PyObject *,PyObject *args)
 }
 #endif
 
+#if PY_MAJOR_VERSION < 3
 PyObject *pyext::pyext_invec(PyObject *,PyObject *args)
+#else
+PyObject *pyext::pyext_invec(PyObject *self, PyObject *args)    
+#endif
 {
-    PyObject *self; 
+#if PY_MAJOR_VERSION < 3
+    PyObject *self;
+#endif
     int val = -1;
-    if(!PyArg_ParseTuple(args, "O|i:pyext_invec",&self,&val)) {
+    if(
+#if PY_MAJOR_VERSION < 3
+        !PyArg_ParseTuple(args, "O|i:pyext_invec",&self,&val)
+#else
+        !PyArg_ParseTuple(args, "|i:pyext_invec", &val)        
+#endif
+    ) {
         // handle error
         PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _invec(self,inlet)");
         return NULL;
@@ -410,11 +505,23 @@ PyObject *pyext::pyext_invec(PyObject *,PyObject *args)
     return Py_None;
 }
 
+#if PY_MAJOR_VERSION < 3
 PyObject *pyext::pyext_outvec(PyObject *,PyObject *args)
+#else
+PyObject *pyext::pyext_outvec(PyObject *self, PyObject *args)
+#endif
 {
-    PyObject *self; 
+#if PY_MAJOR_VERSION < 3
+    PyObject *self;
+#endif
     int val = -1;
-    if(!PyArg_ParseTuple(args, "O|i:pyext_outvec",&self,&val)) {
+    if(
+#if PY_MAJOR_VERSION < 3
+        !PyArg_ParseTuple(args, "O|i:pyext_outvec",&self,&val)
+#else
+        !PyArg_ParseTuple(args, "|i:pyext_outvec", &val)
+#endif
+    ) {
         // handle error
         PyErr_SetString(PyExc_SyntaxError,"pyext - Syntax: _outvec(self,inlet)");
         return NULL;
