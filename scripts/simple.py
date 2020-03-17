@@ -72,6 +72,13 @@ try:
 except:
 	print("ERROR: This script must be loaded by the PD/Max pyext external")
 
+try:
+    # Python 2
+    _long = long
+    del _long
+except NameError:
+    long = int
+    
 #################################################################
 
 class ex1(pyext._class):
@@ -172,7 +179,7 @@ class ex2(pyext._class):
 # helper function - determine whether argument is a numeric type
 def isNumber(value):
 	import types
-	if type(value) in (types.FloatType, types.IntType, types.LongType):
+	if type(value) in (float, int, long):
 		return 1
 	else:
 		return 0
