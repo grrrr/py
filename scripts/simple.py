@@ -1,4 +1,3 @@
-from __future__ import print_function
 # py/pyext - python script objects for PD and MaxMSP
 #
 # Copyright (c) 2002-2007 Thomas Grill (gr@grrrr.org)
@@ -59,12 +58,14 @@ pyext Usage:
 	or
 		self._outlet(outlet,arg) ... where arg is a sequence containing only atoms
 		
-    Do not use _outlet inside __init__, since the outlets have not been created at that time.
+	Do not use _outlet inside __init__, since the outlets have not been created at that time.
 
 - Use pyext functions and methods: 
 	See the __doc__ strings of the pyext module and the pyext._class base class.
 
 """
+
+from __future__ import print_function
 
 try:
 	import pyext
@@ -75,7 +76,7 @@ except:
 
 class ex1(pyext._class):
 	"""Example of a simple class which receives messages and prints to the console"""
-    
+	
 	# number of inlets and outlets
 	_inlets=3
 	_outlets=0
@@ -207,9 +208,9 @@ class ex3(pyext._class):
 		self.tmp = f
 
 	# handlers for MaxMSP int type
-	def int_1(self,f):  
+	def int_1(self,f):	
 		self.float_1(f)
 
-	def int_2(self,f):  
+	def int_2(self,f):	
 		self.float_2(f)
 
