@@ -74,10 +74,11 @@ void pyext::Setup(t_classid c)
         PyObject *func = PyCFunction_New(def, NULL);
 #if PY_MAJOR_VERSION < 3
         PyObject *method = PyMethod_New(func, NULL, class_obj); // increases class_obj ref count by 1
-#else
-        PyObject *method = PyInstanceMethod_New(func);
-#endif
         PyDict_SetItemString(class_dict, def->ml_name, method);
+#else
+        PyObject *method = PyMethod_New(func, class_obj);
+        PyObject_SetAttrString(class_obj, def->ml_name, method);
+#endif
         Py_DECREF(func);
         Py_DECREF(method);
     }
