@@ -43,6 +43,7 @@ inline bool arrsupport() { return numtype != tAny; }
 #endif
 #endif
 
+#include "pycompat.h"
 
 PyObject *pybase::py_arraysupport(PyObject *self,PyObject *args)
 {
@@ -57,7 +58,7 @@ PyObject *pybase::py_arraysupport(PyObject *self,PyObject *args)
 }
 
 
-// PD defines a T_OBJECT symbol
+// undefine PD's T_OBJECT to avoid conflict with Python's
 #undef T_OBJECT
 
 #ifdef PY_USE_FRAMEWORK
@@ -301,6 +302,9 @@ static PyObject *buffer_item(PyObject *s,Py_ssize_t i)
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
     PyObject *ret;
     if(self->buf) {
+        if(i < 0) {
+            i += self->buf->Frames();
+        }
         if (i < 0 || i >= self->buf->Frames()) {
             PyErr_SetString(PyExc_IndexError,"Index out of range");
             ret = NULL;
@@ -514,16 +518,139 @@ static PyObject *buffer_repeat(PyObject *s,Py_ssize_t rep)
         return NULL;
 }
 
+static PyObject *buffer_subscript(PyObject *s, PyObject *item)
+{
+    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
+    PyObject *ret;
+
+#ifdef PY_ARRAYS
+    if(arrsupport()) {
+        if(self->buf) {
+            const int n = self->buf->Frames();
+            const int c = self->buf->Channels();
+
+            PyObject *nobj = arrayfrombuffer((PyObject *) self, c, n);
+            ret = PyObject_GetItem(nobj, item);
+            Py_DECREF(nobj);
+        } else {
+            Py_INCREF(Py_None);
+            ret = Py_None;
+        }
+    }
+    else
+#endif
+    if(PyIndex_Check(item)) {
+        Py_ssize_t i;
+        i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+        if(i == -1 && PyErr_Occurred()) {
+            ret = NULL;
+        } else {
+            if(i < 0)
+                i += PyList_GET_SIZE(self);
+        
+            ret = buffer_item(s, i);
+        }
+    } else if(PySlice_Check(item)) {
+        PyErr_SetString(PyExc_RuntimeError, "No array support");
+        ret = NULL;
+    } else {
+        PyErr_Format(
+            PyExc_TypeError,
+            "buffer indices must be integers or slices, not %.200s",
+            item->ob_type->tp_name
+        );
+        ret = NULL;
+    }
+    
+    return ret;
+}
+
+static int buffer_ass_subscript(PyObject *s, PyObject *item, PyObject *value)
+{    
+    pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(s);
+    int ret;
+    
+    if(PyIndex_Check(item)) {
+        Py_ssize_t i;
+        i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+        if(i == -1 && PyErr_Occurred()) {
+            ret = -1;
+        } else {
+            ret = buffer_ass_item(s, i, value);
+        }
+    } else if(PySlice_Check(item)) {
+#ifdef PY_ARRAYS
+        if(arrsupport()) {
+            if(self->buf) {
+                const int n = self->buf->Frames();
+                const int c = self->buf->Channels();
+
+                PyArrayObject *out = (PyArrayObject *) PyArray_ContiguousFromObject(value, numtype, 1, 2);
+                const t_sample *src = (t_sample *) out->data;
+
+                if(!out) {
+                    // exception already set
+                    ret = -1;
+                } else if(out->nd != 1) {
+                    PyErr_SetString(PyExc_NotImplementedError, "Multiple dimensions not supported yet");
+                    ret = -1;
+                } else {
+                    Py_ssize_t ilow, ihigh, istep;
+
+                    if(PySlice_Unpack(item, &ilow, &ihigh, &istep) < 0) {
+                        ret = -1;
+                    } else {
+                        Py_ssize_t dlen = PySlice_AdjustIndices(n, &ilow, &ihigh, istep);
+                        int slen = out->dimensions[0];
+                        int cnt = slen < dlen ? slen : dlen;
+                        flext::buffer::Element *dst = self->buf->Data() + ilow;
+                        for(int i = 0; i < cnt; i += istep) {
+                            dst[i] = src[i];
+                        }
+                
+                        self->dirty = true;
+                        ret = 0;
+                    }
+                }
+
+                Py_XDECREF(out);
+            } else {
+                PyErr_SetString(PyExc_ValueError,"Buffer is not assigned");
+                ret = -1;
+            }
+        }
+        else
+#endif
+        {
+            PyErr_SetString(PyExc_RuntimeError, "No array support");
+            ret = -1;
+        }
+    } else {
+        PyErr_Format(
+            PyExc_TypeError,
+            "buffer indices must be integers or slices, not %.200s",
+            item->ob_type->tp_name
+        );
+        ret = -1;
+    }
+
+    return ret;
+}
 
 static PySequenceMethods buffer_as_seq = {
     buffer_length,          /* lenfunc sq_length              __len__ */
     buffer_concat,          /* binaryfunc sq_concat           __add__ */
     buffer_repeat,          /* ssizeargfunc sq_repeat         __mul__ */
-    buffer_item,            /* ssizeargfunc sq_item;          __getitem__ */
+    NULL,                   /* ssizeargfunc sq_item;          __getitem__ */
+    NULL,                   /* intintargfunc sq_slice;        __getslice__ */
     NULL,                   /* ssizeobjargproc sq_ass_item    __setitem__ */
-    NULL,                   /* objobjproc sq_contains         __contains__ */
-    NULL,                   /* binaryfunc sq_inplace_concat   __iadd__ */
-    NULL                    /* ssizeargfunc sq_inplace_repeat __imul */
+    NULL,                   /* intintobjargproc sq_ass_slice; __setslice__ */
+};
+
+static PyMappingMethods buffer_as_mapping = {
+    buffer_length, // lenfunc mp_length
+    buffer_subscript, // binaryfunc mp_subscript
+    buffer_ass_subscript // objobjargproc mp_ass_subscript
 };
 
 static PyObject *buffer_iter(PyObject *s)
@@ -901,7 +1028,7 @@ PyTypeObject pySamplebuffer_Type = {
     buffer_repr,               /*tp_repr*/
     &buffer_as_number,                         /*tp_as_number*/
     &buffer_as_seq,                 /*tp_as_sequence*/
-    0,                         /*tp_as_mapping*/
+    &buffer_as_mapping,                         /*tp_as_mapping*/
     buffer_hash,               /*tp_hash */
     0,                         /*tp_call*/
     0,                         /*tp_str*/
@@ -939,10 +1066,13 @@ PyTypeObject pySamplebuffer_Type = {
 #ifdef PY_ARRAYS
 #ifdef PY_NUMARRAY
 #define IMPORT_ARRAY_RET_TYPE void
+#define IMPORT_ARRAY_RET_VALUE
 #elif PY_MAJOR_VERSION < 3
 #define IMPORT_ARRAY_RET_TYPE void
+#define IMPORT_ARRAY_RET_VALUE
 #else
 #define IMPORT_ARRAY_RET_TYPE void *
+#define IMPORT_ARRAY_RET_VALUE NULL
 #endif
 static IMPORT_ARRAY_RET_TYPE __import_array__()
 {
@@ -951,6 +1081,7 @@ static IMPORT_ARRAY_RET_TYPE __import_array__()
 #else
     import_array();
 #endif
+    return IMPORT_ARRAY_RET_VALUE;
 }
 #endif
 
