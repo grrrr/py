@@ -30,6 +30,11 @@ inline bool arrsupport() { return numtype != tAny; }
 #else
 #   if defined(PY_NUMPY)
 #       include <numpy/arrayobject.h>
+#       if _FLEXT_NEED_SAMPLE_CONV
+#           define PY_NUMPY_BUFFER_FORMAT "f"
+#       else
+#           define PY_NUMPY_BUFFER_FORMAT "d"
+#       endif
 #   else
 #       ifdef PY_USE_FRAMEWORK
 #           include <Python/numarray/arrayobject.h>
@@ -247,7 +252,7 @@ static int buffer_getbuffer(PyObject *obj, Py_buffer *view, int flags) {
     view->len = len;
     view->readonly = false;
     view->itemsize = sizeof(t_sample);
-    view->format = (flags & PyBUF_FORMAT) ? (char *) "B" : NULL;
+    view->format = (flags & PyBUF_FORMAT) ? (char *) PY_NUMPY_BUFFER_FORMAT : NULL;
     view->ndim = 1;
     view->shape = &shape_strides->first;
     view->strides = &shape_strides->second;
@@ -571,7 +576,6 @@ static int buffer_ass_subscript(PyObject *s, PyObject *item, PyObject *value)
                 const int c = self->buf->Channels();
 
                 PyArrayObject *out = (PyArrayObject *) PyArray_ContiguousFromObject(value, numtype, 1, 2);
-                const t_sample *src = (t_sample *) out->data;
 
                 if(!out) {
                     // exception already set
@@ -580,6 +584,8 @@ static int buffer_ass_subscript(PyObject *s, PyObject *item, PyObject *value)
                     PyErr_SetString(PyExc_NotImplementedError, "Multiple dimensions not supported yet");
                     ret = -1;
                 } else {
+                    const t_sample *src = (t_sample *) out->data;
+
                     Py_ssize_t ilow, ihigh, istep;
 
                     if(PySlice_Unpack(item, &ilow, &ihigh, &istep) < 0) {
