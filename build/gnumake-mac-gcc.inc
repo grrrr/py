@@ -74,3 +74,6 @@ endif
 endif
 
 endif
+
+#DEBUG = 1
+#DFLAGS += -DFLEXT_DEBUG

@@ -228,55 +228,38 @@ static Py_ssize_t buffer_charbuffer(PyObject *obj, Py_ssize_t segment,
 }
 
 static int buffer_getbuffer(PyObject *obj, Py_buffer *view, int flags) {
-    if(flags & PyBUF_INDIRECT) {
-        PyErr_SetString(PyExc_BufferError, "PyBUF_INDIRECT not supported");
-        view->obj = NULL;
-        return -1;
-    }
-
-    if(flags & PyBUF_STRIDES) {
-        PyErr_SetString(PyExc_BufferError, "PyBUF_STRIDES not supported");
-        view->obj = NULL;
-        return -1;
-    }
-
-    if(flags & PyBUF_ND) {
-        PyErr_SetString(PyExc_BufferError, "PyBUF_ND not supported");
-        view->obj = NULL;
-        return -1;
-    }
-
-    if(flags & PyBUF_F_CONTIGUOUS) {
-        PyErr_SetString(PyExc_BufferError, "PyBUF_F_CONTIGUOUS not supported");
-        view->obj = NULL;
-        return -1;
-    }
-
     pySamplebuffer *self = reinterpret_cast<pySamplebuffer *>(obj);
     flext::buffer *b = self->buf;
-    
-    view->buf = (void *)b->Data();
-    Py_INCREF(obj);
-    view->obj = obj;
-    view->len = b->Channels()*b->Frames()*sizeof(t_sample);
-    view->readonly = false;
-    view->itemsize = 1;
-    view->format = NULL;
-    view->ndim = 1;
-    view->shape = NULL;
-    view->strides = NULL;
-    view->suboffsets = NULL;
-    view->internal = NULL;
+    const Py_ssize_t len = b->Channels()*b->Frames()*sizeof(t_sample);
 
-    if(flags & PyBUF_FORMAT) {
-        view->format = "B";
+    if(!(flags & PyBUF_STRIDES)) {
+        view->obj = NULL;
+        PyErr_SetString(PyExc_BufferError, "Buffer requires support for strides");
+        return -1;
     }
 
+    std::pair<Py_ssize_t,Py_ssize_t> *shape_strides = new std::pair<Py_ssize_t,Py_ssize_t>();
+    shape_strides->first = b->Channels() * b->Frames();
+    shape_strides->second = sizeof(FLEXT_ARRAYTYPE);
+    
+    view->buf = (void *) b->Data();
+    view->obj = obj;
+    view->len = len;
+    view->readonly = false;
+    view->itemsize = sizeof(t_sample);
+    view->format = (flags & PyBUF_FORMAT) ? (char *) "B" : NULL;
+    view->ndim = 1;
+    view->shape = &shape_strides->first;
+    view->strides = &shape_strides->second;
+    view->suboffsets = NULL;
+    view->internal = (void *) shape_strides;
+
+    Py_INCREF(self);
     return 0;
 }
 
 static void buffer_releasebuffer(PyObject *obj, Py_buffer *view) {
-    // nothing to do here
+    delete (std::pair<Py_ssize_t,Py_ssize_t> *) view->internal;
 }
 
 static PyBufferProcs buffer_as_buffer = {
@@ -339,12 +322,14 @@ PyObject *arrayfrombuffer(PyObject *buf,int c,int n)
         arr = (PyObject *)NA_NewAllFromBuffer(c == 1?1:2,shape,numtype,buf,0,0,NA_ByteOrder(),1,1);
 #else
         Py_buffer view;
-        int err = PyObject_GetBuffer(buf, &view, PyBUF_SIMPLE | PyBUF_WRITABLE);
+        int err = PyObject_GetBuffer(buf, &view, PyBUF_WRITABLE | PyBUF_C_CONTIGUOUS);
         if(!err) {
             FLEXT_ASSERT(view.len <= n*c*sizeof(t_sample));
 //            Py_INCREF(buf); // ATTENTION... this won't be released any more!!
 #   ifdef PY_NUMPY
-            arr = PyArray_NewFromDescr(&PyArray_Type,PyArray_DescrNewFromType(numtype),c == 1?1:2,shape,0,(char *)view.buf,NPY_WRITEABLE|NPY_C_CONTIGUOUS,NULL);
+            npy_intp strides[2] = {*view.strides, 0};
+            arr = PyArray_NewFromDescr(&PyArray_Type, PyArray_DescrNewFromType(numtype),
+                c == 1 ? 1 : 2, shape, strides, (char *) view.buf, NPY_ARRAY_WRITEABLE | NPY_ARRAY_C_CONTIGUOUS, NULL);
 #   else
             arr = PyArray_FromDimsAndData(c == 1?1:2,shape,numtype,(char *)view.buf);
 #   endif
