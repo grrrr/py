@@ -11,15 +11,17 @@ For numarray see http://numeric.scipy.org
 It will probably once be replaced by Numeric(3)
 """
 
+from __future__ import print_function
+
 try:
     import pyext
 except:
-    print "ERROR: This script must be loaded by the PD/Max py/pyext external"
+    print("ERROR: This script must be loaded by the PD/Max py/pyext external")
 
 try:
     import psyco
     psyco.full()
-    print "Using JIT compilation"
+    print("Using JIT compilation")
 except:
     # don't care
     pass
@@ -29,7 +31,7 @@ import sys,math
 try:    
     import numpy as N
 except:
-    print "Failed importing numpy module:",sys.exc_value
+    print("Failed importing numpy module:",sys.exc_value)
 
 
 class gain(pyext._class):
@@ -40,10 +42,10 @@ class gain(pyext._class):
 
     def _signal(self):
         # Multiply input vector by gain and copy to output
-		try:
-			self._outvec(0)[:] = self._invec(0)*self.gain
-		except:
-			pass
+                try:
+                        self._outvec(0)[:] = self._invec(0)*self.gain
+                except:
+                        pass
 
 
 class gain2(pyext._class):
@@ -54,7 +56,7 @@ class gain2(pyext._class):
 
     def _dsp(self):
         if not self._arraysupport():
-            print "No DSP support"
+            print("No DSP support")
             return False
 
         # cache vectors in this scope

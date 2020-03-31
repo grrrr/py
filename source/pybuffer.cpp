@@ -239,7 +239,13 @@ static int buffer_getbuffer(PyObject *obj, Py_buffer *view, int flags) {
 
     if(!(flags & PyBUF_STRIDES)) {
         view->obj = NULL;
-        PyErr_SetString(PyExc_BufferError, "Buffer requires support for strides");
+        PyErr_SetString(PyExc_BufferError, "PyBUF_STRIDES is required");
+        return -1;
+    }
+
+    if(!(flags & PyBUF_FORMAT)) {
+        view->obj = NULL;
+        PyErr_SetString(PyExc_BufferError, "PyBUF_FORMAT is required");
         return -1;
     }
 
@@ -327,12 +333,27 @@ PyObject *arrayfrombuffer(PyObject *buf,int c,int n)
         arr = (PyObject *)NA_NewAllFromBuffer(c == 1?1:2,shape,numtype,buf,0,0,NA_ByteOrder(),1,1);
 #else
         Py_buffer view;
-        int err = PyObject_GetBuffer(buf, &view, PyBUF_WRITABLE | PyBUF_C_CONTIGUOUS);
+        int err = PyObject_GetBuffer(buf, &view, PyBUF_WRITABLE | PyBUF_FORMAT | PyBUF_STRIDES);
         if(!err) {
             FLEXT_ASSERT(view.len <= n*c*sizeof(t_sample));
 //            Py_INCREF(buf); // ATTENTION... this won't be released any more!!
 #   ifdef PY_NUMPY
-            npy_intp strides[2] = {*view.strides, 0};
+            // the results of PyObject_GetBuffer() differ a bit depending on
+            // whether we're dealing with a pySamplebuffer (Pd array) or a numpy
+            // array (Pd signal).
+            //
+            // for pySamplebuffer, we get stride information that must be used
+            // to correctly deal with float32 Pd.
+            //
+            // for numpy arrays, we get strides=1 (due to format="B"), which
+            // breaks PyArray_NewFromDescr(), so instead we pass strides=NULL.
+            bool use_strides = pySamplebuffer_Check(buf);
+            npy_intp strides_arr[2] = {0, 0};
+            npy_intp *strides = NULL;
+            if(use_strides) {
+                strides_arr[0] = *view.strides;
+                strides = strides_arr;
+            }
             arr = PyArray_NewFromDescr(&PyArray_Type, PyArray_DescrNewFromType(numtype),
                 c == 1 ? 1 : 2, shape, strides, (char *) view.buf, NPY_ARRAY_WRITEABLE | NPY_ARRAY_C_CONTIGUOUS, NULL);
 #   else
