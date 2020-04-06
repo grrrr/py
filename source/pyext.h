@@ -20,29 +20,31 @@ class pyext
 public:
     pyext(int argc,const t_atom *argv,bool sig = false);
 
-    static PyObject *pyext__str__(PyObject *,PyObject *args);
+    static PyObject *pyext__str__(PyObject *self, PyObject *args);
 
-    static PyObject *pyext_outlet(PyObject *,PyObject *args);
+    static PyObject *pyext_outlet(PyObject *self, PyObject *args);
 #if FLEXT_SYS == FLEXT_SYS_PD
-    static PyObject *pyext_tocanvas(PyObject *,PyObject *args);
+    static PyObject *pyext_tocanvas(PyObject *self, PyObject *args);
 #endif
 
-    static PyObject *pyext_setattr(PyObject *,PyObject *args);
-    static PyObject *pyext_getattr(PyObject *,PyObject *args);
+    static PyObject *pyext_setattr(PyObject *self, PyObject *args);
+    static PyObject *pyext_getattr(PyObject *self, PyObject *args);
 
-    static PyObject *pyext_detach(PyObject *,PyObject *args);
-    static PyObject *pyext_stop(PyObject *,PyObject *args);
-    static PyObject *pyext_isthreaded(PyObject *,PyObject *);
+    static PyObject *pyext_detach(PyObject *self, PyObject *args);
+    static PyObject *pyext_stop(PyObject *self, PyObject *args);
 
-    static PyObject *pyext_inbuf(PyObject *,PyObject *args);
-    static PyObject *pyext_invec(PyObject *,PyObject *args);
-    static PyObject *pyext_outbuf(PyObject *,PyObject *args);
-    static PyObject *pyext_outvec(PyObject *,PyObject *args);
+    static PyObject *pyext_inbuf(PyObject *self, PyObject *args);
+    static PyObject *pyext_invec(PyObject *self, PyObject *args);
+    static PyObject *pyext_outbuf(PyObject *self, PyObject *args);
+    static PyObject *pyext_outvec(PyObject *self, PyObject *args);
 
     int Inlets() const { return inlets; }
     int Outlets() const { return outlets; }
 
     static pyext *GetThis(PyObject *self);
+
+    static PyMethodDef attr_tbl[],meth_tbl[];
+    static const char *pyext_doc;
 
 protected:
 
@@ -98,13 +100,9 @@ private:
     bool MakeInstance();
     bool InitInOut(int &inlets,int &outlets);
 
-    static PyObject *class_obj,*class_dict;
-    static PyMethodDef attr_tbl[],meth_tbl[];
-    static const char *pyext_doc;
-
     // -------- bind stuff ------------------
-    static PyObject *pyext_bind(PyObject *,PyObject *args);
-    static PyObject *pyext_unbind(PyObject *,PyObject *args);
+    static PyObject *pyext_bind(PyObject *self, PyObject *args);
+    static PyObject *pyext_unbind(PyObject *self, PyObject *args);
 
     // ---------------------------
 
@@ -150,5 +148,14 @@ private:
     FLEXT_CALLBACK_T(tick)
 #endif
 };
+
+typedef struct {
+    PyObject_HEAD
+    long this_ptr;
+} pyPyext;
+
+PY_EXPORT extern PyTypeObject pyPyext_Type;
+
+#define pyPyext_Check(op) PyObject_TypeCheck((op), &pyPyext_Type)
 
 #endif

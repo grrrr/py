@@ -81,10 +81,10 @@ bool pyext::boundmeth(flext_base *th,t_symbol *sym,int argc,t_atom *argv,void *d
     return true;
 }
 
-PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
+PyObject *pyext::pyext_bind(PyObject *self, PyObject *args)
 {
-    PyObject *self,*meth,*name;
-    if(!PyArg_ParseTuple(args, "OOO:pyext_bind", &self,&name,&meth)) // borrowed references
+    PyObject *meth,*name;
+    if(!PyArg_ParseTuple(args, "OO:pyext_bind",&name,&meth)) // borrowed references
         post("py/pyext - Wrong arguments!");
     else if(!PyCallable_Check(meth)) {
         post("py/pyext - Wrong argument types!");
@@ -126,10 +126,10 @@ PyObject *pyext::pyext_bind(PyObject *,PyObject *args)
     return Py_None;
 }
 
-PyObject *pyext::pyext_unbind(PyObject *,PyObject *args)
+PyObject *pyext::pyext_unbind(PyObject *self, PyObject *args)
 {
-    PyObject *self,*meth,*name;
-    if(!PyArg_ParseTuple(args, "OOO:pyext_bind", &self,&name,&meth))  // borrowed references
+    PyObject *meth,*name;
+    if(!PyArg_ParseTuple(args, "OO:pyext_bind",&name,&meth))  // borrowed references
         post("py/pyext - Wrong arguments!");
     else if(!PyCallable_Check(meth)) {
         post("py/pyext - Wrong argument types!");
