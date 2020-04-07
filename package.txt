@@ -11,6 +11,6 @@ SRCS= \
     py.cpp pyext.cpp modmeth.cpp clmeth.cpp \
     register.cpp bound.cpp pyargs.cpp \
     pysymbol.cpp pybuffer.cpp pybundle.cpp pydsp.cpp \
-    pyatom.cpp pybase.cpp pymeth.cpp
+    pyatom.cpp pybase.cpp pymeth.cpp pycompat.cpp
 
-HDRS= pyprefix.h main.h pyext.h pysymbol.h pybuffer.h pybundle.h pyatom.h pybase.h
+HDRS= pyprefix.h main.h pyext.h pysymbol.h pybuffer.h pybundle.h pyatom.h pybase.h pycompat.h

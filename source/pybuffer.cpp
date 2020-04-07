@@ -274,15 +274,8 @@ static void buffer_releasebuffer(PyObject *obj, Py_buffer *view) {
 }
 
 static PyBufferProcs buffer_as_buffer = {
-#if PY_MAJOR_VERSION < 3
-    buffer_readbuffer,
-    buffer_writebuffer,
-    buffer_segcount,
-    buffer_charbuffer
-#else
-    buffer_getbuffer,
-    buffer_releasebuffer
-#endif
+    .bf_getbuffer = buffer_getbuffer,
+    .bf_releasebuffer = buffer_releasebuffer
 };
 
 static Py_ssize_t buffer_length(PyObject *s)

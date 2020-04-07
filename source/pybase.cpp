@@ -106,7 +106,8 @@ void initbundle();
 
 MOD_INIT(pyext)
 {
-    return MOD_SUCCESS_VAL(pybase::pyext_init());
+    PyObject *init_ret = pybase::pyext_init();
+    return MOD_SUCCESS_VAL(init_ret);
 }
 
 PyObject *pybase::pyext_init()

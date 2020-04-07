@@ -7,10 +7,12 @@
 
 """This is an example script for showing a nonsense tcl/tk application."""
 
+from __future__ import print_function
+
 try:
 	import pyext
 except:
-	print "ERROR: This script must be loaded by the PD/Max pyext external"
+	print("ERROR: This script must be loaded by the PD/Max pyext external")
 
 from Tkinter import *
 import random
@@ -74,7 +76,7 @@ class myapp(pyext._class):
 		self._detach(1)
 
 	def bang_1(self):
-		self._priority(-3)
+		pyext._priority(-3)
 		# display the tcl/tk dialog
 		app = Application(self)
 		app.mainloop()

@@ -29,10 +29,8 @@ PyMethodDef pyext::meth_tbl[] =
 #endif
     { "_invec", pyext::pyext_invec, METH_VARARGS,"Get input vector" },
     { "_outvec", pyext::pyext_outvec, METH_VARARGS,"Get output vector" },
-#if PY_MAJOR_VERSION >= 3
     { "__setattr__", pyext::pyext_setattr, METH_VARARGS,"Set class attribute" },
     { "__getattr__", pyext::pyext_getattr, METH_VARARGS,"Get class attribute" },
-#endif
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
@@ -75,6 +73,7 @@ PyObject* pyext::pyext_setattr(PyObject *self, PyObject *args)
         return NULL;
     }
     
+    
     bool handled = false;
 
 /*
@@ -86,14 +85,7 @@ PyObject* pyext::pyext_setattr(PyObject *self, PyObject *args)
     }
 */
     if(!handled) {
-        if(
-#if PY_MAJOR_VERSION < 3
-            PyDict_SetItem(self, name, val)
-#else
-            PyObject_GenericSetAttr(self, name, val)
-#endif
-            < 0
-        ) {
+        if(PyObject_GenericSetAttr(self, name, val) < 0) {
             ERRINTERNAL();
             return NULL;
         }
