@@ -36,15 +36,6 @@ PyMethodDef pyext::meth_tbl[] =
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
-PyMethodDef pyext::attr_tbl[] =
-{
-#if PY_MAJOR_VERSION < 3
-    { "__setattr__", pyext::pyext_setattr, METH_VARARGS,"Set class attribute" },
-    { "__getattr__", pyext::pyext_getattr, METH_VARARGS,"Get class attribute" },
-#endif
-    { NULL, NULL,0,NULL },
-};
-
 const char *pyext::pyext_doc =
     "py/pyext - python external object for PD and Max/MSP, (C)2002-2008 Thomas Grill\n"
     "\n"

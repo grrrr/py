@@ -43,7 +43,7 @@ public:
 
     static pyext *GetThis(PyObject *self);
 
-    static PyMethodDef attr_tbl[],meth_tbl[];
+    static PyMethodDef meth_tbl[];
     static const char *pyext_doc;
 
 protected:
