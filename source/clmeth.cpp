@@ -83,7 +83,6 @@ PyObject* pyext::pyext_setattr(PyObject *self, PyObject *args)
         ERRINTERNAL();
         return NULL;
     }
-    post("setattr %s", PyUnicode_AsUTF8(name));
     
     bool handled = false;
 
@@ -122,7 +121,6 @@ PyObject* pyext::pyext_getattr(PyObject *self, PyObject *args)
         ERRINTERNAL();
         return NULL;
     }
-    post("getattr %s", PyUnicode_AsUTF8(name));
 
 #if PY_MAJOR_VERSION < 3
     if(PyString_Check(name))

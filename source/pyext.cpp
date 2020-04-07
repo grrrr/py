@@ -61,51 +61,12 @@ void pyext::Setup(t_classid c)
         return;
     }
             
-    /*
-    class_dict = PyDict_New();
-    PyObject *className;
-#if PY_MAJOR_VERSION < 3
-    className = PyString_FromString(PYEXT_CLASS);
-#else
-    className = PyUnicode_FromString(PYEXT_CLASS);
-#endif
-    PyMethodDef *def;
-
-    // add setattr/getattr to class 
-    for(def = attr_tbl; def->ml_name; def++) {
-            PyObject *func = PyCFunction_New(def, NULL);
-            PyDict_SetItemString(class_dict, def->ml_name, func);
-            Py_DECREF(func);
-    }
-
-    //class_obj = PyClass_New(NULL, class_dict, className);
-    PyObject *classBases = PyTuple_New(0);
-    class_obj = PyObject_CallFunctionObjArgs((PyObject *)&PyType_Type, className, classBases, class_dict, NULL);
-    Py_DECREF(classBases);
-    Py_DECREF(className);
-
-    // add methods to class 
-    for (def = meth_tbl; def->ml_name != NULL; def++) {
-        PyObject *func = PyCFunction_New(def, NULL);
-#if PY_MAJOR_VERSION < 3
-        PyObject *method = PyMethod_New(func, NULL, class_obj); // increases class_obj ref count by 1
-        PyDict_SetItemString(class_dict, def->ml_name, method);
-#else
-        PyObject *method = PyMethod_New(func, class_obj);
-        PyObject_SetAttrString(class_obj, def->ml_name, method);
-#endif
-        Py_DECREF(func);
-        Py_DECREF(method);
-    }
-
-#if PY_VERSION_HEX >= 0x02020000
+#if 0 && PY_VERSION_HEX >= 0x02020000
     // not absolutely necessary, existent in python 2.2 upwards
     // make pyext functions available in class scope
     PyDict_Merge(class_dict,module_dict,0);
 #endif
-    */
     
-    // after merge so that it's not in class_dict as well...
     PyDict_SetItemString(module_dict, PYEXT_CLASS, (PyObject *) &pyPyext_Type); // increases class_obj ref count by 1
 
     PyObject *str;
@@ -114,7 +75,6 @@ void pyext::Setup(t_classid c)
 #else
     str = PyUnicode_FromString(pyext_doc);
 #endif
-    //PyDict_SetItemString(class_dict, "__doc__", str);
 }
 
 pyext *pyext::GetThis(PyObject *self)
@@ -302,29 +262,10 @@ bool pyext::DoInit()
 
         SetThis();
         
-        if(pyobj->ob_type->tp_init(pyobj, pargs, NULL) < 0) { // need subtype
+        if(pyobj->ob_type->tp_init(pyobj, pargs, NULL) < 0) {
             ok = false;
             PyErr_Print();
         }
-
-        /*PyObject *init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
-        if(init) {
-            if(PyMethod_Check(init)) {
-                PyObject *res = PyObject_CallObject(init,pargs);
-                if(!res) {
-                    // exception is set
-                    ok = false;
-                    // we want to know why __init__ failed...
-                    PyErr_Print();
-                }
-                else
-                    Py_DECREF(res);
-            }
-            Py_DECREF(init);
-        }
-        else
-            // __init__ has not been found - don't care
-            PyErr_Clear();*/
         
         Py_DECREF(pargs);
         return ok;
@@ -512,7 +453,6 @@ void pyext::Unload()
 
 void pyext::m_get(const t_symbol *s)
 {
-    post("m_get %s", GetString(s));
     ThrLockSys lock;
 
     PyObject *pvar  = PyObject_GetAttrString(pyobj,const_cast<char *>(GetString(s))); /* fetch bound method */
@@ -541,7 +481,6 @@ void pyext::m_set(int argc,const t_atom *argv)
     else if(*GetString(argv[0]) == '_')
         post("%s - set: variables with leading _ are reserved and can't be set",thisName());
     else {
-        post("m_set %s", GetString(argv[0]));
         char *ch = const_cast<char *>(GetString(argv[0]));
         if(PyObject_HasAttrString(pyobj,ch)) {
             PyObject *pval = MakePyArgs(NULL,argc-1,argv+1);
@@ -724,7 +663,6 @@ void pyext::DumpOut(const t_symbol *sym,int argc,const t_atom *argv)
 
 static PyObject *pyext_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    post("pyext_new");
     pyPyext *self = (pyPyext *) type->tp_alloc(type, 0);
 
     self->this_ptr = 0;
