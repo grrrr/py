@@ -55,7 +55,7 @@ class gain2(pyext._class):
         self.gain = 0
 
     def _dsp(self):
-        if not self._arraysupport():
+        if not pyext._arraysupport():
             print("No DSP support")
             return False
 
