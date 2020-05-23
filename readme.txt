@@ -12,7 +12,7 @@ Visit https://www.paypal.com/xclick/business=gr%40grrrr.org&item_name=pyext&no_n
 You need to have Python installed on your system for the py/pyext external to work.
 For Windows pick an up-to-date package from http://www.python.org .
 For linux use the package manager. 
-For OS X keep things as the are - it has Python installed by default.
+For OS X keep things as they are - it has Python installed by default.
 
 
 The py/pyext package should run with Python version >= 2.1.
