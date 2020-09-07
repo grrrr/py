@@ -162,7 +162,13 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
             PyErr_SetString(PyExc_ValueError,"Invalid module name");
 
         // check for alias creation names
-        if(dotted) clname = scr;
+        // ...this seems wrong?
+        // e.g. "pyext. a.b c" becomes the equivalent of:
+        //   from a.b import a.b
+        // instead of
+        //   from a.b import c
+        // so let's disable it for now.
+        //if(dotted) clname = scr;
     }
 
     Register(GetRegistry(REGNAME));
