@@ -139,6 +139,16 @@ PyObject* pyext::pyext_getattr(PyObject *self, PyObject *args)
                 ret = Py_False;
             #endif
             }
+            else if(!strcmp(sname, "_canvas_dir")) {
+                pyext *ext = GetThis(self); 
+                char dir[1024];
+                ext->GetCanvasDir(dir, sizeof(dir));
+#if PY_MAJOR_VERSION < 3
+                ret = PyString_InternFromString(dir);
+#else
+                ret = PyUnicode_InternFromString(dir);
+#endif
+            }
         }
     }
 
