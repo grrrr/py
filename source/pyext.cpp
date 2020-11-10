@@ -705,11 +705,11 @@ static PyMemberDef pyPyext_members[] = {
 PyTypeObject pyPyext_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = PYEXT_MODULE "." PYEXT_CLASS,
-    .tp_doc = pyext::pyext_doc,
     .tp_basicsize = sizeof(pyPyext),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_new = pyext_new,
+    .tp_doc = pyext::pyext_doc,
+    .tp_methods = pyext::meth_tbl,
     .tp_members = pyPyext_members,
-    .tp_methods = pyext::meth_tbl
+    .tp_new = pyext_new
 };
