@@ -291,6 +291,7 @@ FLEXT_LIB_SETUP(py,pybase::lib_setup)
 pybase::pybase()
     : module(NULL)
     , dict(NULL)
+    , respond(false)
 #ifdef FLEXT_THREADS
     , thrcount(0)
     , shouldexit(false),stoptick(0)

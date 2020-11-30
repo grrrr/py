@@ -38,6 +38,7 @@ FLEXT_LIB_DSP_V("pyext~ pyext.~ pyx~ pyx.~",pydsp)
 pydsp::pydsp(int argc,const t_atom *argv)
     : pyext(argc,argv,true) 
     , dspfun(NULL),sigfun(NULL)
+    , buffers(NULL)
 {}
 
 bool pydsp::DoInit()
