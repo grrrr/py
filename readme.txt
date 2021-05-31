@@ -1,5 +1,8 @@
 py/pyext - python script objects for PD and Max/MSP
 
+This fork by SOPI research group (https://sopi.aalto.fi) implements support for Python 3 (tested with 3.7 and 3.8) as well as Conda Python installations.
+It was developed for use with GANSpaceSynth (https://github.com/SopiMlab/GANSpaceSynth) and our Deep Learning with Audio course (https://github.com/SopiMlab/DeepLearningWithAudio).
+
 Copyright (c)2002-2020 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
