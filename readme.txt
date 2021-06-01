@@ -70,31 +70,11 @@ CFLAGS="-mmacosx-version-min=10.9" LDFLAGS="-mmacosx-version-min=10.9"
 
 pd/Max - Windows - Microsoft Visual C, Borland C++, MinGW:
 ----------------------------------------------------------
-Start a command shell with your eventual build environment
-(e.g. run vcvars32.bat for Microsoft Visual Studio)
-
-then run
- ..\flext\build.bat
-(you would have to substitute ..\flext with the respective path to the flext package)
-
+Please see further setup instructions at https://github.com/grrrr/py
 
 pd/Max - OSX/Linux - GCC:
 -------------------------
-From a shell run
-bash ../flext/build.sh
-(you would have to substitute ../flext with the respective path to the flext package)
-
-
+Please see further setup instructions at https://github.com/grrrr/py
 ----------------------------------------------------------------------------
+Please see further setup instructions at https://github.com/grrrr/py
 
-Python array support for py/pyext@Max/MSP:
-
-In the Max/MSP SDK change the file 
-4.5 headers\c74support\max-includes\ext_types.h, line 45
-from 
-    typedef unsigned long                    UInt32;
-    typedef signed long                      SInt32;
-to
-    typedef unsigned int                    UInt32;
-    typedef signed int                      SInt32;
-to avoid a compile-time type definition clash.
