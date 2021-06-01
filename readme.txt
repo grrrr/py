@@ -50,7 +50,6 @@ BUILDING from source
 
 You will need the flext C++ layer for PD and Max/MSP externals to compile this.
 See https://github.com/SopiMlab/flext
-Download and unzip, or git-clone the package.
 
 TODO: Document our changes to the build configuration. For now, the build.py script from https://github.com/SopiMlab/DeepLearningWithAudio/blob/master/utilities/pyext-setup/build.py can give you some hints
 
