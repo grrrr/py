@@ -15,9 +15,13 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include <ApplicationServices/ApplicationServices.h>
 #endif
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 static PyMethodDef StdOut_Methods[] =
 {
     { "write", pybase::StdOut_Write, 1 },
+    { "flush", pybase::StdOut_Flush, 1 },
     { NULL,    NULL,           }  
 };
 
@@ -98,8 +102,17 @@ void initsymbol();
 void initsamplebuffer();
 void initbundle();
 
+
+
 void pybase::lib_setup()
-{   
+{
+#ifdef PY_INTERPRETER
+    {
+        static char py_program_name[] = TOSTRING(PY_INTERPRETER);
+        Py_SetProgramName(py_program_name);
+    }
+#endif
+    
     post("");
     post("------------------------------------------------");
     post("py/pyext %s - python script objects",PY__VERSION);
@@ -776,6 +789,12 @@ PyObject* pybase::StdOut_Write(PyObject* self, PyObject* args)
     return Py_None;
 }
 
+// dummy flush method, since some logging libraries call this
+PyObject* pybase::StdOut_Flush(PyObject* self, PyObject* args)
+{
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 
 class work_data
 {
