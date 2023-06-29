@@ -28,3 +28,7 @@
 *.app
 config.txt
 .DS_Store
+
+# CMake build folder
+cmake-build
+*__pycache__*

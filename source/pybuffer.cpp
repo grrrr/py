@@ -7,7 +7,6 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 */
 
 #include "pybase.h"
-
 #undef PY_ARRAYS
 
 
@@ -258,7 +257,12 @@ static int buffer_getbuffer(PyObject *obj, Py_buffer *view, int flags) {
     view->len = len;
     view->readonly = false;
     view->itemsize = sizeof(t_sample);
+    // adapt to newer versions of numpy (PY_NUMPY_BUFFER_FORMAT is deleted in versions >= 1.7.0)
+    #ifndef PY_NUMPY_BUFFER_FORMAT 
+    view->format = (flags & PyBUF_FORMAT) ? ((Py_buffer*)view)->format : NULL;
+    #else
     view->format = (flags & PyBUF_FORMAT) ? (char *) PY_NUMPY_BUFFER_FORMAT : NULL;
+    #endif // !1
     view->ndim = 1;
     view->shape = &shape_strides->first;
     view->strides = &shape_strides->second;
