@@ -9,9 +9,14 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pybase.h"
 #undef PY_ARRAYS
 
-
-#if defined(PY_NUMERIC) || defined(PY_NUMPY) || defined(PY_NUMARRAY)
-    #define PY_ARRAYS 1
+#if PY_MAJOR_VERSION >= 3
+    #include <numpy/arrayobject.h>
+    #define PY_ARRAYS defined(NUMPY_CORE_INCLUDE_NUMPY_ARRAYOBJECT_H_)
+    #define PY_NUMPY PY_ARRAYS
+#else
+    #if defined(PY_NUMERIC) || defined(PY_NUMPY) || defined(PY_NUMARRAY)
+        #define PY_ARRAYS 1
+    #endif
 #endif
 
 #ifdef PY_ARRAYS
