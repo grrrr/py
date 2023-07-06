@@ -8,7 +8,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "pybase.h"
 #include <map>
-
+#include <stdio.h>
 #if FLEXT_OS == FLEXT_OS_WIN
 #include <windows.h>
 #elif FLEXT_OS == FLEXT_OS_MAC
@@ -157,6 +157,7 @@ void pybase::lib_setup()
 #endif
         Py_SetProgramName(py_program_name);
     }
+
 #endif
     
     post("");
@@ -165,6 +166,14 @@ void pybase::lib_setup()
     post("(C)2002-2019 Thomas Grill - http://grrrr.org/ext");
     post("");
     post("using Python %s",Py_GetVersion());
+    #ifdef FLEXT_THREADS
+    post("");
+    post("Built with multithreaded flext");
+    #endif
+
+    #ifdef PY_USE_GIL
+    post("Using Python GIL");
+    #endif
 
 #ifdef FLEXT_DEBUG
     post("");

@@ -30,5 +30,5 @@ config.txt
 .DS_Store
 
 # CMake build folder
-cmake-build
+*-build
 *__pycache__*

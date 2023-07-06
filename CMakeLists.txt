@@ -34,6 +34,11 @@ if(NOT PYTHON_VERSION)
     set(PYTHON_VERSION 3.10)
 endif()
 
+# flext build
+if(NOT FLEXT_BUILD_TYPE)
+    set(FLEXT_BUILD_TYPE SINGLE)
+endif()
+
 include(CMakePrintHelpers)
 cmake_print_variables(PYTHON_SOURCE_PATH)
 set(CMAKE_INSTALL_RPATH ${PYTHON_SHARED_LIB_PATH})
@@ -61,6 +66,14 @@ add_library(objects OBJECT
 
 target_compile_options(objects PRIVATE -DPD -DUNIX -O3 -Wl,--trace -fPIC -fcheck-new -DFLEXT_INLINE -DFLEXT_ATTRIBUTES=1 -Wall -Wextra -Wshadow -Winline -Wstrict-aliasing -ffast-math -funroll-loops -fomit-frame-pointer -march=core2 -mfpmath=sse -msse -msse2 -msse3)
 
+# add flext flag depending on chosen build type
+if(FLEXT_BUILD_TYPE STREQUAL MULTI)
+    message("setting threads")
+    target_compile_options(objects PRIVATE -DFLEXT_THREADS)
+elseif(FLEXT_BUILD_TYPE STREQUAL SHARED) 
+    target_compile_options(objects PRIVATE -DFLEXT_SHARED)
+endif()
+
 target_include_directories(objects PRIVATE
     ${PD_SOURCE_PATH}
     ${FLEXT_SOURCE_PATH}
@@ -71,15 +84,22 @@ target_link_libraries(objects PRIVATE -lpython${PYTHON_VERSION})
 # ---------------------------------------------- #
 # BUILDING PD EXTERNAL PY/PYEXT
 
-add_library(py SHARED $<TARGET_OBJECTS:objects>)
+add_library(${PROJECT_NAME} SHARED $<TARGET_OBJECTS:objects>)
 
-target_compile_options(py PRIVATE -rdynamic -shared -fPIC -Wl,-rpath,"\$ORIGIN",--enable-new-dtags)
+target_compile_options(${PROJECT_NAME} PRIVATE -rdynamic -shared -fPIC -Wl,-rpath,"\$ORIGIN",--enable-new-dtags)
 
-target_link_libraries(py
+target_link_directories(${PROJECT_NAME} PRIVATE /usr/local/lib)
+target_link_directories(${PROJECT_NAME} PRIVATE ${PYTHON_SHARED_LIB_PATH})
+
+target_link_libraries(${PROJECT_NAME}
     PRIVATE -lc 
     PRIVATE -lm 
     PRIVATE -lstdc++
     PRIVATE -lpython${PYTHON_VERSION})
+
+if(FLEXT_BUILD_TYPE STREQUAL SHARED) 
+    target_compile_options(${PROJECT_NAME} PRIVATE lflext-pd)
+endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 
@@ -87,14 +107,14 @@ set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".pd_linux")
 
 # stripping file to make it lighter 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-COMMAND strip --strip-unneeded cmake-build/${PROJECT_NAME}.pd_linux
+COMMAND strip --strip-unneeded ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pd_linux
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Stripping file..."
 )
 
 # copying file to Pd externals directory
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-COMMAND mkdir -p ${PATH_TO_PD_EXTERNALS}/${PROJECT_NAME} && cp cmake-build/${PROJECT_NAME}.pd_linux ${PATH_TO_PD_EXTERNALS}/${PROJECT_NAME}
+COMMAND mkdir -p ${PATH_TO_PD_EXTERNALS}/${PROJECT_NAME} && cp ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.pd_linux ${PATH_TO_PD_EXTERNALS}/${PROJECT_NAME}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Copying file to Pd externals directory..."
 )

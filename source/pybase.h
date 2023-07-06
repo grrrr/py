@@ -13,6 +13,14 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pysymbol.h"
 #include "pybuffer.h"
 #include "pybundle.h"
+#include "ceval.h"
+#include <iostream>
+
+#if PY_MAJOR_VERSION >= 3 
+    #ifdef Py_BEGIN_ALLOW_THREADS
+        #define PY_USE_GIL
+    #endif // Py_BEGIN_ALLOW_THREADS
+#endif
 
 #ifdef FLEXT_THREADS
 #   ifdef PY_USE_GIL
