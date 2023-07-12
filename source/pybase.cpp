@@ -85,6 +85,8 @@ void pybase::FreeThreadState()
 
 PyFifo pybase::qufifo;
 flext::ThrCond pybase::qucond;
+bool    pybase::qurunning;
+ThrCtrl pybase::qucondctrl {&pybase::qucond, &pybase::qurunning};   // attaching the qucond to the controller to send a signal when closing pd
 #endif
 
 
@@ -1018,7 +1020,7 @@ void pybase::quworker(thr_params *)
     FifoEl *el;
     ThrState my = FindThreadState();
 
-    for(;;) {
+    while(qurunning) {
         while((el = qufifo.Get())) {
             ++el->th->thrcount; // \todo this should be atomic
             {
@@ -1032,7 +1034,6 @@ void pybase::quworker(thr_params *)
         }
         qucond.Wait();
     }
-
     // we never end
     if(false) {
         ThrLock lock(my);

@@ -14,6 +14,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pybuffer.h"
 #include "pybundle.h"
 #include "ceval.h"
+#include "thrctrl.h"
 #include <iostream>
 
 #if PY_MAJOR_VERSION >= 3 
@@ -221,6 +222,9 @@ protected:
 
     static PyFifo qufifo;
     static ThrCond qucond;
+    /* The two following variables provide means of shutting the thread system down. */
+    static bool    qurunning;
+    static ThrCtrl qucondctrl;
     
 #ifndef PY_USE_GIL
     static ThrState pythrsys;
