@@ -32,3 +32,5 @@ config.txt
 # CMake build folder
 *-build
 *__pycache__*
+
+notes*
