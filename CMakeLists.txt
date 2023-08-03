@@ -35,7 +35,7 @@ set(PD_SOURCE_PATH ${PD_SOURCE_PATH_DEFAULT} CACHE PATH "Pd src path")
 
 set(STRIP_TARGET OFF CACHE BOOL "Strip unneeded symbols from compiled library (saves some disk space)")
 
-set(FLEXT_SOURCE_PATH ../flext/source CACHE PATH "Flext source path")
+set(FLEXT_SOURCE_PATH /usr/local/include/flext CACHE PATH "Flext source path")
 set(FLEXT_BUILD_TYPE SINGLE CACHE STRING "Flext build type")
 set_property(CACHE FLEXT_BUILD_TYPE PROPERTY STRINGS "SINGLE" "SHARED" "MULTI")
 
