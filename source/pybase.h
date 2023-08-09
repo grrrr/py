@@ -16,6 +16,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "ceval.h"
 #include "thrctrl.h"
 #include <iostream>
+#include <atomic>
 
 #if PY_MAJOR_VERSION >= 3 
     #ifdef Py_BEGIN_ALLOW_THREADS
@@ -223,8 +224,8 @@ protected:
     static PyFifo qufifo;
     static ThrCond qucond;
     /* The two following variables provide means of shutting the thread system down. */
-    static bool    qurunning;
-    static ThrCtrl qucondctrl;
+    static std::atomic<bool>    qurunning;
+    static ThrCtrl              qucondctrl;
     
 #ifndef PY_USE_GIL
     static ThrState pythrsys;

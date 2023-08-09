@@ -2,13 +2,14 @@
 #define __THRCTRL_H
 
 #include <stdio.h>
+#include <atomic>
 #include "flsupport.h"
 
 #ifdef FLEXT_THREADS
 class ThrCtrl
 {
 public:
-    explicit ThrCtrl(flext::ThrCond * thr, bool * ctrlbool, bool init = true) 
+    explicit ThrCtrl(flext::ThrCond * thr, std::atomic<bool> * ctrlbool, bool init = true) 
     : _attached_boolean { ctrlbool }
     , _attached_thrcond { thr }
     {
@@ -26,7 +27,7 @@ public:
     }
    
 private:
-    bool * _attached_boolean;
+    std::atomic<bool> * _attached_boolean;
     flext::ThrCond * _attached_thrcond;
 };
 #endif

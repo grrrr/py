@@ -85,7 +85,7 @@ void pybase::FreeThreadState()
 
 PyFifo pybase::qufifo;
 flext::ThrCond pybase::qucond;
-bool    pybase::qurunning;
+std::atomic<bool> pybase::qurunning;
 ThrCtrl pybase::qucondctrl {&pybase::qucond, &pybase::qurunning};   // attaching the qucond to the controller to send a signal when closing pd
 #endif
 
