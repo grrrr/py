@@ -9,6 +9,14 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pyext.h"
 #include <flinternal.h>
 
+// undefine PD's T_OBJECT to avoid conflict with Python's
+#undef T_OBJECT
+
+#ifdef PY_USE_FRAMEWORK
+#include "Python/structmember.h"
+#else
+#include "structmember.h"
+#endif
 
 FLEXT_LIB_V("pyext pyext. pyx pyx.",pyext)
 
@@ -47,41 +55,19 @@ void pyext::Setup(t_classid c)
     // ----------------------------------------------------
 
     // register/initialize pyext base class along with module
-    class_dict = PyDict_New();
-    PyObject *className;
-#if PY_MAJOR_VERSION < 3
-    className = PyString_FromString(PYEXT_CLASS);
-#else
-    className = PyUnicode_FromString(PYEXT_CLASS);
-#endif
-    PyMethodDef *def;
 
-    // add setattr/getattr to class 
-    for(def = attr_tbl; def->ml_name; def++) {
-            PyObject *func = PyCFunction_New(def, NULL);
-            PyDict_SetItemString(class_dict, def->ml_name, func);
-            Py_DECREF(func);
+    if(PyType_Ready(&pyPyext_Type) < 0) {
+        PyErr_Print();
+        return;
     }
-
-    class_obj = PyClass_New(NULL, class_dict, className);
-    Py_DECREF(className);
-
-    // add methods to class 
-    for (def = meth_tbl; def->ml_name != NULL; def++) {
-        PyObject *func = PyCFunction_New(def, NULL);
-        PyObject *method = PyMethod_New(func, NULL, class_obj); // increases class_obj ref count by 1
-        PyDict_SetItemString(class_dict, def->ml_name, method);
-        Py_DECREF(func);
-        Py_DECREF(method);
-    }
-
-#if PY_VERSION_HEX >= 0x02020000
+            
+#if 0 && PY_VERSION_HEX >= 0x02020000
     // not absolutely necessary, existent in python 2.2 upwards
     // make pyext functions available in class scope
     PyDict_Merge(class_dict,module_dict,0);
 #endif
-    // after merge so that it's not in class_dict as well...
-    PyDict_SetItemString(module_dict, PYEXT_CLASS,class_obj); // increases class_obj ref count by 1
+    
+    PyDict_SetItemString(module_dict, PYEXT_CLASS, (PyObject *) &pyPyext_Type); // increases class_obj ref count by 1
 
     PyObject *str;
 #if PY_MAJOR_VERSION < 3
@@ -89,12 +75,12 @@ void pyext::Setup(t_classid c)
 #else
     str = PyUnicode_FromString(pyext_doc);
 #endif
-    PyDict_SetItemString(class_dict, "__doc__", str);
 }
 
 pyext *pyext::GetThis(PyObject *self)
 {
     PyObject *th = PyObject_GetAttrString(self,"_this");
+    
     if(th) {
         pyext *ret = static_cast<pyext *>(PyLong_AsVoidPtr(th));
         Py_DECREF(th);
@@ -118,9 +104,6 @@ void pyext::ClearThis()
     int ret = PyObject_DelAttrString(pyobj,"_this");
     FLEXT_ASSERT(ret != -1);
 }
-
-PyObject *pyext::class_obj = NULL;
-PyObject *pyext::class_dict = NULL;
 
 pyext::pyext(int argc,const t_atom *argv,bool sig):
     methname(NULL),
@@ -179,7 +162,13 @@ pyext::pyext(int argc,const t_atom *argv,bool sig):
             PyErr_SetString(PyExc_ValueError,"Invalid module name");
 
         // check for alias creation names
-        if(dotted) clname = scr;
+        // ...this seems wrong?
+        // e.g. "pyext. a.b c" becomes the equivalent of:
+        //   from a.b import a.b
+        // instead of
+        //   from a.b import c
+        // so let's disable it for now.
+        //if(dotted) clname = scr;
     }
 
     Register(GetRegistry(REGNAME));
@@ -207,7 +196,9 @@ bool pyext::Init()
 
     if(methname) {
         MakeInstance();
-        if(pyobj) InitInOut(inlets,outlets);
+        if(pyobj) {
+            InitInOut(inlets,outlets);
+        }
     }
     else
         inlets = outlets = 0;
@@ -276,25 +267,11 @@ bool pyext::DoInit()
         bool ok = true;
 
         SetThis();
-
-        PyObject *init = PyObject_GetAttrString(pyobj,"__init__"); // get ref
-        if(init) {
-            if(PyMethod_Check(init)) {
-                PyObject *res = PyObject_CallObject(init,pargs);
-                if(!res) {
-                    // exception is set
-                    ok = false;
-                    // we want to know why __init__ failed...
-                    PyErr_Print();
-                }
-                else
-                    Py_DECREF(res);
-            }
-            Py_DECREF(init);
+        
+        if(pyobj->ob_type->tp_init(pyobj, pargs, NULL) < 0) {
+            ok = false;
+            PyErr_Print();
         }
-        else
-            // __init__ has not been found - don't care
-            PyErr_Clear();
         
         Py_DECREF(pargs);
         return ok;
@@ -376,10 +353,10 @@ bool pyext::InitInOut(int &inl,int &outl)
 #if PY_MAJOR_VERSION < 3
             if(PyInt_Check(res)) 
                 inl = PyInt_AS_LONG(res);
-            else
-#endif
+#else
             if(PyLong_Check(res)) 
                 inl = PyLong_AS_LONG(res);
+#endif
             else
                 PyErr_SetString(PyExc_TypeError, "Type must be integer");
             Py_DECREF(res);
@@ -400,10 +377,10 @@ bool pyext::InitInOut(int &inl,int &outl)
 #if PY_MAJOR_VERSION < 3
             if(PyInt_Check(res))
                 outl = PyInt_AS_LONG(res);
-            else
-#endif
+#else
             if(PyLong_Check(res))
                 outl = PyLong_AS_LONG(res);
+#endif
             else
                 PyErr_SetString(PyExc_TypeError, "Type must be integer");
 
@@ -425,15 +402,17 @@ bool pyext::MakeInstance()
         if(!pref) 
             PyErr_Print();
         else {
-#if PY_MAJOR_VERSION < 3
-            if(PyClass_Check(pref)) {
-                // make instance, but don't call __init__ 
-                pyobj = PyInstance_NewRaw(pref, NULL);
-#else
-            if(PyObject_IsInstance(pref, (PyObject *)&PyType_Type)) {
-                // pyobj = PyBaseObject_Type.tp_new()
-                // TODO: correctly initialize instance
-#endif
+            if(PyType_Check(pref) && PyType_IsSubtype((PyTypeObject *) pref, &pyPyext_Type)) {
+                PyTypeObject *pytypeobj = (PyTypeObject *) pref;
+                PyObject *pargs = MakePyArgs(NULL, initargs.Count(), initargs.Atoms());
+
+                if(!pargs) {
+                    PyErr_Print();
+                } else {
+                    pyobj = pytypeobj->tp_new(pytypeobj, pargs, NULL);
+                                        
+                    Py_DECREF(pargs);
+                }
                 if(!pyobj) PyErr_Print();
             }
             else
@@ -687,3 +666,50 @@ void pyext::DumpOut(const t_symbol *sym,int argc,const t_atom *argv)
 {
     ToOutAnything(GetOutAttr(),sym?sym:thisTag(),argc,argv);
 }
+
+static PyObject *pyext_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    pyPyext *self = (pyPyext *) type->tp_alloc(type, 0);
+
+    self->this_ptr = 0;
+    
+    PyObject *ret = (PyObject *) self;
+
+    if(self) {
+        PyObject *this_long = kwds != NULL
+            ? PyDict_GetItemString(kwds, "_pyext_this")
+            : NULL;
+        
+        if(this_long) {
+            if(!PyLong_Check(this_long)) {
+                self->this_ptr = PyLong_AsLong(this_long);
+            } else {
+                Py_DECREF(self);
+                ret = NULL;
+            }
+            
+            Py_DECREF(this_long);
+        }
+    } else {
+        ret = NULL;
+    }
+    
+    return (PyObject *) ret;
+}
+
+static PyMemberDef pyPyext_members[] = {
+    {"_this", T_OBJECT_EX, offsetof(pyPyext, this_ptr), 0, "pointer to pyext object"},
+    {NULL}
+};
+
+PyTypeObject pyPyext_Type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = PYEXT_MODULE "." PYEXT_CLASS,
+    .tp_basicsize = sizeof(pyPyext),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_doc = pyext::pyext_doc,
+    .tp_methods = pyext::meth_tbl,
+    .tp_members = pyPyext_members,
+    .tp_new = pyext_new
+};

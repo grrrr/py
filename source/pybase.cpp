@@ -8,16 +8,22 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 
 #include "pybase.h"
 #include <map>
-
+#include <stdio.h>
 #if FLEXT_OS == FLEXT_OS_WIN
 #include <windows.h>
 #elif FLEXT_OS == FLEXT_OS_MAC
 #include <ApplicationServices/ApplicationServices.h>
 #endif
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+#define WSTRINGIFY(x) L ## #x
+#define TOWSTRING(x) WSTRINGIFY(x)
+
 static PyMethodDef StdOut_Methods[] =
 {
     { "write", pybase::StdOut_Write, 1 },
+    { "flush", pybase::StdOut_Flush, 1 },
     { NULL,    NULL,           }  
 };
 
@@ -79,6 +85,8 @@ void pybase::FreeThreadState()
 
 PyFifo pybase::qufifo;
 flext::ThrCond pybase::qucond;
+std::atomic<bool> pybase::qurunning;
+ThrCtrl pybase::qucondctrl {&pybase::qucond, &pybase::qurunning};   // attaching the qucond to the controller to send a signal when closing pd
 #endif
 
 
@@ -98,14 +106,76 @@ void initsymbol();
 void initsamplebuffer();
 void initbundle();
 
+MOD_INIT(pyext)
+{
+    PyObject *init_ret = pybase::pyext_init();
+    return MOD_SUCCESS_VAL(init_ret);
+}
+
+PyObject *pybase::pyext_init()
+{
+    if(module_obj == NULL) {
+        PyObject *m;
+    
+        MOD_DEF(m, PYEXT_MODULE, py_doc, func_tbl);
+    
+        PyModule_AddStringConstant(m,"__doc__",(char *)py_doc);
+
+        // add symbol type
+        initsymbol();
+        PyModule_AddObject(m,"Symbol",(PyObject *)&pySymbol_Type);
+
+        // pre-defined symbols
+        PyModule_AddObject(m,"_s_",(PyObject *)pySymbol__);
+        PyModule_AddObject(m,"_s_bang",(PyObject *)pySymbol_bang);
+        PyModule_AddObject(m,"_s_list",(PyObject *)pySymbol_list);
+        PyModule_AddObject(m,"_s_symbol",(PyObject *)pySymbol_symbol);
+        PyModule_AddObject(m,"_s_float",(PyObject *)pySymbol_float);
+        PyModule_AddObject(m,"_s_int",(PyObject *)pySymbol_int);
+
+        // add samplebuffer type
+        initsamplebuffer();
+        PyModule_AddObject(m,"Buffer",(PyObject *)&pySamplebuffer_Type);
+
+        // add message bundle type
+        initbundle();
+        PyModule_AddObject(m,"Bundle",(PyObject *)&pyBundle_Type);
+
+        module_obj = m;
+        module_dict = PyModule_GetDict(m); // borrowed reference
+    }
+
+    return module_obj;
+}
+
 void pybase::lib_setup()
-{   
+{
+#ifdef PY_INTERPRETER
+    {
+#if PY_MAJOR_VERSION < 3
+        static char py_program_name[] = TOSTRING(PY_INTERPRETER);
+#else
+        static wchar_t py_program_name[] = TOWSTRING(PY_INTERPRETER);
+#endif
+        Py_SetProgramName(py_program_name);
+    }
+
+#endif
+    
     post("");
     post("------------------------------------------------");
     post("py/pyext %s - python script objects",PY__VERSION);
     post("(C)2002-2019 Thomas Grill - http://grrrr.org/ext");
     post("");
     post("using Python %s",Py_GetVersion());
+    #ifdef FLEXT_THREADS
+    post("");
+    post("Built with multithreaded flext");
+    #endif
+
+    #ifdef PY_USE_GIL
+    post("Using Python GIL");
+    #endif
 
 #ifdef FLEXT_DEBUG
     post("");
@@ -124,6 +194,8 @@ void pybase::lib_setup()
 
     // -------------------------------------------------------------
 
+    PyImport_AppendInittab(PYEXT_MODULE, MOD_INIT_NAME(pyext));
+    
     Py_Initialize();
 
 #ifdef FLEXT_DEBUG
@@ -150,22 +222,30 @@ void pybase::lib_setup()
 #endif
 
     // sys.argv must be set to empty tuple
+#if PY_MAJOR_VERSION < 3
     const char *nothing = "";
     PySys_SetArgv(0,const_cast<char **>(&nothing));
+#else
+    const wchar_t *nothing = L"";
+    PySys_SetArgv(0,const_cast<wchar_t **>(&nothing));
+#endif
 
-    // register/initialize pyext module only once!
-    module_obj = Py_InitModule(const_cast<char *>(PYEXT_MODULE), func_tbl);
-    module_dict = PyModule_GetDict(module_obj); // borrowed reference
-
-    PyModule_AddStringConstant(module_obj,"__doc__",(char *)py_doc);
-
+    // import the pyext module to ensure init
+    PyImport_ImportModule(PYEXT_MODULE);
+    
     // redirect stdout
     PyObject* py_out;
-    py_out = Py_InitModule(const_cast<char *>("stdout"), StdOut_Methods);
-    PySys_SetObject(const_cast<char *>("stdout"), py_out);
-    py_out = Py_InitModule(const_cast<char *>("stderr"), StdOut_Methods);
-    PySys_SetObject(const_cast<char *>("stderr"), py_out);
 
+    {
+        MOD_DEF(py_out, "stdout", "pyext standard output", StdOut_Methods);
+    }
+    PySys_SetObject(const_cast<char *>("stdout"), py_out);
+    
+    {
+        MOD_DEF(py_out, "stderr", "pyext standard error", StdOut_Methods);
+    }
+    PySys_SetObject(const_cast<char *>("stderr"), py_out);
+    
     // get garbage collector function
     PyObject *gcobj = PyImport_ImportModule("gc");
     if(gcobj) {
@@ -173,28 +253,12 @@ void pybase::lib_setup()
         Py_DECREF(gcobj);
     }
 
+#if PY_MAJOR_VERSION < 3
     builtins_obj = PyImport_ImportModule("__builtin__");
+#else
+    builtins_obj = PyImport_ImportModule("builtins");
+#endif
     builtins_dict = PyModule_GetDict(builtins_obj); // borrowed reference
-
-    // add symbol type
-    initsymbol();
-    PyModule_AddObject(module_obj,"Symbol",(PyObject *)&pySymbol_Type);
-
-    // pre-defined symbols
-    PyModule_AddObject(module_obj,"_s_",(PyObject *)pySymbol__);
-    PyModule_AddObject(module_obj,"_s_bang",(PyObject *)pySymbol_bang);
-    PyModule_AddObject(module_obj,"_s_list",(PyObject *)pySymbol_list);
-    PyModule_AddObject(module_obj,"_s_symbol",(PyObject *)pySymbol_symbol);
-    PyModule_AddObject(module_obj,"_s_float",(PyObject *)pySymbol_float);
-    PyModule_AddObject(module_obj,"_s_int",(PyObject *)pySymbol_int);
-
-    // add samplebuffer type
-    initsamplebuffer();
-    PyModule_AddObject(module_obj,"Buffer",(PyObject *)&pySamplebuffer_Type);
-
-    // add message bundle type
-    initbundle();
-    PyModule_AddObject(module_obj,"Bundle",(PyObject *)&pyBundle_Type);
 
     // -------------------------------------------------------------
 #if FLEXT_SYS == FLEXT_SYS_PD && defined(PD_DEVEL_VERSION) && defined(PY_USE_INOFFICIAL)
@@ -238,6 +302,7 @@ FLEXT_LIB_SETUP(py,pybase::lib_setup)
 pybase::pybase()
     : module(NULL)
     , dict(NULL)
+    , respond(false)
 #ifdef FLEXT_THREADS
     , thrcount(0)
     , shouldexit(false),stoptick(0)
@@ -409,7 +474,7 @@ void pybase::OpenEditor()
 #else
     // thanks to Tim Blechmann
 
-    char *editor = getenv("EDITOR");
+    const char *editor = getenv("EDITOR");
 
     if(!editor) { // || !strcmp(editor, "/usr/bin/nano") || !strcmp(editor, "/usr/bin/pico") || !strcmp(editor, "/usr/bin/vi")) {
         // no environment variable or console text editor found ... use idle instead (should have come with Python)
@@ -432,13 +497,32 @@ void pybase::SetArgs()
     // script arguments
     int argc = args.Count();
     const t_atom *argv = args.Atoms();
+#if PY_MAJOR_VERSION < 3
     char **sargv = new char *[argc+1];
+#else
+    wchar_t **sargv = new wchar_t *[argc+1];
+#endif
     for(int i = 0; i <= argc; ++i) {
+#if PY_MAJOR_VERSION < 3
         sargv[i] = new char[256];
-        if(!i) 
+#else
+        sargv[i] = new wchar_t[256];
+#endif
+        if(!i) {
+#if PY_MAJOR_VERSION < 3
             strcpy(sargv[i],"py/pyext");
-        else
+#else
+            wcscpy(sargv[i],L"py/pyext");
+#endif
+        } else {
+#if PY_MAJOR_VERSION < 3
             GetAString(argv[i-1],sargv[i],255);
+#else
+            char *arg = new char[256];
+            GetAString(argv[i-1],arg,255);
+            mbstowcs(sargv[i],arg,255);
+#endif
+        }
     }
 
     // the arguments to the module are only recognized once! (at first use in a patcher)
@@ -494,7 +578,7 @@ static bool getmodulesub(const char *mod,char *dir,int len,const char *ext)
     return name != NULL;
 #elif FLEXT_SYS == FLEXT_SYS_MAX
     short path;
-    long type;
+    unsigned int type;
     char smod[1024];
     strcpy(smod,mod);
     strcat(smod,ext);
@@ -829,6 +913,12 @@ PyObject* pybase::StdOut_Write(PyObject* self, PyObject* args)
     return Py_None;
 }
 
+// dummy flush method, since some logging libraries call this
+PyObject* pybase::StdOut_Flush(PyObject* self, PyObject* args)
+{
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 
 class work_data
 {
@@ -930,7 +1020,7 @@ void pybase::quworker(thr_params *)
     FifoEl *el;
     ThrState my = FindThreadState();
 
-    for(;;) {
+    while(qurunning) {
         while((el = qufifo.Get())) {
             ++el->th->thrcount; // \todo this should be atomic
             {
@@ -944,7 +1034,6 @@ void pybase::quworker(thr_params *)
         }
         qucond.Wait();
     }
-
     // we never end
     if(false) {
         ThrLock lock(my);
@@ -981,7 +1070,11 @@ bool pybase::collect()
         PyObject *ret = PyObject_CallObject(gcollect,NULL);
         if(ret) {
 #ifdef FLEXT_DEBUG
+#if PY_MAJOR_VERSION < 3
             int refs = PyInt_AsLong(ret);
+#else
+            int refs = PyLong_AsLong(ret);
+#endif
             if(refs) post("py/pyext - Garbage collector reports %i unreachable objects",refs);
 #endif
             Py_DECREF(ret);

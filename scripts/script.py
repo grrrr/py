@@ -7,14 +7,17 @@
 
 """Several functions to show the py script functionality"""
 
+from __future__ import print_function
+
+from functools import reduce
 import sys
 
-print "Script initialized"
+print("Script initialized")
 
 try:
-	print "Script arguments: ",sys.argv
+	print("Script arguments: ",sys.argv)
 except:
-	print 
+	print()
 
 def numargs(*args):   # variable argument list
 	"""Return the number of arguments"""

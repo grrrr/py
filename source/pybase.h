@@ -13,6 +13,16 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #include "pysymbol.h"
 #include "pybuffer.h"
 #include "pybundle.h"
+#include "ceval.h"
+#include "thrctrl.h"
+#include <iostream>
+#include <atomic>
+
+#if PY_MAJOR_VERSION >= 3 
+    #ifdef Py_BEGIN_ALLOW_THREADS
+        #define PY_USE_GIL
+    #endif // Py_BEGIN_ALLOW_THREADS
+#endif
 
 #ifdef FLEXT_THREADS
 #   ifdef PY_USE_GIL
@@ -23,6 +33,26 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #else
     typedef int ThrState; // dummy
 #endif
+
+#if PY_MAJOR_VERSION < 3
+#define MOD_ERROR_VAL
+#define MOD_SUCCESS_VAL(val)
+#define MOD_INIT_NAME(name) init##name
+#define MOD_INIT(name) void MOD_INIT_NAME(name)(void)
+#define MOD_DEF(ob, name, doc, methods)                 \
+    ob = Py_InitModule3(name, methods, doc);
+#else
+#define MOD_ERROR_VAL NULL
+#define MOD_SUCCESS_VAL(val) val
+#define MOD_INIT_NAME(name) PyInit_##name
+#define MOD_INIT(name) PyMODINIT_FUNC MOD_INIT_NAME(name)(void)
+#define MOD_DEF(ob, name, doc, methods)           \
+    static struct PyModuleDef moduledef = {                   \
+        PyModuleDef_HEAD_INIT, name, doc, -1, methods, };     \
+    ob = PyModule_Create(&moduledef);
+#endif
+
+MOD_INIT(pyext);
 
 class pybase
     : public flext
@@ -38,6 +68,7 @@ public:
     static const t_symbol *GetPyArgs(AtomList &lst,PyObject *pValue,int offs = 0);
     static const t_symbol *GetPyAtom(AtomList &lst,PyObject *pValue);
 
+    static PyObject *pyext_init();
     static void lib_setup();
 
 protected:
@@ -110,7 +141,10 @@ protected:
 
     static PyObject *module_obj,*module_dict;
     static PyObject *builtins_obj,*builtins_dict;
-    static PyMethodDef func_tbl[],attr_tbl[];
+    static PyMethodDef func_tbl[];
+#if PY_MAJOR_VERSION >= 3
+    static PyModuleDef pyext_module_def;
+#endif
 
     static PyObject *py__doc__(PyObject *,PyObject *args);
     static PyObject *py_send(PyObject *,PyObject *args);
@@ -189,6 +223,9 @@ protected:
 
     static PyFifo qufifo;
     static ThrCond qucond;
+    /* The two following variables provide means of shutting the thread system down. */
+    static std::atomic<bool>    qurunning;
+    static ThrCtrl              qucondctrl;
     
 #ifndef PY_USE_GIL
     static ThrState pythrsys;
@@ -269,6 +306,7 @@ public:
     };
 
     static PyObject* StdOut_Write(PyObject* Self, PyObject* Args);
+    static PyObject* StdOut_Flush(PyObject* Self, PyObject* Args);
 };
 
 #endif

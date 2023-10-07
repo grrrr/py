@@ -1,6 +1,6 @@
 py/pyext - python script objects for PD and Max/MSP
 
-Copyright ©2002-2012 Thomas Grill (gr@grrrr.org)
+Copyright (c)2002-2020 Thomas Grill (gr@grrrr.org)
 For information on usage and redistribution, and for a DISCLAIMER OF ALL
 WARRANTIES, see the file, "license.txt," in this distribution.  
 
@@ -57,8 +57,24 @@ BUILDING from source
 
 You will need the flext C++ layer for PD and Max/MSP externals to compile this.
 See http://grrrr.org/ext/flext
-Download, install and compile the package.
-Afterwards you can proceed with building this external.
+Download and unzip, or git-clone the package.
+
+
+Pure data - any platform supporting gcc-compatible compilers
+
+------------------------------------------------------------
+
+
+The pd-lib-builder project (https://github.com/pure-data/pd-lib-builder) is used to compile the project.
+A git subtree of this project is already present.
+
+The compilation is done using the GNU make tool and it will need additional information about the location of the flext source files, and possibly, Pure data, if a specific version should be used.
+
+This could be an example:
+make CPPFLAGS="-I ../flext/source" PDDIR="../../pure-data"
+
+For OS X, further flags can be needed:
+CFLAGS="-mmacosx-version-min=10.9" LDFLAGS="-mmacosx-version-min=10.9"
 
 
 pd/Max - Windows - Microsoft Visual C, Borland C++, MinGW:

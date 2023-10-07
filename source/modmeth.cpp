@@ -52,6 +52,20 @@ const char *pybase::py_doc =
     "_tuple(args...): Make a tuple from args\n"
 ;
 
+#if PY_MAJOR_VERSION >= 3
+PyModuleDef pybase::pyext_module_def = {
+    PyModuleDef_HEAD_INIT, // PyModuleDef_Base m_base
+    PYEXT_MODULE, // const char *m_name
+    py_doc, // const char *m_doc
+    -1, // Py_ssize_t m_size
+    func_tbl, // PyMethodDef *m_methods
+    NULL, // PyModuleDef_Slot *m_slots
+    NULL, // traverseproc m_traverse
+    NULL, // inquiry m_clear
+    NULL // freefunc m_free
+};    
+#endif
+
 #ifdef FLEXT_THREADS
 void pybase::tick(void *)
 {
@@ -235,10 +249,10 @@ PyObject *pybase::py_getvalue(PyObject *self,PyObject *args)
     PyObject *ret;
 
     if(
-        sz == 1 && 
+        sz == 1 &&
         (sym = pyObject_AsSymbol(PyTuple_GET_ITEM(args,0))) != NULL
     ) {
-        float f;
+        t_float f;
         if(value_getfloat(const_cast<t_symbol *>(sym),&f)) {
             post("py/pyext - Could not get value '%s'",GetString(sym));
             Py_INCREF(Py_None);

@@ -15,7 +15,7 @@ WARRANTIES, see the file, "license.txt," in this distribution.
 #error You need at least flext version 0.5.0
 #endif
 
-#if FLEXT_OS == FLEXT_OS_MAC
+#ifdef PY_USE_FRAMEWORK
 #include <Python/Python.h>
 #else
 #include <Python.h>
@@ -65,10 +65,10 @@ inline PyObject *pySymbol_FromString(PyObject *str)
 #if PY_MAJOR_VERSION < 3
     if(PyString_Check(str))
         cstr = PyString_AsString(str);
-    else
-#endif
+#else
     if(PyUnicode_Check(str))
         cstr = PyUnicode_AsUTF8(str);
+#endif
     else
         PyErr_SetString(PyExc_TypeError, "Type must be string or unicode"); 
     
@@ -95,10 +95,10 @@ inline const t_symbol *pyObject_AsSymbol(PyObject *op)
 #if PY_MAJOR_VERSION < 3
     if(PyString_Check(op))
         return flext::MakeSymbol(PyString_AS_STRING(op));
-    else
-#endif
+#else
     if(PyUnicode_Check(op))
         return flext::MakeSymbol(PyUnicode_AsUTF8(op));
+#endif
     else
         return pySymbol_AsSymbol(op);
 }

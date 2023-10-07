@@ -38,6 +38,7 @@ FLEXT_LIB_DSP_V("pyext~ pyext.~ pyx~ pyx.~",pydsp)
 pydsp::pydsp(int argc,const t_atom *argv)
     : pyext(argc,argv,true) 
     , dspfun(NULL),sigfun(NULL)
+    , buffers(NULL)
 {}
 
 bool pydsp::DoInit()
@@ -83,7 +84,15 @@ void pydsp::NewBuffers()
 
     for(i = 0; i < ins; ++i) {
         Py_XDECREF(buffers[i]);
-        PyObject *b = PyBuffer_FromReadWriteMemory(insigs[i],n*sizeof(t_sample));
+        PyObject *b =
+#if PY_MAJOR_VERSION < 3
+            PyBuffer_FromReadWriteMemory(insigs[i],n*sizeof(t_sample));
+#elif PY_MINOR_VERSION >= 3
+            PyMemoryView_FromMemory(reinterpret_cast<char *>(insigs[i]), n*sizeof(t_sample), PyBUF_WRITE);
+#else
+#error "TODO"
+#endif
+        
         buffers[i] = arrayfrombuffer(b,1,n);
         Py_DECREF(b);
     }
@@ -95,7 +104,15 @@ void pydsp::NewBuffers()
             Py_XINCREF(buffers[i]);
         }
         else {
-            PyObject *b = PyBuffer_FromReadWriteMemory(outsigs[i],n*sizeof(t_sample));
+            PyObject *b =
+#if PY_MAJOR_VERSION < 3
+                PyBuffer_FromReadWriteMemory(outsigs[i],n*sizeof(t_sample));
+#elif PY_MINOR_VERSION >= 3
+            PyMemoryView_FromMemory(reinterpret_cast<char *>(outsigs[i]), n*sizeof(t_sample), PyBUF_WRITE);
+#else
+#error "TODO"
+#endif
+
             buffers[ins+i] = arrayfrombuffer(b,1,n);
             Py_DECREF(b);
         }

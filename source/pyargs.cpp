@@ -162,8 +162,9 @@ const t_symbol *pybase::getone(t_atom &at,PyObject *arg)
     else if(pySymbol_Check(arg)) { flext::SetSymbol(at,pySymbol_AS_SYMBOL(arg)); return flext::sym_symbol; }
 #if PY_MAJOR_VERSION < 3
     else if(PyString_Check(arg)) { flext::SetString(at,PyString_AS_STRING(arg)); return flext::sym_symbol; }
-#endif
+#else
     else if(PyUnicode_Check(arg)) { flext::SetString(at,PyUnicode_AsUTF8(arg)); return flext::sym_symbol; }
+#endif
     else {
         PyObject *tp = PyObject_Type(arg);
         PyObject *stp = tp?PyObject_Str(tp):NULL;

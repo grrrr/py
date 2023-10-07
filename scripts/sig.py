@@ -1,6 +1,6 @@
 # py/pyext - python script objects for PD and MaxMSP
 #
-# Copyright (c) 2002-2012 Thomas Grill (gr@grrrr.org)
+# Copyright (c) 2002-2017 Thomas Grill (gr@grrrr.org)
 # For information on usage and redistribution, and for a DISCLAIMER OF ALL
 # WARRANTIES, see the file, "license.txt," in this distribution.  
 #
@@ -11,15 +11,17 @@ For numarray see http://numeric.scipy.org
 It will probably once be replaced by Numeric(3)
 """
 
+from __future__ import print_function
+
 try:
     import pyext
 except:
-    print "ERROR: This script must be loaded by the PD/Max py/pyext external"
+    print("ERROR: This script must be loaded by the PD/Max py/pyext external")
 
 try:
     import psyco
     psyco.full()
-    print "Using JIT compilation"
+    print("Using JIT compilation")
 except:
     # don't care
     pass
@@ -29,30 +31,32 @@ import sys,math
 try:    
     import numpy as N
 except:
-    print "Failed importing numpy module:",sys.exc_value
+    print("Failed importing numpy module:",sys.exc_value)
 
 
 class gain(pyext._class):
     """Just a simple gain stage"""
     
-    gain = 0
+    def __init__(self):
+        self.gain = 0
 
     def _signal(self):
         # Multiply input vector by gain and copy to output
-		try:
-			self._outvec(0)[:] = self._invec(0)*self.gain
-		except:
-			pass
+                try:
+                        self._outvec(0)[:] = self._invec(0)*self.gain
+                except:
+                        pass
 
 
 class gain2(pyext._class):
     """More optimized version"""
     
-    gain = 0
+    def __init__(self):
+        self.gain = 0
 
     def _dsp(self):
-        if not self._arraysupport():
-            print "No DSP support"
+        if not pyext._arraysupport():
+            print("No DSP support")
             return False
 
         # cache vectors in this scope
